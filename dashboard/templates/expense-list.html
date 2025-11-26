@@ -1,0 +1,512 @@
+{% load jalali_tags %}
+<style>
+    /* استایل مشترک برای دکمه‌ها */
+    #printExpense, #partnerBtn {
+        font-size: 0.85rem;      
+        padding: 4px 10px;       
+        margin-right: 5px;       
+        margin-top: 1px;
+        height: auto;            
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    /* رنگ و گرادینت دکمه‌ها */
+    #printExpense {
+        background: linear-gradient(135deg, #f57c00, #ffb74d);  /* نارنجی/زرد */
+    }
+    #printExpense:hover {
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
+
+    #partnerBtn {
+        background: linear-gradient(135deg, #28a745, #45d36b);  /* سبز */
+    }
+    #partnerBtn:hover {
+        background: linear-gradient(135deg, #45d36b, #28a745);
+    }
+
+
+
+
+        #expenseTable th, #expenseTable td {
+            padding: 12px 10px !important; /* override padding Bootstrap */
+            
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        
+
+        /* واکنش‌گرایی بیشتر برای موبایل */
+        @media (max-width: 576px) {
+            .search-bar {
+                flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+            }
+
+            .search-bar input {
+                font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+            }
+
+            .btn.btn-success {
+                flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+            }
+        }
+</style>
+<div class="card table-glass p-3 mt-3">
+  <div class="report-actions d-flex align-items-center mb-3  ml-3">
+      <a href="javascript:void(0);" id="partnerBtn" class="btn-action me-2 "
+         data-bs-toggle="modal" data-bs-target="#expenseModal">تعریف هزینه</a>
+         <button id="printExpense" class="btn-action mr-2">چاپ </button>
+        <form class="search-bar " style="margin-right: 15px;">
+            <input type="text" id="expenseInput" class="form-control " placeholder="عبارت جستجو">
+            <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+        </form>
+  </div>
+
+  <div class="table-container table-responsive">
+    <table class="table table-hover table-glass " id="expenseTable">
+      <thead>
+        <tr>
+          <th>کد حساب</th>
+          <th>نام هزینه</th>
+          <th>توضیحات</th>
+          <th>مبلغ (تومان)</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+       
+        {% for row in expense_accounts %}
+        <tr data-type="{{ row.id }}">
+          <td>{{ row.code|persian_digits }}</td>
+          <td>{{ row.name|persian_digits }}</td>
+          <td>{{ row.note|persian_digits }}</td>
+          <td>{{ row.account.calculated_balance_money|persian_intcomma }}</td>
+          
+          <td>
+            <button class="btn btn-warning btn-sm js-edit-expense" data-id="{{ row.id }}">✏️</button>
+            <a href="{% url 'ledger_cash' row.account.id %}" class="btn btn-sm btn-info" target="_blank">📘 دفتر حساب</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" class="text-center">هیچ هزینه ای  ثبت نشده است.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- مدال‌ها -->
+
+<!-- Modal تعریف هزینه -->
+<div class="modal fade" id="expenseModal" tabindex="-1" aria-labelledby="cashbankModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content ">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="cashbankModalLabel"> تعریف هزینه <h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="expenseForm" method="POST">
+          {% csrf_token %}
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label for="name" class="form-label">نام هزینه</label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="مثلاً اجاره مغازه" required>
+            </div>
+
+            <div class="col-md-6">
+
+            </div>
+
+            <div class="col-12 mt-2">
+              <label for="note" class="form-label">توضیحات</label>
+              <textarea class="form-control" id="note" name="note" rows="2" placeholder="توضیح اختیاری..."></textarea>
+            </div>
+
+          </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+        <button type="submit" id="saveExpenseBtn" class="btn btn-success mr-3">💾 ذخیره هزینه</button>
+      </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modalادیت هزینه -->
+<div class="modal fade" id="expenseEditModal" tabindex="-1" aria-labelledby="cashbankModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content ">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="cashbankModalLabel"> ویرایش هزینه <h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="expenseEditForm" method="POST">
+          {% csrf_token %}
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label for="name" class="form-label">کد حساب</label>
+              <input type="text" class="form-control" id="codeEdit" name="code" readonly>
+            </div>
+
+            <div class="col-md-6">
+              <label for="name" class="form-label">نام هزینه</label>
+              <input type="text" class="form-control" id="nameEdit" name="name" required>
+            </div>
+
+
+            <div class="col-12 mt-2">
+              <label for="note" class="form-label">توضیحات</label>
+              <textarea class="form-control" id="noteEdit" name="note" rows="2" placeholder="توضیح اختیاری..."></textarea>
+            </div>
+
+          </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+        <button type="submit" id="editExpenseBtn" class="btn btn-success mr-3">💾 ذخیره هزینه</button>
+      </div>
+    </form>
+    </div>
+  </div>
+</div>
+
+<script>
+
+    //شفاف سازی مدال 
+    document.addEventListener("DOMContentLoaded", function() {
+        const body = document.body;
+        const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+        
+        if (!modals.length) return;
+
+        // گرفتن رنگ واقعی از computedStyle
+        const computedStyle = window.getComputedStyle(body);
+        const bgColor = computedStyle.backgroundColor;
+        const bgImage = computedStyle.backgroundImage;
+
+        modals.forEach(modal => {
+            console.log("Computed background color:", bgColor);
+            console.log("Computed background image:", bgImage);
+
+            // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+            if (bgImage !== 'none') {
+                modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                modal.style.backdropFilter = 'blur(8px)';
+            } else {
+                // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+                modal.style.backgroundColor = bgColor;
+                modal.style.backdropFilter = 'none';
+            }
+
+            // گوشه‌های مدال و استایل دلخواه
+            modal.style.borderRadius = '10px';
+        });
+});
+
+// تبدیل اعداد به فارسی در فیلدهای عددی فروش
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart;
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos);
+    });
+}
+
+makeInputPersian('note');
+makeInputPersian('name');
+makeInputPersian('noteEdit');
+makeInputPersian('nameEdit');
+makeInputPersian('codeEdit');
+makeInputPersian('expenseInput');
+
+
+
+//save
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('expenseForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    fetch("{% url 'add_edit_expense' %}", {
+      method: "POST",
+      body: formData,
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const p = data.expense;
+        // حذف ردیف "هیچ همکاری ثبت نشده است" اگر وجود دارد
+        const emptyRow = document.querySelector('#expenseTable tbody tr td[colspan]');
+        if (emptyRow) {
+        emptyRow.parentElement.remove();
+        }
+
+        const row = `
+          <tr>
+            <td>${toPersian(p.account_code)}</td>
+            <td>${toPersian(p.name)}</td>
+            <td>${toPersian(p.note)}</td>
+            <td>${toPersian(0)}</td>
+            <td>
+              <button class="btn btn-warning btn-sm js-edit-expense" data-id="${p.id}">✏️</button>
+              <a href="/ledger_cash/${p.account_id}" target="_blank" class="btn btn-sm btn-info">📘 دفتر حساب</a>
+              </td>
+            
+          </tr>`;
+        document.querySelector('#expenseTable tbody').insertAdjacentHTML('afterbegin', row);
+        form.reset();
+        //bootstrap.Modal.getInstance(document.getElementById('partnerModal')).hide();
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById("expenseModal"));
+            modalInstance.hide();
+            document.body.classList.remove("modal-open");
+            document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+      } else {
+        Swal.fire("خطا", data.message || "ذخیره با خطا مواجه شد", "error");
+      }
+    })
+    .catch(err => {
+      console.error("خطا:", err);
+      alert("⚠️ خطا در ارتباط با سرور");
+    });
+  });
+
+  // تبدیل اعداد انگلیسی به فارسی
+  window.toPersian = function(num) {
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return String(num).replace(/[0-9]/g, d => persianDigits[d]);
+  };
+});
+
+
+
+//print
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل/چاپ (حذف تصاویر و راست‌چین کردن)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+
+        // حذف ستون عملیات (فرض می‌کنیم آخرین ستون است)
+        Array.from(table.rows).forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+
+
+        // حذف تصاویر
+        table.querySelectorAll('img').forEach(img => img.remove());
+
+        // راست‌چین کردن متن‌ها
+        Array.from(table.rows).forEach(row => {
+            Array.from(row.cells).forEach(cell => {
+                cell.style.textAlign = "right"; // راست‌چین
+                cell.style.direction = "rtl";   // جهت RTL
+            });
+        });
+        return table;
+    }
+
+    // تنظیم دکمه‌ها و جدول‌ها
+    const tables = [
+        {tableId: 'expenseTable', printId: 'printExpense', sheetName: ' لیست هزینه ها '},
+    ];
+
+    tables.forEach(item => {
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const tableClone = cleanTableForExport(item.tableId);
+
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title>');
+
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: right; }
+                        th, td { border: 1px solid #ccc; padding: 8px; }
+                        th { background-color: #f0f0f0; }
+                        td { font-size: 0.95rem; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                         footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(tableClone.outerHTML);
+                newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
+
+
+//edit
+document.addEventListener('DOMContentLoaded', function() {
+    const expenseEditModal = new bootstrap.Modal(document.getElementById('expenseEditModal'));
+    const expenseEditForm = document.getElementById('expenseEditForm');
+    let clickedRow; // ردیف کلیک شده
+
+
+    // تابع تبدیل اعداد انگلیسی به فارسی
+    function toPersian(str) {
+        if (!str) return str;
+        const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+        return str.replace(/\d/g, d => persianDigits[d]);
+    }
+
+    // وقتی روی دکمه ویرایش کلیک شد
+    document.querySelector('#expenseTable').addEventListener('click', function(e) {
+        if (e.target.classList.contains('js-edit-expense')) {
+            clickedRow = e.target.closest('tr');
+            const id = e.target.dataset.id;
+
+            // پر کردن فیلدهای فرم ویرایش
+            document.getElementById('codeEdit').value = clickedRow.children[0].innerText.trim();
+            
+            document.getElementById('nameEdit').value = clickedRow.children[1].innerText.trim();
+            document.getElementById('noteEdit').value = clickedRow.children[2].innerText.trim();
+
+            // ذخیره id روی فرم
+            expenseEditForm.dataset.id = id;
+
+            // نمایش مدال
+            expenseEditModal.show();
+        }
+    });
+
+    // ارسال فرم ویرایش
+    expenseEditForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(expenseEditForm);
+        const id = expenseEditForm.dataset.id;
+        formData.append('id', id);
+
+        fetch("{% url 'add_edit_expense' %}", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const p = data.expense;
+
+                // بروزرسانی ردیف موجود در جدول
+                clickedRow.innerHTML = `
+                    <td>${toPersian(p.account_code)}</td>
+                    <td>${toPersian(p.name)}</td>
+                    <td>${toPersian(p.note) || '-'}</td>
+                    <td>${toPersian(p.balance_money) || '-'}</td>
+
+                    <td>
+                        <button class="btn btn-warning btn-sm js-edit-expense" data-id="${p.id}">✏️</button>
+                        <a href="/ledger_cash/${p.account_id}" target="_blank" class="btn btn-sm btn-info">📘 دفتر حساب</a>
+                    </td>
+                `;
+
+                expenseEditForm.reset();
+                expenseEditModal.hide();
+            } else {
+                alert('⚠️ خطا در ثبت تغییرات');
+            }
+        })
+        .catch(err => {
+            console.error("خطا:", err);
+            alert("⚠️ خطا در ارتباط با سرور");
+        });
+    });
+});
+
+function setupTableSearchMulti(inputId, tableId, columnsToSearch = []) {
+    const input = document.getElementById(inputId);
+    const table = document.getElementById(tableId);
+    if (!input || !table) return;
+
+    input.addEventListener("keyup", function () {
+        const filter = this.value.trim().toLowerCase();
+        console.log(input.value);
+
+        // جدا کردن چند کلیدواژه با فاصله
+        const keywords = filter.split(/\s+/).map(k => 
+            k.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        );
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            let match = true;
+
+            // بررسی هر کلیدواژه
+            keywords.forEach(kw => {
+                let found = false;
+
+                columnsToSearch.forEach(colIndex => {
+                    const cell = row.cells[colIndex];
+                    if (!cell) return;
+
+                    let cellText = cell.innerText.toLowerCase();
+                    let normalizedCell = cellText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+                    if (normalizedCell.includes(kw)) {
+                        found = true;
+                    }
+                });
+
+                // اگر یک کلیدواژه پیدا نشد → ردیف نمایش داده نشود
+                if (!found) match = false;
+            });
+
+            row.style.display = match ? "" : "none";
+        });
+    });
+}
+
+// مثال استفاده برای جدول محصولات (نام کالا و گروه کالا)
+setupTableSearchMulti("expenseInput", "expenseTable", [0,1]);
+
+</script>

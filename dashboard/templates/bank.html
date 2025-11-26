@@ -1,0 +1,1073 @@
+{% extends "_newsidebar.html" %}
+{% load static %}
+{% load jalali_tags %}
+{% block title %}Bank Management{% endblock %}
+
+{% block content %}
+<style>
+    /* فرم‌ها با Glass Effect */
+    .form-control.input-shadow,
+    select.form-control.input-shadow {
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        border-radius: 4px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #fff;
+        padding: 10px 14px;  /* کمی پدینگ بیشتر */
+        font-size: 16px;      /* فونت بزرگ‌تر */
+        box-shadow: none;
+    }
+
+    /* گزینه‌های select شفاف */
+    select.form-control.input-shadow option {
+        background: rgba(20, 20, 20, 0.3);
+        color: #fff;
+        backdrop-filter: blur(6px);
+        font-size: 16px;  /* فونت بزرگ‌تر */
+    }
+
+            /* تب‌ها */
+    .nav-tabs .nav-link {
+        color: #fff; /* رنگ متن سفید */
+        background: rgba(255, 255, 255, 0.1); /* شفاف */
+        border-radius: 8px 8px 0 0;
+        margin-right: 5px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* سایه متن برای خوانایی */
+        font-weight: 500;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: rgba(255, 255, 255, 0.25); /* کمی روشن‌تر برای تب فعال */
+        color: #fff;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        font-weight: 600;
+    }
+
+    .nav-tabs .nav-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    }
+
+    /* اگر میخوای لبه‌ها هم کمی واضح بشه */
+    .nav-tabs {
+        border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+
+
+    /* دکمه‌های اکسل و چاپ حرفه‌ای */
+    /* دکمه‌های اکشن (ظاهر مشابه چاپ) */
+    .btn-action {
+        flex: 0 0 160px;
+        height: 50px;
+        border-radius: 12px;
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        font-size: 16px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-action i {
+        margin-left: 8px;
+        font-size: 18px;
+    }
+
+    /* دکمه‌های اکسل و پرینت */
+    #printsell, #printpartner {
+        font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+        padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+        margin-right: 5px;       /* فاصله بین دکمه‌ها */
+        margin-top:1px;
+        height: auto;            /* ارتفاع متناسب با محتوا */
+    }
+
+    /* رنگ گرادینت برای اکسل و چاپ */
+
+
+    #printpartner, #printsell,#printTransactions,#print_bank_trans ,#print_bank_trans{
+        background: linear-gradient(135deg, #f57c00, #ffb74d);
+    }
+    #printpartner:hover, #printsell:hover,#printTransactions:hover ,#print_bank_trans:hover ,#print_bank_trans:hover{
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
+
+    #partnerBtn, #sellBtn ,#printTransactions,#print_bank_trans{
+        font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+        padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+        margin-right: 5px;       /* فاصله بین دکمه‌ها */
+        margin-top:1px;
+        height: auto;            /* ارتفاع متناسب با محتوا */
+    }
+
+    /* واکنش‌گرایی بیشتر برای موبایل */
+    @media (max-width: 576px) {
+        .search-bar {
+            flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+        }
+
+        .search-bar input {
+            font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+        }
+
+        .btn.btn-success {
+            flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+        }
+    }
+
+    #partnerTable th, #partnerTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+    #sellTable th, #sellTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+    #transactionTable th, #transactionTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    {tableId: 'transactionTable', printId: 'printTransactions', sheetName: 'تراکنش طلای فروشگاه'},
+     /* واکنش‌گرا */
+        @media (max-width: 480px) {
+            .select2-container--default .select2-selection--single {
+                height: 36px;
+                line-height: 36px;
+                font-size: 14px;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 36px;
+            }
+        }
+        /* استایل شفاف و ارتفاع 40px برای تمام select2 */
+        .select2-container--default .select2-selection--single {
+            background: rgba(255, 255, 255, 0.12) !important; /* شفاف */
+            color: #fff !important; /* متن سفید */
+            border: 0px solid rgba(255,255,255,0.2) !important; /* مشابه glassSelect */
+            border-radius: 4px;
+            height: 38px !important;
+            line-height: 40px;
+            padding: 4px 6px;
+            box-shadow: none;
+            font-size: 15px;
+            margin-left: 0;
+            transition: background 0.3s ease; /* فقط تغییر رنگ بدون درخشش */
+            appearance: none;
+
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 1 !important; /* placeholder کاملا واضح */
+            appearance: none;
+            box-shadow: none; /* غیرفعال کردن سایه */
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            top: 0;
+            height: 40px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #fff !important;
+            opacity: 1 !important; /* placeholder کاملا واضح */
+            line-height: 38px !important;
+        
+        }
+
+        /* placeholder سفید */
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #fff !important;
+            opacity: 1 !important;
+            font-weight: 500 !important; /* متن کمی پررنگ‌تر */
+        }
+
+        /* لیست گزینه‌ها */
+        .select2-container--default .select2-results__option {
+            background: rgba(20, 20, 20, 0.85);
+            color: #fff;
+        }
+
+        /* گزینه‌های انتخاب شده یا هاور */
+        .select2-container--default .select2-results__option--highlighted {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+</style>
+
+    <!-- Tabs -->
+<ul class="nav nav-tabs mt-3" id="reportTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="bank-tab" data-bs-toggle="tab" data-bs-target="#bankTab" type="button" role="tab">حساب‌های بانکی</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="transaction-tab" data-bs-toggle="tab" data-bs-target="#transactionTab" type="button" role="tab">تراکنش‌ های بانکی</button>
+  </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="reportTabsContent">
+
+  <!-- TAB 1 | Bank Accounts -->
+  <div class="tab-pane fade show active" id="bankTab" role="tabpanel">
+
+    <!-- Buttons -->
+    <div class="card table-glass p-3 mt-3">
+      <div class="report-actions d-flex align-items-center mb-3 ml-3">
+
+        <a href="javascript:void(0);" class="btn btn-success me-2"
+           data-bs-toggle="modal" data-bs-target="#bankModal">تعریف بانک</a>
+
+        <a href="javascript:void(0);" class="btn btn-success" style="margin-right: 20px;"
+           data-bs-toggle="modal" data-bs-target="#bankAccountModal">تعریف حساب بانکی</a>
+      </div>
+    </div>
+
+    <!-- Bank accounts list -->
+    <div class="card table-glass p-3 mt-3">
+      <div class="report-actions d-flex align-items-center mb-3 ml-3">
+        <button id="printpartner" class="btn-action">چاپ</button>
+        <form class="search-bar" style="margin-right: 15px;">
+          <input type="text" id="partnerInput" class="form-control" placeholder="بانک - صاحب">
+          <a href="javascript:void();"><i class="icon-magnifier"></i></a>
+        </form>
+      </div>
+
+      <div class="table-container table-responsive">
+        <table class="table table-hover table-glass" id="partnerTable">
+             <input type="hidden" name='flag' class="form-control mr-4" >
+          <thead>
+            <tr>
+              <th>بانک</th>
+              <th>شماره حساب</th>
+              <th>شماره کارت</th>
+              <th>صاحب</th>
+              <th>موجودی پول (تومان)</th>
+              <th>عملیات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- ✅ ردیف صندوق -->
+            <tr>
+            <td>صندوق</td>
+            <td>-</td>
+            <td>-</td>
+            <td>{{ cash_info.account.name }}</td>
+            <td>{{ cash_info.balance|persian_intcomma }}</td>
+            <td>
+                <a href="{% url 'bank_ledger' cash_info.account.id %}?type=cash" class="btn btn-sm btn-info" target="_blank">
+                📘 دفتر صندوق
+                </a>
+                <a href="#" class="btn btn-sm btn-success moneyTransactionBtn"
+                data-id="{{ cash_info.account.id }}"
+                data-type="cash"
+                data-bs-toggle="modal"
+                data-bs-target="#moneyTransactionModal">
+                💰 ثبت تراکنش
+                </a>
+            </td>
+            </tr>
+            {% for row in accounts_data %}
+            <tr>
+              <td class='td-bankname'>{{ row.bank_account.bank.name }}</td>
+              <td class='td-account_number'>{{ row.bank_account.account_number|persian_digits }}</td>
+              <td class='td-cardnumber'>{{ row.bank_account.card_number|persian_digits }}</td>
+              <td class='td-owner'>{{ row.bank_account.owner }}</td>
+              <td class='td-bankmoney'>{{ row.bank_account.balance_money|persian_intcomma }}</td>
+              <td>
+                <a href="{% url 'bank_ledger' row.bank_account.id %}?type=bank" class="btn btn-sm btn-info" target="_blank">
+                    📘 دفتر حساب
+                </a>
+                <a href="#" class="btn btn-sm btn-success moneyTransactionBtn"
+                    data-id="{{ row.bank_account.id }}"
+                    data-type="bank"
+                    data-bs-toggle="modal"
+                    data-bs-target="#moneyTransactionModal">
+                    💰 ثبت تراکنش 
+                    </a>
+
+                
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" class="text-center">هیچ حساب بانکی ثبت نشده است.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div> <!-- end tab 1 -->
+
+
+  <!-- TAB 2 | Transactions -->
+  <div class="tab-pane fade" id="transactionTab" role="tabpanel">
+      <div class="card table-glass p-3 mt-4 text-center">
+        <div class="report-actions d-flex align-items-center mb-3 ml-3">
+
+            <button id="print_bank_trans" class="btn-action">چاپ</button>
+
+            <form class="search-bar">
+                <input type="text" id="bankTransSearch" class="form-control mr-4" placeholder="تاریخ- شماره سند- یانک">
+                <a href="javascript:void();"><i class="icon-magnifier"></i></a>
+            </form>
+
+        </div>
+
+        <div class="table-container table-responsive">
+            <table class="table table-hover table-glass" id="bankTransTable">
+                <thead>
+                    <tr>
+                        <th>تاریخ</th>
+                        <th>بانک</th>
+                        <th>شماره سند</th>
+                        <th>واریز وجه</th>
+                        
+                        <th>برداشت وجه</th>
+                        
+                        <th>شرح</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for t in bank_transactions %}
+                        <tr>
+                            <td class='td-date'>{{ t.entry.date|to_jalali }}</td>
+                            <td class='td-tname'>{{ t.bank_account.bank.name|persian_digits }}</td>
+                            <td class='td-enumber'>{{ t.entry.id|persian_digits }}</td>
+
+                                <td class='td-dmoney'>{{ t.debit_money|floatformat:0|persian_intcomma }}</td>
+
+                                <td class='td-cmoney'>{{ t.credit_money|floatformat:0|persian_intcomma }}</td>
+ 
+
+                            <td class='td-des'>{{ t.description |persian_digits}}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">هیچ تراکنشی ثبت نشده است.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+        </div>
+      </div>
+  </div>
+
+</div>
+
+
+<!-- ------------------- -->
+<!-- Modal تعریف بانک -->
+<!-- ------------------- -->
+<div class="modal fade" id="bankModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="bankForm" method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">تعریف بانک</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>کد بانک</label>
+                        <input type="text" id="codeInput" name="code" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>نام بانک</label>
+                        <input type="text" id="nameInput" name="name" class="form-control " required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>توضیحات</label>
+                        <textarea name="note" id="noteInput" class="form-control"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                    <button type="submit" class="btn btn-primary mr-3">ثبت بانک</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ---------------------------- -->
+<!-- Modal تعریف حساب بانکی جدید -->
+<!-- ---------------------------- -->
+<div class="modal fade" id="bankAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="bankAccountForm" method="post">
+                {% csrf_token %}
+
+                <div class="modal-header">
+                    <h5 class="modal-title">تعریف حساب بانکی</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+
+                    <div class="mb-3">
+                        <label>انتخاب بانک</label>
+                        <select name="bank" class="form-control" required>
+                            <option value="">انتخاب کنید</option>
+                            {% for bank in bank_name %}
+                            <option value="{{ bank.id }}">{{ bank.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>شماره حساب / شبا</label>
+                        <input type="text" name="account_number" class="form-control persian-number" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>شماره کارت</label>
+                        <input type="text" name="card_number" class="form-control persian-number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>نام صاحب حساب</label>
+                        <input type="text" id="ownerInput" name="owner" class="form-control " required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>موجودی پول (تومان)</label>
+                        <input type="text" name="opening_balance" class="form-control price-number" value={{0|persian_digits}}>
+                    </div>
+
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                    <button type="submit" class="btn btn-primary mr-3">ثبت حساب بانکی</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<!-- ---------------------------- -->
+<!-- Modal تعریف تراکنش بانکی جدید -->
+<!-- ---------------------------- -->
+<div class="modal fade" id="moneyTransactionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="transactionForm" method="post" action="{% url 'save_transaction' %}">
+                {% csrf_token %}
+                <!-- 🔹 hidden fields برای ارسال داده‌های حساب -->
+                <input type="hidden" name="bank_account_id">
+                <input type="hidden" name="account_type"> <!-- bank یا cash -->
+
+                <div class="modal-header">
+                    <h5 class="modal-title">ثبت تراکنش بانک</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" name="bank_account_id" id="bankAccountId">
+
+                    <div class="mb-3">
+                        <label>نوع تراکنش</label>
+                        <select name="type" class="form-control" required>
+                            
+                            <option value="deposit_money">واریز پول</option>
+                            <option value="withdraw_money">برداشت پول</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>مبلغ پول (تومان)</label>
+                        <input type="text" name="money" class="form-control price-number" value={{0|persian_digits}}>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label>حساب مقابل:</label>
+                        <select name="counter_account" id="accounSelect" class="form-select">
+                            <option value="">انتخاب کنید...</option>
+                            {% for acc in accounts %}
+                                <option value="{{ acc.id }}">{{ acc.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>شرح:</label>
+                        <textarea name="description" class="form-control"></textarea>
+                    </div>
+
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+                    <button type="submit" class="btn btn-primary mr-3">ثبت تراکنش بانکی</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>  
+
+
+
+
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+
+// تابع گرفتن CSRF Token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(cookie => {
+            const c = cookie.trim();
+            if (c.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(c.substring(name.length + 1));
+            }
+        });
+    }
+    return cookieValue;
+}
+
+// تعریف csrftoken در سطح بالا (در کل فایل JS قابل دسترس)
+const csrftoken = getCookie('csrftoken');
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const body = document.body;
+    const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+    
+    if (!modals.length) return;
+
+    // گرفتن رنگ واقعی از computedStyle
+    const computedStyle = window.getComputedStyle(body);
+    const bgColor = computedStyle.backgroundColor;
+    const bgImage = computedStyle.backgroundImage;
+
+    modals.forEach(modal => {
+        console.log("Computed background color:", bgColor);
+        console.log("Computed background image:", bgImage);
+
+        // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+        if (bgImage !== 'none') {
+            modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+            modal.style.backdropFilter = 'blur(8px)';
+        } else {
+            // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+            modal.style.backgroundColor = bgColor;
+            modal.style.backdropFilter = 'none';
+        }
+
+        // گوشه‌های مدال و استایل دلخواه
+        modal.style.borderRadius = '10px';
+    });
+});
+
+// تبدیل اعداد انگلیسی به فارسی
+function toPersianDigits(str) {
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return str.replace(/\d/g, d => persianDigits[d]);
+}
+
+// تبدیل اعداد فارسی به انگلیسی
+function toEnglishDigits(str) {
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return str.replace(/[۰-۹]/g, d => persianDigits.indexOf(d));
+}
+
+// --- تبدیل اعداد فارسی به انگلیسی ---
+function persianToEnglish(str) {
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return str.replace(/[۰-۹]/g, d => persianDigits.indexOf(d))
+              .replace(/,/g,''); // حذف کاما
+}
+
+// جداکننده هزارگان و فارسی کردن
+    function formatNumberToPersian(str) {
+        // تبدیل هر چیزی به عدد انگلیسی برای محاسبه
+        let englishStr = str.replace(/[۰-۹]/g, d => persianDigits.indexOf(d));
+        let num = Number(englishStr.replace(/,/g,''));
+        if (isNaN(num)) return '';
+        return toPersianDigits(num.toLocaleString('en-US'));
+    }
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+    // تبدیل اعداد انگلیسی به فارسی
+    function toPersianDigits(str) {
+        return str.replace(/\d/g, d => persianDigits[d]);
+    }
+
+    // جداکننده هزارگان و فارسی کردن (برای قیمت)
+    function formatPriceToPersian(str) {
+        let englishStr = str.replace(/[۰-۹]/g, d => persianDigits.indexOf(d));
+        let num = Number(englishStr.replace(/,/g,''));
+        if (isNaN(num)) return '';
+        return toPersianDigits(num.toLocaleString('en-US'));
+    }
+
+    // اعداد قیمت / مبلغ (سه رقم جدا + فارسی)
+    document.querySelectorAll('input.price-number').forEach(input => {
+        input.addEventListener('input', function() {
+            this.value = formatPriceToPersian(this.value);
+        });
+    });
+
+    // اعداد معمولی یا اعشاری (فقط فارسی، اعشار مجاز)
+    document.querySelectorAll('input.persian-number').forEach(input => {
+        input.addEventListener('input', function() {
+            // اجازه می‌ده فقط اعداد و یک نقطه برای اعشار باشه
+            let val = this.value.replace(/[^\d۰-۹.]/g,'');
+            // تبدیل اعداد انگلیسی و فارسی به فارسی
+            this.value = toPersianDigits(val);
+        });
+    });
+
+});
+
+const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart; // حفظ مکان کرسر
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos); // برگرداندن کرسر
+    });
+}
+makeInputPersian('codeInput');
+makeInputPersian('nameInput');
+makeInputPersian('noteInput');
+makeInputPersian('ownerInput');
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    // --- تابع گرفتن CSRF Token ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            document.cookie.split(';').forEach(cookie => {
+                const c = cookie.trim();
+                if (c.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                }
+            });
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+    // --- نمایش Toast ---
+    function showToast(message, type="success") {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type} position-fixed top-0 end-0 m-3`;
+        toast.style.zIndex = 9999;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }
+
+    // --- ثبت بانک با Ajax ---
+    const bankForm = document.getElementById('bankForm');
+    if(bankForm){
+        bankForm.addEventListener('submit', function(e){
+            e.preventDefault();
+            const formData = new FormData(bankForm);
+            fetch("{% url 'save_bank' %}", {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success'){
+                    bankForm.reset();
+
+                    // بروزرسانی select بانک در modal حساب بانکی
+                    const bankSelect = document.querySelector('#bankAccountModal select[name="bank"]');
+                    if(bankSelect && data.bank){
+                        const option = document.createElement('option');
+                        option.value = data.bank.id;
+                        option.textContent = data.bank.name;
+                        bankSelect.appendChild(option);
+                    }
+
+                    // بستن modal بانک
+                    const modalEl = document.getElementById('bankModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                    // حذف دستی backdrop در صورت باقی موندن
+                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+
+                    
+
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(err => console.log(err));
+        });
+    }
+
+    
+    // --- ثبت حساب بانکی با Ajax ---
+    const bankAccountForm = document.getElementById('bankAccountForm');
+    if(bankAccountForm){
+        bankAccountForm.addEventListener('submit', function(e){
+            e.preventDefault();
+
+            // قبل از ساخت FormData، مقادیر input ها رو اصلاح کن
+            const inputs = bankAccountForm.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if(input.classList.contains('price-number') || input.type === 'number'){
+                    input.value = persianToEnglish(input.value);
+                }
+            });
+
+            const formData = new FormData(bankAccountForm);
+            fetch("{% url 'save_bank_account' %}", {
+                method: 'POST',
+                headers: {'X-CSRFToken': csrftoken},
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.status === 'success'){
+                    //showToast(data.message, 'success');
+                    bankAccountForm.reset();
+
+                    // رفرش جدول partnerTable
+                    const tbody = document.querySelector('#partnerTable tbody');
+                    if(tbody && data.bank_account){
+                        // حذف ردیف empty اگر وجود داشت
+                        const emptyRow = tbody.querySelector('tr td[colspan]');
+                        if(emptyRow){
+                            emptyRow.parentElement.remove();
+                        }
+
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${data.bank_account.bank.name}</td>
+                            <td>${data.bank_account.account_number}</td>
+                            <td>${data.bank_account.card_number}</td>
+                            <td>${data.bank_account.owner}</td>
+                            <td>${data.bank_account.balance_money}</td>
+                            <td>
+                                <a href="/bank_ledger/${data.bank_account.id}/">دفتر حساب</a> |
+                                <a href="/bank_deposit/${data.bank_account.id}/">ثبت تراکنش</a> |
+
+                            </td>
+                        `;
+                        tbody.appendChild(row);
+                    }
+
+                    // بستن modal حساب بانکی
+                    const modalEl = document.getElementById('bankAccountModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+
+                } else {
+                    showToast(data.message, 'danger');
+                }
+            })
+            .catch(err => console.log(err));
+        });
+    }
+
+});
+
+//tab2
+
+
+$(document).on("click", ".moneyTransactionBtn", function () {
+    let id = $(this).data("id");
+    console.log("بانک انتخاب شد:", id);
+    $("#bankAccountId").val(id);
+});
+
+
+$(document).ready(function() {
+
+    $("#transactionForm").on("submit", function(e) {
+        console.log("✅ فرم کلیک شد");
+
+        e.preventDefault();
+
+        // قبل از ساخت FormData، مقادیر input ها رو اصلاح کن
+            const inputs = transactionForm.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                if(input.classList.contains('price-number') || input.type === 'number'){
+                    input.value = persianToEnglish(input.value);
+                }
+            });
+
+        $.ajax({
+            url: "{% url 'save_transaction' %}",
+            type: "POST",
+            data: $(this).serialize(),
+            success: function (response) {
+                console.log("✅ پاسخ سرور", response);
+                Swal.fire("موفق!", "تراکنش ثبت شد", "success");
+                $("#moneyTransactionModal").modal("hide");
+                setTimeout(() => location.reload(), 500);
+            },
+            error: function (xhr) {
+                console.log("❌ خطا", xhr);
+                Swal.fire("خطا!", "مشکل در سرور", "error");
+            }
+        });
+
+    });
+
+});
+
+//cdn.jsdelivr.net/npm/select2
+
+function initSellerSelects2(selectors) {
+
+    console.log('selectjadid');
+
+    // 🔹 تبدیل اعداد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return '';
+        return str.replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 1728));
+    }
+
+    // 🔹 اجرای select2 برای هر شناسه در آرایه
+    selectors.forEach(selector => {
+        const $el = $(selector);
+        if (!$el.length) return; // اگر المان وجود ندارد، رد شو
+
+        $el.select2({
+            placeholder: "انتخاب کنید...",
+            allowClear: true,
+            width: '100%',
+            dir: 'rtl',
+            
+            //dropdownParent: $(document.body),
+            dropdownParent: $el.closest('.modal'), // 👈 این مهمه
+
+            language: {
+                noResults: function () {
+                    return $('<div class="p-2 text-center">موردی یافت نشد</div>');
+                },
+                searching: function () {
+                    return "در حال جستجو...";
+                },
+                inputTooShort: function () {
+                    return "برای جستجو چند حرف وارد کنید...";
+                },
+            },
+
+            // ✳️ جستجو بر اساس نام، کد و اعداد فارسی یا انگلیسی
+            matcher: function (params, data) {
+                if ($.trim(params.term) === '') return data;
+
+                const term = persianToEnglish(params.term.toLowerCase());
+                const text = persianToEnglish((data.text || '').toLowerCase());
+                const code = persianToEnglish(($(data.element).data('code') || '').toString().toLowerCase());
+
+                if (text.includes(term) || code.includes(term)) {
+                    return data;
+                }
+                return null;
+            },
+
+            escapeMarkup: function (markup) { return markup; }
+        });
+    });
+}
+$(document).ready(function () {
+    initSellerSelects2(['#accounSelect']);
+});
+
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart; // حفظ مکان کرسر
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos); // برگرداندن کرسر
+    });
+}
+
+// فعال کردن روی فیلدها
+makeInputPersian('bankTransSearch');
+makeInputPersian('partnerInput');
+
+// تبدیل فارسی به انگلیسی
+function persianToEnglish(str){
+    const persian = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return String(str).replace(/[۰-۹]/g, d => persian.indexOf(d).toString());
+}
+
+//serach tarkibi
+document.getElementById('bankTransSearch').addEventListener('input', function() {
+    const filter = persianToEnglish(this.value.toLowerCase()).trim(); // تبدیل به انگلیسی و حذف فاصله اضافی
+    const keywords = filter.split(/\s+/); // جدا کردن کلمات بر اساس فاصله
+    const rows = document.querySelectorAll('#bankTransTable tbody tr');
+
+    rows.forEach(row => {
+        const code = persianToEnglish(row.querySelector('.td-date').textContent.toLowerCase());
+        const name = persianToEnglish(row.querySelector('.td-des').textContent.toLowerCase());
+        const category = persianToEnglish(row.querySelector('.td-enumber').textContent.toLowerCase());
+        const weight = persianToEnglish(row.querySelector('.td-tname').textContent.toLowerCase());
+
+        // ترکیب متن تمام ستون‌های موردنظر
+        const combinedText = `${code} ${name} ${category} ${weight}`;
+
+        // بررسی اینکه تمام کلمات جستجو در متن ردیف وجود داشته باشند
+        const matches = keywords.every(word => combinedText.includes(word));
+
+        row.style.display = matches ? '' : 'none';
+    });
+});
+
+
+//serach tarkibi
+document.getElementById('partnerInput').addEventListener('input', function() {
+    const filter = persianToEnglish(this.value.toLowerCase()).trim(); // تبدیل به انگلیسی و حذف فاصله اضافی
+    const keywords = filter.split(/\s+/); // جدا کردن کلمات بر اساس فاصله
+    const rows = document.querySelectorAll('#partnerTable tbody tr');
+
+    rows.forEach(row => {
+        const code = persianToEnglish(row.querySelector('.td-owner').textContent.toLowerCase());
+        const name = persianToEnglish(row.querySelector('.td-bankname').textContent.toLowerCase());
+        //const category = persianToEnglish(row.querySelector('.td-enumber').textContent.toLowerCase());
+        //const weight = persianToEnglish(row.querySelector('.td-tname').textContent.toLowerCase());
+
+        // ترکیب متن تمام ستون‌های موردنظر
+        const combinedText = `${code} ${name} `;
+
+        // بررسی اینکه تمام کلمات جستجو در متن ردیف وجود داشته باشند
+        const matches = keywords.every(word => combinedText.includes(word));
+
+        row.style.display = matches ? '' : 'none';
+    });
+});
+//print  
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل (حذف تصاویر)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+        table.querySelectorAll('img').forEach(img => img.remove());
+        
+    // راست‌چین کردن متن‌ها
+    Array.from(table.rows).forEach(row => {
+        Array.from(row.cells).forEach(cell => {
+            cell.style.textAlign = "right"; // محتوا راست‌چین
+            cell.style.direction = "rtl";   // جهت RTL
+        });
+    });
+        return table;
+    }
+
+    // تعریف همه جدول‌ها و دکمه‌ها
+    const tables = [
+        {tableId: 'bankTransTable', printId: 'print_bank_trans', sheetName: 'تراکنش های بانکی'},
+        {tableId: 'partnerTable', printId: 'printpartner', sheetName: 'حساب های بانکی'},
+        
+    ];
+
+    tables.forEach(item => {
+        // اکسل
+        const exportBtn = document.getElementById(item.exportId);
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const clone = cleanTableForExport(item.tableId);
+                
+                const wb = XLSX.utils.table_to_book(clone, {sheet: item.sheetName});
+
+                wb.Sheets[item.sheetName]['!cols'] = Array.from({length: clone.rows[0].cells.length}, () => ({wch:20}));
+                XLSX.writeFile(wb, `${item.sheetName}-${getTodayDateShamsi()}.xlsx`);
+            });
+        }
+
+        // چاپ
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const divToPrint = document.getElementById(item.tableId);
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title></head><body>');
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: center; }
+                        th, td { border: 1px solid #ccc; padding: 10px; }
+                        th { background-color: #f0f0f0; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                        footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(divToPrint.outerHTML);
+                 newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
+
+</script>
+
+
+{% endblock %}

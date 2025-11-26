@@ -1,0 +1,216 @@
+<!-- accounting_setup.html -->
+{% extends '_newsidebar.html' %}
+{% load static %}
+{% load jalali_tags %}
+{% block content %}
+<style>
+           
+    /* فرم‌ها با Glass Effect */
+    .form-control.input-shadow,
+    select.form-control.input-shadow {
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        border-radius: 4px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #fff;
+        padding: 10px 14px;  /* کمی پدینگ بیشتر */
+        font-size: 16px;      /* فونت بزرگ‌تر */
+        box-shadow: none;
+    }
+
+    /* گزینه‌های select شفاف */
+    select.form-control.input-shadow option {
+        background: rgba(20, 20, 20, 0.3);
+        color: #fff;
+        backdrop-filter: blur(6px);
+        font-size: 16px;  /* فونت بزرگ‌تر */
+    }
+
+            /* تب‌ها */
+    .nav-tabs .nav-link {
+        color: #fff; /* رنگ متن سفید */
+        background: rgba(255, 255, 255, 0.1); /* شفاف */
+        border-radius: 8px 8px 0 0;
+        margin-right: 5px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* سایه متن برای خوانایی */
+        font-weight: 500;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: rgba(255, 255, 255, 0.25); /* کمی روشن‌تر برای تب فعال */
+        color: #fff;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        font-weight: 600;
+    }
+
+    .nav-tabs .nav-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    }
+
+    /* اگر میخوای لبه‌ها هم کمی واضح بشه */
+    .nav-tabs {
+        border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+
+
+    /* دکمه‌های اکسل و چاپ حرفه‌ای */
+    /* دکمه‌های اکشن (ظاهر مشابه چاپ) */
+    .btn-action {
+        flex: 0 0 160px;
+        height: 50px;
+        border-radius: 12px;
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        font-size: 16px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-action i {
+        margin-left: 8px;
+        font-size: 18px;
+    }
+
+    /* دکمه‌های اکسل و پرینت */
+    #printsell, #printpartner {
+        font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+        padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+        margin-right: 5px;       /* فاصله بین دکمه‌ها */
+        margin-top:1px;
+        height: auto;            /* ارتفاع متناسب با محتوا */
+    }
+
+    /* رنگ گرادینت برای اکسل و چاپ */
+
+
+    #printpartner, #printsell,#printTransactions {
+        background: linear-gradient(135deg, #f57c00, #ffb74d);
+    }
+    #printpartner:hover, #printsell:hover,#printTransactions:hover {
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
+
+    #partnerBtn, #sellBtn ,#printTransactions{
+        font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+        padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+        margin-right: 5px;       /* فاصله بین دکمه‌ها */
+        margin-top:1px;
+        height: auto;            /* ارتفاع متناسب با محتوا */
+    }
+
+    /* واکنش‌گرایی بیشتر برای موبایل */
+    @media (max-width: 576px) {
+        .search-bar {
+            flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+        }
+
+        .search-bar input {
+            font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+        }
+
+        .btn.btn-success {
+            flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+        }
+    }
+
+    #partnerTable th, #partnerTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+    #sellTable th, #sellTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+    #transactionTable th, #transactionTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    {tableId: 'transactionTable', printId: 'printTransactions', sheetName: 'تراکنش طلای فروشگاه'},
+
+    /* واکنش‌گرایی بیشتر برای موبایل */
+    @media (max-width: 576px) {
+        .search-bar {
+            flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+        }
+
+        .search-bar input {
+            font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+        }
+
+        .btn.btn-success {
+            flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+        }
+    }
+
+
+</style>
+
+  
+    <!-- Nav Tabs -->
+<ul class="nav nav-tabs mt-3" id="aaccountingTabsNav" role="tablist" >
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="persons-tabBtn" data-bs-toggle="tab" data-bs-target="#persons-tab" type="button" role="tab">👤 اشخاص </button>
+  </li>
+  <!--
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="accounts-tabBtn" data-bs-toggle="tab" data-bs-target="#accounts-tab" type="button" role="tab">📘 حساب‌ها </button>
+  </li>-->
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="bankcash-tabBtn" data-bs-toggle="tab" data-bs-target="#bankcash-tab" type="button" role="tab">💰 صندوق و بانک </button>
+  </li>
+  <!--
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="inventory-tabBtn" data-bs-toggle="tab" data-bs-target="#inventory-tab" type="button" role="tab">🏅 موجودی طلا </button>
+  </li>-->
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="expenses-tabBtn" data-bs-toggle="tab" data-bs-target="#expenses-tab" type="button" role="tab">📉 هزینه‌ها</button>
+  </li>
+</ul>
+
+
+
+  <!-- 🔹 محتوای تب‌ها -->
+  <div class="tab-content" id="accountingTabs">
+
+      <!-- persons -->
+    <div class="tab-pane fade show active" id="persons-tab" role="tabpanel">
+        {% include 'person-list.html' %}
+    </div><!--tab pane persons-->
+
+      <!-- cashbank -->
+    <div class="tab-pane fade" id="bankcash-tab" role="tabpanel">
+        {% include 'cashbank-list.html' %}
+    </div><!--tab pane persons-->
+
+      <!-- cashbank -->
+    <div class="tab-pane fade" id="expenses-tab" role="tabpanel">
+        {% include 'expense-list.html' %}
+    </div><!--tab pane persons-->
+    
+
+  </div><!--tab content-->
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>چاپ لیبل اقلام</title>
+<style>
+  @page { size: 49mm 10mm; margin: 0; }
+  body {
+    font-family: sans-serif;
+    direction: rtl;
+    width: 49mm;
+    margin: 0;
+    padding: 0;
+  }
+
+  .label {
+    text-align: center;
+    font-size: 10px;
+    border-bottom: 1px dashed #ccc;
+    padding: 2mm 0;
+    page-break-inside: avoid;
+  }
+
+  .label strong {
+    font-size: 11px;
+  }
+
+  img.barcode {
+    width: 45mm;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+  {% for item in purchase_items %}
+  <div class="label">
+    <strong>{{ store_name }}</strong><br>
+    کد : {{ item.product.code }} <br>
+    وزن: {{ item.product.weight }} گرم<br>
+    عیار : {{ item.product.purity }} <br>
+    <!--<img class="barcode" src="data:image/png;base64,{{ item.barcode_data }}" alt="barcode">-->
+  </div>
+  {% endfor %}
+
+  <script>
+    window.onload = function() {
+      window.print();
+    };
+  </script>
+</body>
+</html>

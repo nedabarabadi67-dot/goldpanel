@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    {% load static %}
+    {% load jalali_tags %}
+    <meta charset="UTF-8">
+    <title>دفتر حساب {{ account.name }}</title>
+    <style>
+
+        @page {
+    size: A4 portrait;
+    margin: 10mm;
+    @bottom-center {
+        content: "صفحه " counter(page) " از " counter(pages);
+        font-size: 9px;
+    }
+    @bottom-right {
+        content: "چاپ شده توسط سیستم گلد پنل ";
+        font-size: 9px;
+    }
+}
+
+
+        body {
+            font-family: IranYekan, sans-serif;
+            direction: rtl;
+            font-size: 13px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .header img {
+            height: 60px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            margin: 5px 0;
+        }
+
+        .info-box {
+            margin-top: 10px;
+            font-size: 12px;
+            border: 1px solid #888;
+            padding: 7px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            padding: 5px;
+        }
+
+        th {
+            background-color: #eee;
+            font-weight: bold;
+        }
+
+        tfoot td {
+            background: #ddd;
+            font-weight: bold;
+        }
+
+        .signature {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+        }
+
+        .signature div {
+            width: 30%;
+            text-align: center;
+            border-top: 1px solid #000;
+            padding-top: 5px;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+    </style>
+</head>
+<body>
+
+<!-- سربرگ -->
+<div class="header">
+    <div><h2>گالری اوین شاه</h2></div>
+    <div><img src="{% static 'assets/images/logo-evin.jpeg' %}"></div>
+</div>
+
+<h3>دفتر حساب </h3>
+
+<!-- اطلاعات مشتری -->
+<div class="info-box">
+    نام حساب: <b>{{ account.name|persian_digits }}</b> |
+    کد حساب: <b>{{ account.code|persian_digits }}</b> |
+    تاریخ چاپ: <b>{{ now|to_jalali }}</b>
+</div>
+
+<!-- جدول حساب -->
+<table>
+    <thead>
+        <tr>
+            <th>تاریخ</th>
+            <th>شماره سند</th>
+            <th>شرح</th>
+            <th>بدهکار پول</th>
+            <th>بستانکار پول</th>
+            <th>مانده پول</th>
+
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for row in ledger %}
+        <tr>
+            <td>{{ row.date|to_jalali }}</td>
+            <td>{{ row.number|persian_digits }}</td>
+            <td>{{ row.item_description|default:row.description|persian_digits }}</td>
+            <td>{{ row.debit_money|persian_intcomma }}</td>
+            <td>{{ row.credit_money|persian_intcomma }}</td>
+            <td>{{ row.balance_money|format_balance|persian_intcomma }}</td>
+
+        </tr>
+        {% endfor %}
+    </tbody>
+
+    <tfoot>
+        <tr>
+            <td colspan="3">جمع کل</td>
+            <td>{{ total_debit_money|persian_intcomma }}</td>
+            <td>{{ total_credit_money|persian_intcomma }}</td>
+            <td>{{ final_balance_money|format_balance|persian_intcomma }}</td>
+
+        </tr>
+    </tfoot>
+</table>
+
+<!-- بخش امضا -->
+<div class="signature">
+    <div>تایید حسابدار</div>
+    
+    <div>مهر فروشگاه</div>
+</div>
+
+
+</body>
+</html>

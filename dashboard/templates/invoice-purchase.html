@@ -1,0 +1,2382 @@
+{% extends "_newsidebar.html" %}
+{% load static %}
+{% load humanize %}
+{% load jalali_tags %}
+{% block title %}فاکتور خرید طلا{% endblock %}
+
+
+{% block content %}
+
+
+<style>
+
+
+ 
+
+                        /* تب‌ها */
+        .nav-tabs .nav-link {
+            color: #fff; /* رنگ متن سفید */
+            background: rgba(255, 255, 255, 0.1); /* شفاف */
+            border-radius: 8px 8px 0 0;
+            margin-right: 5px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* سایه متن برای خوانایی */
+            font-weight: 500;
+        }
+
+        .nav-tabs .nav-link.active {
+            background: rgba(255, 255, 255, 0.25); /* کمی روشن‌تر برای تب فعال */
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            font-weight: 600;
+        }
+
+        .nav-tabs .nav-link:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+
+        /* اگر میخوای لبه‌ها هم کمی واضح بشه */
+        .nav-tabs {
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+        }
+
+        /* سلول‌ها */
+        #productsTable th, #productsTable td {
+            white-space: nowrap; /* جلوگیری از شکست خطوط */
+            vertical-align: middle;
+        }
+
+        /* ستون توضیحات */
+        #productsTable td.descriptionCell {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* تصویر محصول */
+        #productsTable td img.imagePreview {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+        }
+
+        .glassSelect {
+        background: rgba(255, 255, 255, 0.12);
+        border: none;
+        width: 110px;
+        border-radius: 4px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #fff;
+        padding: 4px 6px;
+        margin-left: 0;
+        font-size: 15px;
+        transition: background 0.3s ease; /* فقط تغییر رنگ بدون درخشش */
+        appearance: none;
+        box-shadow: none; /* غیرفعال کردن سایه */
+        }
+
+        .productCategory {
+
+        width: 150px;
+        border-radius: 4px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        color: #fff;
+        padding: 4px 6px;
+        margin-left: 0;
+        font-size: 15px;
+
+        }
+
+        .productCategory option {
+        background: rgba(20, 20, 20, 0.85);
+        color: #fff;
+        }
+
+        .glassSelect option {
+        background: rgba(20, 20, 20, 0.85);
+        color: #fff;
+        }
+
+                /* اگر دوست داری هاور هیچ تغییری نداشته باشه */
+        .productCategory:hover {
+        background: rgba(255, 255, 255, 0.12); /* همان رنگ پیش‌فرض */
+        box-shadow: none;
+        }
+        /* اگر دوست داری هاور هیچ تغییری نداشته باشه */
+        .glassSelect:hover {
+        background: rgba(255, 255, 255, 0.12); /* همان رنگ پیش‌فرض */
+        box-shadow: none;
+        }
+
+        .imagePreview {
+            width: 40px; /* اندازه ثابت وقتی تصویر هست */
+            height=60px;
+            display: none; /* به‌صورت پیش‌فرض مخفی */
+        }
+
+        .imagePreview[src]:not([src=""]) {
+            display: block; /* وقتی src خالی نیست، نمایش بده */
+        }
+
+        /* Overlay */
+    #success-modal.modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+    
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.3); /* تاریکی پشت modal */
+        backdrop-filter: blur(8px);
+    }
+
+    /* Modal content */
+    #success-modal .modal-content {
+        background: rgba(255, 255, 255, 0.08); /* شفاف و شیشه‌ای */
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        width: 380px;
+        max-width: 90%;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.2);
+        transform: scale(0);
+        animation: zoomIn 0.35s forwards;
+        backdrop-filter: blur(10px);
+        color: #fff; /* متن سفید روی شیشه */
+    }
+
+    #success-modal .modal-content.exit {
+        animation: zoomOut 0.35s forwards;
+    }
+
+    #success-modal .modal-header {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    #success-modal .check-icon {
+        width: 60px;
+        height: 60px;
+        margin-bottom: 10px;
+        stroke-dasharray: 100;
+        stroke-dashoffset: 100;
+        animation: drawCheck 0.5s forwards;
+    }
+
+    #success-modal .close {
+        position: absolute;
+        top: 15px;
+        right: 20px;
+        font-size: 25px;
+        cursor: pointer;
+        color: #fff;
+        transition: color 0.2s;
+    }
+    #success-modal .close:hover { color: #4CAF50; }
+
+    #success-modal .btn-download {
+        background: linear-gradient(135deg, #4CAF50, #45a049);
+        color: white;
+        border: none;
+        padding: 14px 25px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 17px;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #success-modal .btn-download:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    @keyframes zoomIn { from {transform: scale(0);} to {transform: scale(1);} }
+    @keyframes zoomOut { from {transform: scale(1);} to {transform: scale(0);} }
+    @keyframes drawCheck { to { stroke-dashoffset: 0; } }
+
+    /* واکنش‌گرا */
+    @media (max-width: 480px) {
+        #success-modal .modal-content {
+            padding: 20px 15px;
+            max-width: 95%;
+        }
+        #success-modal .check-icon {
+            width: 40px;
+            height: 40px;
+        }
+        #success-modal .btn-download {
+            font-size: 15px;
+            padding: 10px 18px;
+        }
+    }
+
+
+        #card, #card-body{
+        color: #fff;
+        font-weight: 600;
+
+        border-top: 1px solid rgba(255,255,255,.15);
+        font-size: 15px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+        }
+
+        /* واکنش‌گرا */
+        @media (max-width: 480px) {
+            .select2-container--default .select2-selection--single {
+                height: 36px;
+                line-height: 36px;
+                font-size: 14px;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 36px;
+            }
+        }
+        /* استایل شفاف و ارتفاع 40px برای تمام select2 */
+        .select2-container--default .select2-selection--single {
+            background: rgba(255, 255, 255, 0.12) !important; /* شفاف */
+            color: #fff !important; /* متن سفید */
+            border: 0px solid rgba(255,255,255,0.2) !important; /* مشابه glassSelect */
+            border-radius: 4px;
+            height: 38px !important;
+            line-height: 40px;
+            padding: 4px 6px;
+            box-shadow: none;
+            font-size: 15px;
+            margin-left: 0;
+            transition: background 0.3s ease; /* فقط تغییر رنگ بدون درخشش */
+            appearance: none;
+
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 1 !important; /* placeholder کاملا واضح */
+            appearance: none;
+            box-shadow: none; /* غیرفعال کردن سایه */
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            top: 0;
+            height: 40px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #fff !important;
+            opacity: 1 !important; /* placeholder کاملا واضح */
+            line-height: 38px !important;
+        
+        }
+
+        /* placeholder سفید */
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #fff !important;
+            opacity: 1 !important;
+            font-weight: 500 !important; /* متن کمی پررنگ‌تر */
+        }
+
+        /* لیست گزینه‌ها */
+        .select2-container--default .select2-results__option {
+            background: rgba(20, 20, 20, 0.85);
+            color: #fff;
+        }
+
+        /* گزینه‌های انتخاب شده یا هاور */
+        .select2-container--default .select2-results__option--highlighted {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+
+
+
+ 
+
+</style>
+
+ <!-- Nav Tabs -->
+    <ul class="nav nav-tabs mt-3" id="goldTabs" role="tablist" >
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="buy-tab" data-bs-toggle="tab" data-bs-target="#buy" type="button" role="tab">خرید کالا </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="sell-tab" data-bs-toggle="tab" data-bs-target="#sell" type="button" role="tab">خرید طلای آب شده </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab">
+                خرید متفرقه            
+            </button>
+        </li>
+
+    </ul>
+    <div class="tab-content" id="reportTabsContent">
+
+        <!-- Buy product -->
+        <div class="tab-pane fade show active" id="buy" role="tabpanel">
+            <div class="container-fluid mt-4">
+
+            <div class="card shadow-sm">
+
+                <div class="card-body">
+                    <h5 class="card-title">اطلاعات فاکتور خرید</h5>
+                    <form id="purchaseForm" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div id="alertBox" class="alert d-none" role="alert"></div>
+
+                    <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label>شماره فاکتور</label>
+                        <input type="text" name="number" id="invoiceNumber" class="form-control" value="{{ next_number|persian_digits }}" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label>تاریخ</label>
+                        <input type="text" id="invoiceDate" name="date" class="form-control" value="{{ invoice_date|persian_digits}}">
+                        <input type="hidden" id="invoiceDateHidden" name="invoicedatehidden">
+                    </div>
+                    <div class="col-md-3">
+                        <label>فروشنده</label>
+                        <select name="seller" id="invoiceSeller" class="form-control" required>
+                        <option value="">انتخاب کنید...</option>
+                        {% for s in persons %}
+                            <option value="{{ s.id }}">{{s.code|persian_digits}}- {{ s.name }} </option>
+                        {% endfor %}
+                        </select>
+                        
+                    </div>
+                    <div class="col-md-3">
+                        <label>تصویر فاکتور</label>
+                        <input type="file" name="image" id="invoiceImage" class="form-control">
+                    </div>
+                    </div>
+
+                    <div class="row mb-3">
+
+                    <div class="col-md-3">
+                        <label>فی  (تومان)</label>
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <input type="text" name="price" id="pricePerGram" class="form-control"  placeholder="گرم" >
+                            </div>
+                            <div class="col-md-6 mb-2">
+                                <input type="text" name="mesghal" id="mesghal" class="form-control"
+                                    placeholder="مثقال">
+                            </div>
+                        </div>    
+                    </div>
+                    
+                        <div class="col-md-3">
+                            <label>وزن کل (گرم)</label>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <input type="text"  name="weight" id="totalWeight" class="form-control" placeholder="{{750|persian_digits}}" required>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <input type="text"  name="weightpurity" id="weightPurity" class="form-control" placeholder="وزن معادل {{750|persian_digits}}" readonly>
+                                </div>
+                            </div>
+
+                    </div>
+                    <div class="col-md-3">
+                        <label> شماره فاکتور فروشنده </label>
+                        <input type="text" name="numberstore" id="numberStore" class="form-control" value={{0|persian_digits}}>
+                    </div>
+                    <div class="col-md-3">
+                        <label>مبلغ کل  (تومان)</label>
+                        <input type="text" name="totalprice" id="totalPrice" class="form-control" value={{0|persian_digits}}>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label>اجرت</label>
+                            <div class="row">
+                                <div class="col-md-6 mb-2">
+                                    <input type="text"  name="labor" id="labor" class="form-control" placeholder='درصد'>
+                                </div>
+                                <div class="col-md-6 mb-2">
+                                    <input type="text" name="laborprice" id="laborPrice" class="form-control"
+                                        placeholder="تومان">
+                                </div>
+                            </div>
+                        </div>
+
+                    <div class="col-md-3">
+                        <label>عیار</label>
+                        <input type="text"  name="purity" id="purity" class="form-control" value={{750|persian_digits}}>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>توضیحات</label>
+                        <textarea name="note" class="form-control" id="invoiceNote" rows="2"></textarea>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="button" id="invoiceSave" class="btn btn-success  mt-5 px-4">
+                            💾 ثبت فاکتور
+                        </button>
+                    </div>
+                    </div>
+                
+                    <hr>
+
+                    <div class="table-responsive">
+                    <table class="table table-bordered align-middle text-center" id="purchaseItemsTable">
+                        <thead class="table-light">
+                        <tr>
+                            <th>کالا </th>
+                            <th>کد کالا</th>
+                            <th>نام کالا</th>
+                            <th> گروه کالا</th>
+                            <th>وزن (گرم)</th>
+                            <th>وزن معادل {{750|persian_digits}} (گرم)</th>
+                            <th>عیار</th>
+                            <th>اجرت (درصد) </th>
+                            <th>اجرت (تومان) </th>
+                            <th>موجودی فعلی</th>
+                            <th>تعداد</th>
+                            <th>عملیات</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>
+                                <div class="product-select-container">
+                                    <select name="product" class="form-control invoiceProduct" >
+                                    <option value="">انتخاب کنید...</option>
+                                    {% for p in products %}
+                                        <option value="{{ p.id }}" data-weight="{{ p.weight }}">
+                                        {{ p.code|persian_digits }} - {{ p.get_category_display }} {{ p.name }} {{ p.weight|persian_digits }}
+                                        </option>
+                                    {% endfor %}
+                                    </select>
+                                    <button type="button"  class="btn btn-success btn-sm addProductBtn" >➕</button>
+                                </div>
+                            </td>
+
+
+                            <td><input type="text" name="product_code[]" class="form-control productCode"></td>
+                            <td><input type="text" name="product_name[]" class="form-control productName"></td>
+                            <td>
+                                <select name="product_group[]" class="form-control productCategory " >
+                                    <option value="">انتخاب گروه...</option>
+                                    {% for cat in categories %}
+                                                    
+                                        <option value="{{ cat }}">{{ cat|cat_fa }}</option>
+                                    {% endfor %}
+                                </select>
+                               <!--<input type="text" name="product_group[]" class="form-control productCategory"disabled>--> 
+                            
+                            </td>
+                            <td><input type="text" step="0.01" name="product_weight[]" value={{0|persian_digits}} class="form-control weight productWeight" ></td>
+                            <td><input type="text" name="product_weightpurity[]"  class="form-control productWeightPurity" ></td>
+                            <td><input type="text" name="product_purity[]" value={{750|persian_digits}} class="form-control productPurity" ></td>
+
+                            <td><input type="text" name="product_labor[]" value={{0|persian_digits}} class="form-control productLabor" ></td>
+                            <td><input type="text" name="product_laborprice[]" value={{0|persian_digits}} class="form-control productLaborPrice" ></td>
+                            <td><input type="text" name="product_stock[]" class="form-control productStock" value="۰"></td>
+                            <td><input type="text" name="product_quantity[]" value={{0|persian_digits}} class="form-control productQuantity" ></td>
+                            
+                            <td class="text-center"><button type="button"  id="delRow" class="btn btn-danger btn-sm remove-row" ><i class="fa fa-trash"></i></button></td>
+                        </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                            <th colspan="10" class="text-end" style="text-align: center;"> وزن نهایی ( گرم ) : </th>
+                            <th><input type="text" id="weightTotal" class="form-control" readonly></th>
+                            <th><button type="button" id="addRow" class="btn btn-success btn-sm" >➕</button></th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    </div>
+                    <hr>
+                    <div class="text-center mt-4">
+                        <button type="button" id="saveItem" class="btn btn-success px-4 fw-bold" >
+                            <i class="fa fa-save"></i> ذخیره فاکتور خرید
+                        </button>
+                    </div>
+                        <div class="modal fade" id="recievepayment-modal" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                
+                                <div class="modal-header">
+                                    <h5 class="modal-title">پرداخت مبلغ فاکتور</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                    <div class="modal-body">
+
+                                    <p class="fw-bold" id='receivableAmount'>مبلغ قابل پرداخت: {{ 0|persian_intcomma }} تومان</p>
+                                    
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>نوع حساب</th>
+                                            <th>نام حساب</th>
+                                            <th>موجودی</th>
+                                            <th>مبلغ پرداختی</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        
+                                        {% for bank in banks %}
+                                        <tr>
+                                            <td>بانک</td>
+                                            <td>{{ bank.name }} - {{ bank.owner }}</td>
+                                            <td id="bankMoney">{{bank.account.calculated_balance_recursive|default:0|persian_intcomma}}</td>
+                                            <input type="hidden" name="bank_id[]" value="{{ bank.id }}">
+                                            <td><input type="text" name="bank_amount[]" class="form-control bankInput" placeholder={{0|persian_digits}}></td>
+                                        </tr>
+                                        {% endfor %}
+                                        {% for cash in cash_account%}
+                                        <tr>
+                                            <td>صندوق</td>
+                                            <td>{{ cash.name }}</td>
+                                            <td id="cashMoney">{{cash.account.calculated_balance_recursive|default:"0"|persian_intcomma}}</td>
+                                            <input type="hidden" name="cash_id[]" value="{{ cash.id }}">
+                                            <td><input type="text" name="cash_amount[]" class="form-control cashInput" placeholder={{0|persian_digits}}></td>
+                                        </tr>
+                                        {% endfor %}
+
+                                        </tbody>
+                                    </table>
+
+                                    <small class="text-center">مبلغ وارد شده میتواند بین بانک و صندوق تقسیم شود.</small>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+                                    <button type="button" id="confirmPaymentBtn" class="btn btn-success">ثبت پرداخت و سند</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                            </div>
+                </form>
+                </div>
+            </div> 
+            </div>
+        </div>
+
+        <!-- buy abshode -->
+        <div class="tab-pane fade" id="sell" role="tabpanel">
+            <div class="container-fluid mt-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">اطلاعات فاکتور خرید</h5>
+                        <div id="alertBox" class="alert d-none" role="alert"></div>
+                        <form id="purchaseForm2" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>شماره فاکتور</label>
+                                    <input type="text" name="number2" id="invoiceNumber2" class="form-control" value="{{ next_number|persian_digits }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>تاریخ</label>
+                                    <input type="text" id="invoiceDate2" name="date2" class="form-control" value="{{ invoice_date|persian_digits}}">
+                                    <input type="hidden" id="invoiceDateHidden2" name="invoicedatehidden2">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>فروشنده</label>
+                                    <select name="seller2" id="invoiceSeller2"  required>
+                                    <option value="">انتخاب کنید...</option>
+                                    {% for s in persons %}
+                                        <option value="{{ s.id }}">{{s.code|persian_digits}}- {{ s.name }}</option>
+                                    {% endfor %}
+                                    </select>   
+                                </div>
+                                <div class="col-md-3">
+                                    <label>تصویر فاکتور</label>
+                                    <input type="file" name="image2" id="invoiceImage2" class="form-control">
+                                </div>
+                            </div><!--row-->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>شماره فاکتور فروشنده</label>
+                                    <input type="text" name="numberstore2" id="numberstore2" class="form-control" value={{0|persian_digits}}>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>فی (تومان)</label>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <input type="text" name="price2" id="pricePerGram2" class="form-control"  placeholder="گرم" >
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <input type="text" name="mesghal2" id="mesghal2" class="form-control"
+                                                    placeholder="مثقال">
+                                            </div>
+                                        </div>    
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>وزن کل (گرم)</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text"  name="weight2" id="totalWeight2" class="form-control" placeholder="{{750|persian_digits}}" required>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text"  name="weightpurity2" id="weightPurity2" class="form-control" placeholder="وزن معادل {{750|persian_digits}}" readonly>
+                                        </div>
+                                    </div>
+
+                                </div>
+                                <div class="col-md-3">
+                                    <label>عیار</label>
+                                    <input type="text"  name="purity2" id="purity2" class="form-control" value={{750|persian_digits}}>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3 ">
+                                    <label>انگ</label>
+                                    <input type="text" step="0.01" name="code2" id="code2" class="form-control"  required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>نام ری گیری</label>
+                                    <input type="text" name="nameab" id="name" class="form-control" >
+                                </div>
+                                <div class="col-md-3">
+                                    <label>اجرت</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text"  name="labor2" id="labor2" class="form-control" placeholder='درصد'>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" name="laborprice2" id="laborPrice2" class="form-control"
+                                                placeholder="تومان">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>مبلغ کل (تومان)</label>
+                                    <input type="text" name="totalprice2" id="totalPrice2" class="form-control" value={{0|persian_digits}} >
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label>توضیحات</label>
+                                    <textarea name="note2" class="form-control" id="invoiceNote2" rows="2"></textarea>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" id="invoiceSave2" class="btn btn-success mt-5 px-4">
+                                        💾 ثبت فاکتور
+                                    </button>
+                                </div>
+                            </div><!--row-->
+                            <div class="modal fade" id="recievepayment-modal2" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                    
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">پرداخت مبلغ فاکتور</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+
+                                        <div class="modal-body">
+
+                                        <p class="fw-bold" id='receivableAmount2'>مبلغ قابل پرداخت: {{ 0|persian_intcomma }} تومان</p>
+                                        
+                                        <table class="table table-bordered">
+                                            <thead>
+                                            <tr>
+                                                <th>نوع حساب</th>
+                                                <th>نام حساب</th>
+                                                <th>موجودی</th>
+                                                <th>مبلغ پرداختی</th>
+                                            </tr>
+                                            </thead>
+                                            <tbody>
+                                            
+                                            {% for bank in banks %}
+                                            <tr>
+                                                <td>بانک</td>
+                                                <td>{{ bank.name }} - {{ bank.owner }}</td>
+                                                <td id="bankMoney">{{bank.account.calculated_balance_recursive|default:0|persian_intcomma}}</td>
+                                                
+                                                <input type="hidden" name="bank_id[]" value="{{ bank.id }}">
+                                                <td><input type="text" name="bank_amount[]" class="form-control bankInput" placeholder={{0|persian_digits}}></td>
+                                            </tr>
+                                            {% endfor %}
+                                            
+                                            {% for cash in cash_account %}
+                                            <tr>
+                                                <td>صندوق</td>
+                                                <td>{{ cash.name }}</td>
+                                                <td id="cashMoney">{{cash.account.calculated_balance_recursive|default:0|persian_intcomma}}</td>
+                                                <input type="hidden" name="cash_id[]" value="{{ cash.id }}">
+                                                <td><input type="text" name="cash_amount[]" class="form-control cashInput" placeholder={{0|persian_digits}}></td>
+                                            </tr>
+                                            {% endfor %}
+
+                                            </tbody>
+                                        </table>
+
+                                        <small class="text-center">مبلغ وارد شده میتواند بین بانک و صندوق تقسیم شود.</small>
+
+                                        </div>
+
+                                        <div class="modal-footer">
+                                        <button type="button" id="confirmPaymentBtn2" class="btn btn-success">ثبت پرداخت و سند</button>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div><!--cardbody-->
+                </div><!--cardshadow-->
+            </div><!--container-->
+
+        </div><!--sell-->
+
+        <!--buy motefareghe -->
+        <div class="tab-pane fade" id="transactions" role="tabpanel">
+            <div class="container-fluid mt-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">اطلاعات فاکتور خرید</h5>
+                        <div id="alertBox" class="alert d-none" role="alert"></div>
+                        <form id="purchaseForm3" method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>شماره فاکتور</label>
+                                    <input type="text" name="number3" id="invoiceNumber3" class="form-control" value="{{ next_number|persian_digits }}" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>تاریخ</label>
+                                    <input type="text" id="invoiceDate3" name="date3" class="form-control" value="{{ invoice_date|persian_digits}}">
+                                    <input type="hidden" id="invoiceDateHidden3" name="invoicedatehidden2">
+                                </div>
+                                <div class="col-md-3">
+                                    <label>فروشنده</label>
+                                    <select name="seller3" id="invoiceSeller3" >
+                                    <option value="">انتخاب کنید...</option>
+                                    {% for s in persons %}
+                                        <option value="{{ s.id }}">{{s.code|persian_digits}}- {{ s.name }} </option>
+                                    {% endfor %}
+                                    </select>   
+                                </div>
+                                <div class="col-md-3">
+                                    <label>شماره فاکتور فروشنده</label>
+                                    <input type="text" name="numberstore3" id="numberstore3" class="form-control" value={{0|persian_digits}}>
+                                </div>
+
+                            </div><!--row-->
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>شماره تلفن فروشنده</label>
+                                    <input type="text" name="phone" id="phoneSeller" class="form-control" >
+                                </div>
+                                <div class="col-md-3">
+                                    <label>نام فروشنده</label>
+                                    <input type="text" name="nameseller" id="nameSeller" class="form-control" >
+                                </div>
+                                <div class="col-md-3">
+                                    <label>فی (تومان)  </label>
+                                        <div class="row">
+                                            <div class="col-md-6 mb-2">
+                                                <input type="text" name="price3" id="pricePerGram3" class="form-control"  placeholder="گرم" >
+                                            </div>
+                                            <div class="col-md-6 mb-2">
+                                                <input type="text" name="mesghal3" id="mesghal3" class="form-control"
+                                                    placeholder="مثقال">
+                                            </div>
+                                        </div>    
+                                </div>
+                                <div class="col-md-3">
+                                    <label>وزن کل (گرم)</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text"  name="weight3" id="totalWeight3" class="form-control" placeholder="{{750|persian_digits}}" required>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text"  name="weightpurity3" id="weightPurity3" class="form-control" placeholder="وزن معادل {{750|persian_digits}}" readonly>
+                                        </div>
+                                    </div>
+                                    
+                                </div>
+                                
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label>عیار</label>
+                                    <input type="text"  name="purity3" id="purity3" class="form-control" value={{750|persian_digits}}>
+                                </div>
+                                <div class="col-md-3">
+                                    <label>اجرت</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text"  name="labor3" id="labor3" class="form-control" placeholder='درصد'>
+                                        </div>
+                                        <div class="col-md-6 mb-2">
+                                            <input type="text" name="laborprice3" id="laborPrice3" class="form-control"
+                                                placeholder="تومان">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-3">
+                                    <label>مبلغ کل (تومان)</label>
+                                    <input type="text" name="totalprice3" id="totalPrice3" class="form-control" value={{0|persian_digits}} >
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label>توضیحات</label>
+                                    <textarea name="note3" class="form-control" id="invoiceNote3" rows="2"></textarea>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" id="invoiceSave3" class="btn btn-success mt-5 px-4">
+                                        💾 ثبت فاکتور
+                                    </button>
+                                </div>
+                            </div><!--row-->
+                            <!-- Modal دریافت وجه -->
+                            <div class="modal fade" id="recievepayment-modal3" tabindex="-1">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                
+                                <div class="modal-header">
+                                    <h5 class="modal-title">پرداخت مبلغ فاکتور</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+
+                                    <div class="modal-body">
+
+                                    <p class="fw-bold" id='receivableAmount3'>مبلغ قابل پرداخت: {{ 0|persian_intcomma }} تومان</p>
+                                    
+                                    <table class="table table-bordered">
+                                        <thead>
+                                        <tr>
+                                            <th>نوع حساب</th>
+                                            <th>نام حساب</th>
+                                            <th>موجودی</th>
+                                            <th>مبلغ پرداختی</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        
+                                        {% for bank in banks %}
+                                        <tr>
+                                            <td>بانک</td>
+                                            <td>{{ bank.name }} - {{bank.owner}}</td>
+                                            <td id="bankMoney">{{bank.account.calculated_balance_recursive|default:0|persian_intcomma}}</td>
+                                            <input type="hidden" name="bank_id[]" value="{{ bank.id }}">
+                                            <td><input type="text" name="bank_amount[]" class="form-control bankInput" placeholder={{0|persian_digits}}></td>
+                                        </tr>
+                                        {% endfor %}
+                                        
+                                        {% for cash in cash_account %}
+                                        <tr>
+                                            <td>صندوق</td>
+                                            <td>{{ cash.name }}</td>
+                                            <td id="cashMoney">{{cash.account.calculated_balance_recursive|default:0|persian_intcomma}}</td>
+                                            <input type="hidden" name="cash_id[]" value="{{ cash.id }}">
+                                            <td><input type="text" name="cash_amount[]" class="form-control cashInput" placeholder={{0|persian_digits}}></td>
+                                        </tr>
+                                        {% endfor %}
+
+                                        </tbody>
+                                    </table>
+
+                                    <small class="text-center">مبلغ وارد شده میتواند بین بانک و صندوق تقسیم شود.</small>
+
+                                    </div>
+
+                                    <div class="modal-footer">
+                                    <button type="button" id="confirmPaymentBtn3" class="btn btn-success">ثبت پرداخت و سند</button>
+                                    </div>
+
+                                </div>
+                            </div>
+                            </div>
+
+                        </form>
+                    </div><!--cardbody-->
+                </div><!--cardshadow-->
+            </div><!--container-->
+
+
+        </div>
+
+    </div><!--tab-->
+
+
+
+    <style>
+        /* استایل مدال کد تکراری کالا */
+    #duplicate-code-modal.sms-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.3); /* پشت‌زمینه تار */
+        backdrop-filter: blur(8px); /* بلور پشت‌زمینه */
+    }
+
+    #duplicate-code-modal .sms-modal-content {
+        background: rgba(255, 255, 255, 0.08); /* شفاف و سبک شیشه‌ای */
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        width: 380px;
+        max-width: 90%;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.2);
+        transform: scale(0);
+        animation: smsZoomIn 0.35s forwards;
+        backdrop-filter: blur(10px);
+        color: #fff;
+        position: relative;
+    }
+
+    #duplicate-code-modal .sms-modal-content.exit {
+        animation: smsZoomOut 0.35s forwards;
+    }
+
+    #duplicate-code-modal .sms-modal-header { 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        margin-bottom: 20px; 
+    }
+
+    #duplicate-code-modal .sms-icon { 
+        stroke-dasharray: 100; 
+        stroke-dashoffset: 100; 
+        animation: smsDrawIcon 0.5s forwards; 
+        stroke: #f44336; /* رنگ قرمز هشدار */
+    }
+
+    #duplicate-code-modal .sms-close { 
+        position: absolute; 
+        top: 15px; 
+        right: 20px; 
+        font-size: 25px; 
+        cursor: pointer; 
+        color: #fff; 
+        transition: color 0.2s; 
+    }
+    #duplicate-code-modal .sms-close:hover { color: #f44336; }
+
+    #duplicate-code-modal .sms-btn {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        color: white;
+        border: none;
+        padding: 14px 25px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 17px;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #duplicate-code-modal .sms-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    /* انیمیشن‌ها */
+    @keyframes smsZoomIn { from {transform: scale(0);} to {transform: scale(1);} }
+    @keyframes smsZoomOut { from {transform: scale(1);} to {transform: scale(0);} }
+    @keyframes smsDrawIcon { to { stroke-dashoffset: 0; } }
+
+    /* ریسپانسیو */
+    @media (max-width: 480px) {
+        #duplicate-code-modal .sms-modal-content { padding: 20px 15px; max-width: 95%; }
+        #duplicate-code-modal .sms-icon { width: 40px; height: 40px; }
+        #duplicate-code-modal .sms-btn { font-size: 15px; padding: 10px 18px; }
+    }
+
+</style>
+<div id="duplicate-code-modal" class="sms-modal">
+    <div class="sms-modal-content">
+        <span class="sms-close" id="close-duplicate-code">&times;</span>
+        <div class="sms-modal-header">
+            <!-- آیکون هشدار -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="sms-icon" viewBox="0 0 24 24" width="60" height="60">
+                <path fill="none" stroke="#f44336" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h2>خطا</h2>
+        </div>
+        <p>جمع وزن محصولات از وزن کل فاکتور بیشتر شده!"</p>
+        <button id="ok-duplicate-code" class="sms-btn">متوجه شدم</button>
+    </div>
+</div>
+
+<!-- 🔹 Modal for Success -->
+<div id="success-modal" class="modal" >
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <div class="modal-header">
+            <svg xmlns="http://www.w3.org/2000/svg" class="check-icon" viewBox="0 0 24 24">
+                <path fill="none" stroke="#4CAF50" stroke-width="3" d="M4 12l6 6L20 6"/>
+            </svg>
+            <h2>فاکتور با موفقیت ثبت شد!</h2>
+        </div>
+        <p>اکنون می‌توانید فاکتور را دانلود یا لیبل محصولات را چاپ کنید.</p>
+
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:20px;">
+            <button id="download-pdf" class="btn-download">💾 دانلود PDF فاکتور</button>
+            <button id="print-labels" class="btn-download" style="background:linear-gradient(135deg,#2196F3,#1976D2);">
+                🏷️ چاپ لیبل اقلام
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+
+{% endblock %}
+{% block scripts %}
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<script>
+
+document.addEventListener("DOMContentLoaded", function() {
+    const body = document.body;
+    const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+    
+    if (!modals.length) return;
+
+    // گرفتن رنگ واقعی از computedStyle
+    const computedStyle = window.getComputedStyle(body);
+    const bgColor = computedStyle.backgroundColor;
+    const bgImage = computedStyle.backgroundImage;
+
+    modals.forEach(modal => {
+        console.log("Computed background color:", bgColor);
+        console.log("Computed background image:", bgImage);
+
+        // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+        if (bgImage !== 'none') {
+            modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+            modal.style.backdropFilter = 'blur(8px)';
+        } else {
+            // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+            modal.style.backgroundColor = bgColor;
+            modal.style.backdropFilter = 'none';
+        }
+
+        // گوشه‌های مدال و استایل دلخواه
+        modal.style.borderRadius = '10px';
+    });
+});
+
+
+    // نمایش مدال موفقیت بعد از ذخیره فاکتور
+function showSuccessModal(invoiceId,label) {
+    const modal = document.getElementById("success-modal");
+    const closeBtn = modal.querySelector(".close");
+    console.log(invoiceId);
+
+    modal.style.display = "flex";
+
+    // دکمه بستن مدال
+    closeBtn.onclick = () => {
+        modal.classList.add("exit");
+        setTimeout(() => {
+            modal.style.display = "none";
+            modal.classList.remove("exit");
+        }, 300);
+    };
+
+    // وقتی بیرون از مدال کلیک شد، بسته شود
+    window.onclick = (event) => {
+        if (event.target === modal) {
+            modal.classList.add("exit");
+            setTimeout(() => {
+                modal.style.display = "none";
+                modal.classList.remove("exit");
+            }, 300);
+        }
+    };
+
+    // دکمه دانلود PDF
+    document.getElementById("download-pdf").onclick = () => {
+        window.open(`/invoice/${invoiceId}/download-pdf/`, "_blank");
+        window.location.reload();
+    };
+    
+    // دکمه لیبل
+    const labelBtn = document.getElementById("print-labels");
+    if (label === true) {
+        labelBtn.style.display = "inline-block";
+        labelBtn.onclick = () => {
+            window.open(`/invoice/${invoiceId}/print-labels/`, "_blank");
+        };
+    } else {
+        labelBtn.style.display = "none"; // پنهان کن
+    }
+
+    // دکمه چاپ لیبل اقلام خریداری‌شده
+    //document.getElementById("print-labels").onclick = () => {
+    //    window.open(`/invoice/${invoiceId}/print-labels/`, "_blank");
+   // };
+}
+
+    function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+        
+
+// 🔹 وقتی فیلد وزن تغییر کرد، مقدارش به maxWeight اختصاص پیدا کند
+const totalWeightInput = document.getElementById('totalWeight');
+
+if (totalWeightInput) {
+    totalWeightInput.addEventListener('input', () => {
+        // تبدیل عدد فارسی به انگلیسی و به float
+        const weightValue = parseFloat(persianToEnglishDigits(totalWeightInput.value.replace(/,/g, ''))) || 0;
+        // ذخیره در window.maxWeight
+        window.maxWeight = weightValue;
+        console.log('Max weight updated:', window.maxWeight);
+    });
+}
+
+
+
+document.addEventListener('DOMContentLoaded', function() {
+
+    document.getElementById('addRow').addEventListener('click', function () {
+        
+        // 🔹 چک وزن کل
+    const totalWeight = calcWeightTotal();  // تابعی که وزن کل جدول را می‌دهد
+    if (totalWeight >= window.maxWeight) {
+        //alert("⚠️ جمع وزن وارد شده به وزن کل فاکتور رسید. نمی‌توانید محصول جدید اضافه کنید.");
+        showErrorModal();
+        return; // جلوگیری از اضافه کردن ردیف جدید
+    }
+
+    const tbody = document.querySelector('#purchaseItemsTable tbody');
+    const firstRow = tbody.querySelector('tr'); // ردیف الگو
+
+    // 🔹 قبل از clone، Select2 را destroy کن تا span تکراری نشود
+    const originalSelect = $(firstRow).find('.invoiceProduct');
+    originalSelect.select2('destroy');
+
+    // 🔹 حالا با خیال راحت clone بگیر
+    const newRow = firstRow.cloneNode(true);
+
+    // 🔹 دوباره select2 را برای ردیف اول (اصلی) فعال کن
+    originalSelect.select2({
+        placeholder: "انتخاب کنید...",
+        allowClear: true,
+        width: '150px',
+        dropdownParent: $(document.body),
+        dir: "rtl"
+    });
+
+    // 🔹 پاک‌کردن مقادیر تمام inputها در ردیف جدید و غیرفعال کردن آنها
+    newRow.querySelectorAll('input').forEach(input => {
+        input.value = '';
+        input.disabled = true; // 🔒 غیرفعال تا زمانی که محصول انتخاب نشود
+    });
+
+    // 🔹 اگر سلولی با کلاس weight وجود دارد، مقدارش صفر شود
+    const weightCell = newRow.querySelector('.weight');
+    if (weightCell) weightCell.innerText = persianToEnglishDigits('0');
+
+
+ 
+
+    // 🔹 تنظیم سلکت محصول در ردیف جدید
+    const newSelect = $(newRow).find('.invoiceProduct');
+    newSelect.val(null); // برگرداندن به حالت "انتخاب کنید..."
+    newSelect.select2({
+        placeholder: "انتخاب کنید...",
+        allowClear: true,
+        width: '150px',
+        dropdownParent: $(document.body),
+        dir: "rtl"
+    });
+
+    // 🔹 فقط سلکت محصول فعال باشد
+    newSelect.prop('disabled', false);
+    
+
+    // 🔹 دکمه‌ی + (افزودن محصول جدید) باید در ردیف جدید فعال بماند
+    const addProductBtn = newRow.querySelector('#addProductBtn');
+    if (addProductBtn) addProductBtn.disabled = false;
+
+    // 🔹 اضافه کردن ردیف جدید به جدول
+    tbody.appendChild(newRow);
+});
+
+
+
+// 🔹 وقتی محصول انتخاب شد، فیلدهای همان سطر فعال شوند
+$(document).on('select2:select', '.invoiceProduct', function () {
+    const row = $(this).closest('tr');
+    row.find('input').prop('disabled', false); // فعال کردن inputها بعد از انتخاب محصول
+});
+
+
+  // حذف ردیف
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.remove-row')) {
+      const row = e.target.closest('tr');
+      if (document.querySelectorAll('#purchaseItemsTable tbody tr').length > 1)
+        row.remove();
+    }
+  });
+// متصل کردن دکمه × و دکمه "متوجه شدم" به فانکشن بستن مدال
+document.getElementById('close-duplicate-code').addEventListener('click', closeDuplicateCodeModal);
+document.getElementById('ok-duplicate-code').addEventListener('click', closeDuplicateCodeModal);
+
+// اختیاری: بستن با کلیک روی بک‌گراند مدال
+document.getElementById('duplicate-code-modal').addEventListener('click', function(e) {
+    if(e.target === this) closeDuplicateCodeModal();
+});
+
+  // باز کردن مدال
+function showDuplicateCodeModal() {
+    const modal = document.getElementById("duplicate-code-modal");
+    modal.style.display = "flex";
+    modal.querySelector(".sms-modal-content").classList.remove("exit");
+}
+
+// بستن مدال با انیمیشن
+function closeDuplicateCodeModal() {
+    const modal = document.getElementById("duplicate-code-modal");
+    const content = modal.querySelector(".sms-modal-content");
+    content.classList.add("exit");
+    setTimeout(() => {
+        modal.style.display = "none";
+        content.classList.remove("exit");
+    }, 350); // مدت زمان انیمیشن
+}
+
+
+
+
+
+// فراخوانی هنگام اضافه کردن ردیف جدید هم باید انجام شود
+
+
+
+  // محاسبه خودکار جمع هر ردیف
+  document.addEventListener('input', function(e) {
+    console.log('add');
+    if (e.target.classList.contains('productQuantity') || e.target.classList.contains('productWeight')) {
+        const totalWeight = calcWeightTotal();
+        
+        console.log(totalWeight);
+
+        // اگر جمع وزن به حد فاکتور رسید
+         if (totalWeight > window.maxWeight) {
+            //alert("⚠️ جمع وزن محصولات از وزن کل فاکتور بیشتر شده!");
+            showDuplicateCodeModal();
+            
+            // برگشت مقدار به آخرین مقدار معتبر
+            e.target.value = e.target.dataset.lastValue || toPersianDigits('0') ;
+            
+        } else {
+            // ذخیره آخرین مقدار معتبر برای برگشت
+            e.target.dataset.lastValue = e.target.value;
+            console.log('else');
+        }
+
+        calcWeightTotal(); // بروزرسانی فیلد وزن کل
+    }
+  });
+
+  function calcWeightTotal() {
+    let total = 0;
+    document.querySelectorAll('#purchaseItemsTable tbody tr').forEach(row => {
+        const qty = parseFloat(toEnglishDigits(row.querySelector('.productQuantity')?.value || '0')) || 0;
+        const w = parseFloat(toEnglishDigits(row.querySelector('.productWeight')?.value || '0')) || 0;
+        total += qty * w;
+    });
+    
+    const totalField = document.getElementById('weightTotal');
+    totalField.value = toPersianDigits(total.toFixed(2));
+
+    // غیرفعال کردن ردیف‌های جدید اگر رسیدیم به وزن فاکتور
+    if (total >= window.maxWeight) {
+        document.querySelectorAll('#purchaseItemsTable tbody .invoiceProduct').forEach(sel => sel.disabled = true);
+        document.getElementById('addRow').disabled = true;
+    } else {
+        document.querySelectorAll('#purchaseItemsTable tbody .invoiceProduct').forEach(sel => sel.disabled = false);
+        document.getElementById('addRow').disabled = false;
+    }
+
+    return total;
+}
+
+
+  function updateGrandTotal() {
+    let sum = 0;
+    document.querySelectorAll('#purchaseItemsTable tbody .total').forEach(td => {
+      sum += parseFloat(td.innerText.replace(/,/g, '')) || 0;
+    });
+    document.getElementById('grandTotal').innerText = sum.toLocaleString();
+  }
+});
+
+let currentInvoiceId = null; // متغیر سراسری
+
+
+
+//end tab1 save invoice
+function persianToEnglishDigits(str) {
+    const persian = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    const english = ['0','1','2','3','4','5','6','7','8','9'];
+    let result = '';
+    for(let i=0;i<str.length;i++){
+        const idx = persian.indexOf(str[i]);
+        result += (idx >= 0) ? english[idx] : str[i];
+    }
+    return result;
+}
+
+const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+function toPersianDigits(str) {
+    return str.replace(/\d/g, d => persianDigits[d]);
+}
+
+
+// وقتی کاربر تاریخ فاکتور را وارد می‌کند
+// تابع مشترک برای مدیریت فیلد تاریخ
+function handleDateInput(inputId, hiddenId) {
+    const dateInput = document.getElementById(inputId);
+    const dateHidden = document.getElementById(hiddenId);
+
+    dateInput.addEventListener('input', function() {
+        let value = this.value;
+
+        // تبدیل اعداد انگلیسی به فارسی
+        value = value.replace(/\d/g, d => persianDigits[d]);
+
+        // حذف کاراکترهای غیرمجاز
+        value = value.replace(/[^\u06F0-\u06F90-9]/g, '');
+
+        // اضافه کردن خودکار /
+        if(value.length > 4 && value[4] !== '/'){
+            value = value.slice(0,4) + '/' + value.slice(4);
+        }
+        if(value.length > 7 && value[7] !== '/'){
+            value = value.slice(0,7) + '/' + value.slice(7);
+        }
+
+        // کوتاه کردن بیش از 10 کاراکتر
+        if(value.length > 10) value = value.slice(0,10);
+
+        this.value = value;
+
+        // تبدیل اعداد فارسی به انگلیسی قبل از ارسال به hidden
+        dateHidden.value = persianToEnglishDigits(value);
+    });
+}
+
+// اعمال روی هر دو فیلد
+handleDateInput('invoiceDate', 'invoiceDateHidden');
+handleDateInput('invoiceDate2', 'invoiceDate2Hidden');
+handleDateInput('invoiceDate3', 'invoiceDate3Hidden');
+
+
+// -----------------------------
+// 🔹 تبدیل اعداد انگلیسی ↔ فارسی
+// -----------------------------
+function toPersianDigits(str) {
+  const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return str.toString().replace(/\d/g, d => persianDigits[d]);
+}
+
+function toEnglishDigits(str) {
+  const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+  return str.toString().replace(/[۰-۹]/g, d => persianDigits.indexOf(d));
+}
+
+// -----------------------------
+// 🔹 هنگام تایپ — نمایش فارسی
+// -----------------------------
+document.addEventListener('input', function(e) {
+  const el = e.target;
+  // فقط روی فیلدهای متنی یا عددی
+  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+    // اگر عددی تایپ شد، تبدیل کن
+    const cursorPos = el.selectionStart;
+    const originalVal = el.value;
+    const englishVal = toEnglishDigits(originalVal);
+    const persianVal = toPersianDigits(englishVal);
+    el.value = persianVal;
+    el.dataset.realValue = englishVal;
+    try { el.setSelectionRange(cursorPos, cursorPos); } catch {}
+  }
+});
+
+// -----------------------------
+// 🔹 قبل از ارسال فرم — تبدیل به انگلیسی
+// -----------------------------
+document.addEventListener('submit', function(e) {
+  const form = e.target;
+  if (form.tagName === 'FORM') {
+    form.querySelectorAll('input, textarea, select').forEach(input => {
+      if (input.dataset.realValue) {
+        input.value = input.dataset.realValue;
+      } else {
+        input.value = toEnglishDigits(input.value);
+      }
+    });
+  }
+});
+
+$(document).ready(function () {
+
+    // 🔹 تبدیل اعداد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return '';
+        return str.replace(/[۰-۹]/g, function (d) {
+            return String.fromCharCode(d.charCodeAt(0) - 1728);
+        });
+    }
+
+    // تابع مشترک برای فعال‌سازی select2 روی هر سلکت
+    function initSelect2(selector) {
+        $(selector).select2({
+            placeholder: "انتخاب کنید...",
+            allowClear: true,
+            //width: $(selector).hasClass('invoiceProduct') ? '100%' : 'resolve', // فقط برای کالا
+            width:'150px',
+            
+            dropdownParent: $(document.body),
+            language: {
+                noResults: function () {
+                    return $('<div class="p-2 text-center">موردی یافت نشد<br></div>');
+                },
+                searching: function () {
+                    return "در حال جستجو...";
+                },
+                loadingMore: function () {
+                    return "در حال بارگذاری بیشتر...";
+                },
+                errorLoading: function () {
+                    return "خطا در بارگذاری نتایج";
+                },
+                inputTooShort: function () {
+                    return "برای جستجو چند حرف وارد کنید...";
+                },
+            },
+            
+            // ✳️ جستجوی سفارشی روی نام و وزن محصول
+            matcher: function(params, data) {
+                if ($.trim(params.term) === '') {
+                    return data;
+                }
+            const term = persianToEnglish(params.term.toLowerCase());
+            const text = persianToEnglish((data.text || '').toLowerCase());
+            const weight = persianToEnglish($(data.element).data('weight')?.toString().toLowerCase() || '');
+            const code = persianToEnglish($(data.element).data('code')?.toString().toLowerCase() || '');
+
+
+                if (text.includes(term) || weight.includes(term) || code.includes(term)) {
+                    return data;
+                }
+
+                return null;
+            },
+   
+            escapeMarkup: function (markup) { return markup; }
+        });
+        if ($(selector).hasClass('invoiceProduct')) {
+        $(selector).next('.select2-container').css('width', '150px');
+    }
+
+    }
+
+
+    // فعال‌سازی برای سلکت‌های اولیه
+    initSelect2('.invoiceProduct');
+
+
+
+const categoryMap = {
+    "دستبند": "bracelet",
+        "گوشواره": "earing",
+        "گردنبند": "neckles",
+        "انگشتر": "ring",
+        "سرویس":"set",
+        "سکه":"coine",
+        "سایر": "other"
+};
+
+
+    // وقتی محصولی انتخاب شد
+$(document).on('select2:select', '.invoiceProduct', function (e) {
+    const productId = e.params.data.id;
+    const row = $(this).closest('tr');
+
+    if (!productId) return;
+
+    $.ajax({
+        url: "{% url 'get_product_info' %}",
+        method: "GET",
+        data: { id: productId },
+        success: function (data) {
+            console.log("✅ اطلاعات محصول:", data);
+
+            if (data && !data.error) {
+                // 🟢 محصول پیدا شد ⇒ فقط تعداد فعال
+                row.find('.productCode').val(data.code || '').prop('readonly', true);
+                row.find('.productName').val(data.name || '').prop('readonly', true);
+
+                // ستون گروه کالا → فعال و مقدار پیش‌فرض
+                    const groupSelect = row.find('.productCategory');
+                    groupSelect.prop('readonly', true);             // فعال کردن کمبو
+                    groupSelect.val(categoryMap[data.category] || '').trigger('change.select2').prop('readonly', true);
+
+
+                //row.find('.productCategory').val(data.category || '').prop('disabled', true);
+                row.find('.productWeight').val(toPersianDigits(data.weight) || '۰').prop('readonly', true);
+                row.find('.productPurity').val(toPersianDigits(data.purity) || '۷۵۰').prop('readonly', true);
+                row.find('.productLabor').val(toPersianDigits(data.labor) || '۰').prop('readonly', false);
+                row.find('.productLaborPrice').val(toPersianDigits(data.laborprice) || '۰').prop('readonly', false);
+                row.find('.productQuantity').val(toPersianDigits('۱')).prop('readonly', false);
+                // 🔹 مقدار موجودی فعلی (فیلد جدید)
+                row.find('.productStock').val(toPersianDigits(data.quantity || 0)).prop('readonly', true);
+                // فعال کردن دکمه Add Row
+                const addRowBtn = document.getElementById("addRow");
+                if (addRowBtn) addRowBtn.removeAttribute("disabled");
+                const delRowBtn = document.getElementById("delRow");
+                if (delRowBtn) delRowBtn.removeAttribute("disabled");
+            } else {
+                // 🔴 محصول یافت نشد ⇒ همه فیلدها فعال
+                row.find('input').prop('readonly', false).val('');
+                row.find('.productQuantity').val('۱');
+            }
+        },
+        error: function (err) {
+            console.error("❌ خطا در دریافت اطلاعات:", err);
+            row.find('.productStock').val(toPersianDigits(data.weight) || '۰').prop('readonly', true);
+            // اگر خطا در سرور بود، اجازه بده کاربر محصول جدید بسازه
+            row.find('input').prop('readonly', false).val('');
+        }
+    });
+});
+
+
+    // ✅ وقتی ضربدر زده شد، همه فیلدهای اون ردیف پاک می‌شن
+    $(document).on('select2:clear', '.invoiceProduct', function () {
+        const row = $(this).closest('tr');
+        row.find('input[type="text"], input[type="number"]').val('');
+        console.log("🧹 اطلاعات ردیف پاک شد");
+    });
+
+    
+});
+
+
+// استفاده از delegation برای همه دکمه‌های +
+document.addEventListener("click", function(e) {
+    if (e.target && e.target.classList.contains("addProductBtn")) {
+        // پیدا کردن سطر فعلی
+        const row = e.target.closest("tr");
+
+        // فعال‌سازی همه input و select و button در اون سطر
+        row.querySelectorAll("input, select, button").forEach(el => {
+            el.removeAttribute("disabled");
+        });
+
+        // فعال کردن دکمه Add Row
+        const addRowBtn = document.getElementById("addRow");
+        if (addRowBtn) addRowBtn.removeAttribute("disabled");
+
+        // خالی کردن select محصول (اختیاری)
+        const productSelect = row.querySelector(".invoiceProduct");
+        if (productSelect) productSelect.value = "";
+
+        // فوکوس روی اولین input (مثلاً نام کالا)
+        const firstInput = row.querySelector('input[name="name"]');
+        if (firstInput) firstInput.focus();
+    }
+});
+
+
+
+function calcWeightTotal() {
+    let total = 0;
+    document.querySelectorAll('#purchaseItemsTable tbody tr').forEach(row => {
+        const qty = parseFloat(toEnglishDigits(row.querySelector('.productQuantity')?.value || '0')) || 0;
+        const w = parseFloat(toEnglishDigits(row.querySelector('.productWeight')?.value || '0')) || 0;
+        total += qty * w;
+    });
+
+    // نمایش نتیجه در فیلد وزن کل
+    const totalField = document.getElementById('weightTotal');
+    totalField.value = toPersianDigits(total.toFixed(2)); // نمایش فارسی با دو رقم اعشار
+}
+
+// ✅ به‌محض انتخاب محصول، وزن کل حساب شود
+$(document).on('select2:select', '.invoiceProduct', function () {
+    setTimeout(calcWeightTotal, 300);
+});
+
+// ✅ وقتی تعداد یا وزن تغییر کرد، دوباره محاسبه کن
+document.addEventListener('input', function (e) {
+    if (e.target.classList.contains('productQuantity') || e.target.classList.contains('productWeight')) {
+        calcWeightTotal();
+    }
+});
+
+
+// تبدیل فارسی → انگلیسی
+function persianToEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+}
+
+// تبدیل انگلیسی → فارسی
+function englishToPersianDigits(str) {
+    return str.replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+}
+
+// 🔹 تابع فرمت جداکننده سه‌رقمی با حفظ موقعیت کرسر
+function formatPersianWithComma(input) {
+    let cursorPos = input.selectionStart;
+    let raw = persianToEnglishDigits(input.value.replace(/,/g, ""));
+    if (raw === "" || isNaN(raw)) {
+        input.value = "";
+        return;
+    }
+
+    let formatted = parseInt(raw, 10).toLocaleString("en-US");
+    formatted = englishToPersianDigits(formatted);
+
+    let diff = formatted.length - input.value.length;
+    input.value = formatted;
+    input.setSelectionRange(cursorPos + diff, cursorPos + diff);
+}
+
+// 🔹 فیلدهایی که باید فرمت بشن
+["pricePerGram", "pricePerGram2","pricePerGram3", "totalPrice","totalPrice2","totalPrice3",
+"mesghal","mesghal2","mesghal3","laborPrice","laborPrice2","laborPrice3" ].forEach(id => {
+    console.log('format');
+    let el = document.getElementById(id);
+    if (el) {
+        el.addEventListener("input", function(e) {
+            formatPersianWithComma(e.target);
+        });
+    }
+});
+
+// 🔹 فیلدهایی که با کلاس هستن (بانک و صندوق)
+// 🔹 اضافه کردن Event Delegation برای سطرهای پویا جدول
+document.addEventListener("input", e => {
+    if (
+        e.target.classList.contains("bankInput") ||
+        e.target.classList.contains("cashInput") ||
+        e.target.classList.contains("productLaborPrice")
+    ) {
+        formatPersianWithComma(e.target);
+    }
+});
+
+// 🔹 قبل از ارسال فرم → تبدیل همه فیلدها به عدد انگلیسی بدون کاما
+["purchaseForm", "purchaseForm2", "purchaseForm3", "receivePaymentForm"].forEach(formId => {
+    const form = document.getElementById(formId);
+    if (!form) return;
+
+    form.addEventListener("submit", function() {
+        ["pricePerGram", "pricePerGram2","pricePerGram3", "totalPrice","totalPrice2","totalPrice3",
+        "mesghal","mesghal2","mesghal3","laborPrice","laborPrice2","laborPrice3",
+        "bankInput","cashInput"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                let raw = persianToEnglishDigits(el.value.replace(/,/g, ""));
+                el.value = raw;
+            }
+        });
+    });
+});
+
+
+// 🔹 تابع محاسبه مبلغ کل
+// 🔹 تابع محاسبه مبلغ کل با اجرت درصدی روی وزن
+function calculateTotalPriceSet(priceId,mesghalId, weightId, laborId, totalId) {
+    console.log("mablagh");
+    const priceInput = document.getElementById(priceId);
+    const mesghalInput = document.getElementById(mesghalId);
+    const weightInput = document.getElementById(weightId);
+    const totalInput = document.getElementById(totalId);
+    const laborInput = document.getElementById(laborId);
+
+    if (!priceInput || !weightInput || !totalInput || !laborInput || !mesghalInput) return;
+
+    const price = parseFloat(persianToEnglishDigits(priceInput.value.replace(/,/g, ""))) || 0;
+    const mesghal = parseFloat(persianToEnglishDigits(mesghalInput.value.replace(/,/g, ""))) || 0;
+    const weight = parseFloat(persianToEnglishDigits(weightInput.value.replace(/,/g, ""))) || 0;
+    const labor = parseFloat(persianToEnglishDigits(laborInput.value.replace(/,/g, ""))) || 0;
+    //console.log(labor);
+    let total = 0;
+    let ojrat=0;
+    let pricePerGram = 0;
+
+    // --- اگر قیمت مثقالی وارد شده بود ---
+    if (mesghal > 0) {
+        pricePerGram = mesghal / 4.608 ; // تبدیل مثقال به گرم
+        pricePerGram = Math.round(pricePerGram) ; // ✅ گرد کردن عدد گرمی
+    }
+
+    // --- اگر قیمت گرمی وارد شده بود ---
+    else if (price > 0) {
+        pricePerGram = price;
+    }
+    console.log(pricePerGram);
+
+
+    if (labor>0){
+        ojrat=weight*labor;
+    }
+    //console.log('ojrat');
+    total = Math.round((pricePerGram * weight) + ojrat);
+
+
+    
+
+    // فرمت خروجی با اعداد فارسی
+    const formatted = englishToPersianDigits(total.toLocaleString("en-US"));
+    totalInput.value = formatted;
+}
+
+
+// 🔹 تابع کلی برای وصل‌کردن رویدادها به چند مجموعه
+function setupTotalCalculationSets(sets) {
+    sets.forEach(set => {
+        const { priceId,mesghalId, weightId, totalId, laborId} = set;
+
+        const priceInput = document.getElementById(priceId);
+        const mesghalInput = document.getElementById(mesghalId);
+        const weightInput = document.getElementById(weightId);
+        const laborInput = document.getElementById(laborId);
+
+        [priceInput, mesghalInput, weightInput, laborInput].forEach(input => {
+            if (input) {
+                input.addEventListener("input", function () {
+                    calculateTotalPriceSet(priceId, mesghalId, weightId, laborId, totalId);
+                });
+            }
+        });
+    });
+}
+
+// 🔹 تعریف تمام مجموعه‌ها (می‌تونی هر تعداد اضافه کنی)
+setupTotalCalculationSets([
+    { priceId: "pricePerGram", mesghalId:"mesghal", weightId: "weightPurity", laborId: "laborPrice", totalId: "totalPrice" },
+    { priceId: "pricePerGram2", mesghalId:"mesghal2", weightId: "weightPurity2", laborId: "laborPrice2", totalId: "totalPrice2" },
+    { priceId: "pricePerGram3", mesghalId:"mesghal3", weightId: "weightPurity3", laborId: "laborPrice3", totalId: "totalPrice3" },
+
+]);
+
+
+
+// مپ گروه کالا به کد
+const categoryCodeMap = {
+    bracelet: "DA",
+    earing: "GO",
+    neckles: "GA",
+    ring: "AN",
+    set: "ST",
+    nimset : "SN",
+    zanjir : "ZA" , 
+    medal : 'ME',
+    coine: "CN",
+    other: "OT"
+};
+
+
+
+// وقتی گروه کالا در هر ردیف تغییر کرد
+document.addEventListener('change', async function(e) {
+    if (e.target.classList.contains('productCategory')) {
+        const select = e.target;
+        const row = select.closest('tr');
+        const codeInput = row.querySelector('.productCode');
+
+        if (!select.value || !codeInput) return;
+
+        const categoryValue = select.value;
+        const prefix = categoryCodeMap[categoryValue] || "XX"; // map از قبل تعریف شده باشد
+
+        try {
+            // گرفتن شماره بعدی از سرور
+            const res = await fetch(`/products/get_next_code/${categoryValue}/`);
+            const data = await res.json();
+
+            if (data.next_number) {
+                codeInput.value = `${prefix}-${data.next_number.toString().padStart(3, "0")}`;
+            } else {
+                codeInput.value = `${prefix}-001`;
+            }
+        } catch (err) {
+            console.error("Error fetching next code:", err);
+            codeInput.value = `${prefix}-001`;
+        }
+    }
+});
+
+
+
+    // 🔹 تابع کلی برای محاسبه مجموع وزن‌ها و قیمت بر اساس عیار
+document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔹 تبدیل عدد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return "";
+        return str.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+    }
+
+    // 🔹 تبدیل عدد انگلیسی به فارسی
+    function toPersianDigits(num) {
+        return num.toString().replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+    }
+
+    // 🔹 تابع کلی برای اتصال هر جفت purity/totalWeight
+        function attachPurityToWeight(purityId, weightId ,laborId ,priceId ,mesghalId,totalId ,weightpurityId) {
+        console.log(priceId);
+        const purityInput = document.getElementById(purityId);
+        const weightInput = document.getElementById(weightId);
+        const weightpurityInput = document.getElementById(weightpurityId);
+        if (!purityInput || !weightInput) return;
+
+        // وقتی وزن تغییر کنه، مقدار اولیه (اصلی) ذخیره میشه
+        weightInput.addEventListener("input", () => {
+            const val = parseFloat(persianToEnglish(weightInput.value));
+            if (!isNaN(val)) {
+                weightInput.dataset.originalWeight = val;
+            }
+        });
+
+        // وقتی عیار تغییر کنه، وزن جدید محاسبه میشه
+        purityInput.addEventListener("input", () => {
+            const newPurity = parseFloat(persianToEnglish(purityInput.value));
+            const baseWeight = parseFloat(weightInput.dataset.originalWeight || 0);
+
+            if (!isNaN(newPurity) && newPurity > 0 && baseWeight > 0) {
+                const newWeight = (baseWeight * newPurity) / 750;
+                weightpurityInput.value = toPersianDigits(newWeight.toFixed(2));
+
+                // ✅ صدا زدن تابع محاسبه مبلغ کل
+                calculateTotalPriceSet(priceId,mesghalId, weightpurityId, laborId, totalId);
+            }
+            else {
+                weightpurityInput.value = "";
+            }
+        });
+        // وقتی وزن تغییر کرد، وزن معادل را حساب می‌کنیم
+        weightInput.addEventListener("input", () => {
+            const newPurity = parseFloat(persianToEnglish(purityInput.value));
+            const baseWeight = parseFloat(weightInput.dataset.originalWeight || 0);
+
+            if (!isNaN(newPurity) && newPurity > 0 && !isNaN(baseWeight) && baseWeight > 0) {
+                const newWeight = (baseWeight * newPurity) / 750;
+                weightpurityInput.value = toPersianDigits(newWeight.toFixed(2)); // ۳ رقم اعشار دقیق‌تر
+                // ✅ صدا زدن تابع محاسبه مبلغ کل
+                calculateTotalPriceSet(priceId,mesghalId, weightpurityId, laborId, totalId);
+            } else {
+                weightpurityInput.value = "";
+            }
+        });
+    }
+    
+    // 🔸 اتصال برای ۳ مجموعه‌ی تو
+    attachPurityToWeight("purity", "totalWeight", "labor", "pricePerGram","mesghal" ,"totalPrice","weightPurity");
+    attachPurityToWeight("purity2", "totalWeight2", "labor2", "pricePerGram2","mesghal2", "totalPrice2","weightPurity2");
+    attachPurityToWeight("purity3", "totalWeight3", "labor3", "pricePerGram3", "mesghal3","totalPrice3","weightPurity3");
+    //attachPurityToWeight("productPurity", "ProductWeight");
+
+});
+
+
+    // 🔹  بدوت قیمت تابع کلی برای محاسبه مجموع وزن‌ها بر اساس عیار
+document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔹 تبدیل عدد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return "";
+        return str.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+    }
+
+    // 🔹 تبدیل عدد انگلیسی به فارسی
+    function toPersianDigits(num) {
+        return num.toString().replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+    }
+
+    // 🔹 تابع کلی برای اتصال هر جفت purity/totalWeight
+    function attachPurityToWeight2(purityId, weightId  ) {
+
+        const purityInput = document.getElementById(purityId);
+        const weightInput = document.getElementById(weightId);
+        if (!purityInput || !weightInput) return;
+
+        // وقتی وزن تغییر کنه، مقدار اولیه (اصلی) ذخیره میشه
+        weightInput.addEventListener("input", () => {
+            const val = parseFloat(persianToEnglish(weightInput.value));
+            if (!isNaN(val)) {
+                weightInput.dataset.originalWeight = val;
+            }
+        });
+
+        // وقتی عیار تغییر کنه، وزن جدید محاسبه میشه
+        purityInput.addEventListener("input", () => {
+            const newPurity = parseFloat(persianToEnglish(purityInput.value));
+            const baseWeight = parseFloat(weightInput.dataset.originalWeight || 0);
+
+            if (!isNaN(newPurity) && newPurity > 0 && baseWeight > 0) {
+                const newWeight = (baseWeight * newPurity) / 750;
+                weightInput.value = toPersianDigits(newWeight.toFixed(2));
+
+            }
+        });
+    }
+    
+
+    attachPurityToWeight2("productPurity", "ProductWeight");
+
+});
+
+//عیار
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔹 تبدیل عدد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return "";
+        return str.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+    }
+
+    // 🔹 تبدیل عدد انگلیسی به فارسی
+    function toPersianDigits(num) {
+        if (num === null || num === undefined || num === "") return "";
+        return num.toString().replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+    }
+
+    // 🔹 اتصال محاسبه وزن معادل بر اساس عیار
+    function attachRecalc(puritySelector, weightSelector, purityWeightSelector) {
+        const purityInput = document.querySelector(puritySelector);
+        const weightInput = document.querySelector(weightSelector);
+        const purityWeightInput = document.querySelector(purityWeightSelector);
+
+        if (!purityInput || !weightInput || !purityWeightInput) return;
+
+        // وقتی وزن اصلی تغییر می‌کند، آن را به عنوان وزن پایه ذخیره می‌کنیم
+        weightInput.addEventListener("input", () => {
+            const val = parseFloat(persianToEnglish(weightInput.value));
+            if (!isNaN(val)) {
+                weightInput.dataset.originalWeight = val;
+            }
+        });
+
+        // وقتی عیار تغییر کرد، وزن معادل را حساب می‌کنیم
+        purityInput.addEventListener("input", () => {
+            const newPurity = parseFloat(persianToEnglish(purityInput.value));
+            const baseWeight = parseFloat(weightInput.dataset.originalWeight || 0);
+
+            if (!isNaN(newPurity) && newPurity > 0 && !isNaN(baseWeight) && baseWeight > 0) {
+                const newWeight = (baseWeight * newPurity) / 750;
+                purityWeightInput.value = toPersianDigits(newWeight.toFixed(2)); // ۳ رقم اعشار دقیق‌تر
+            } else {
+                purityWeightInput.value = "";
+            }
+        });
+
+        // وقتی وزن تغییر کرد، وزن معادل را حساب می‌کنیم
+        weightInput.addEventListener("input", () => {
+            const newPurity = parseFloat(persianToEnglish(purityInput.value));
+            const baseWeight = parseFloat(weightInput.dataset.originalWeight || 0);
+
+            if (!isNaN(newPurity) && newPurity > 0 && !isNaN(baseWeight) && baseWeight > 0) {
+                const newWeight = (baseWeight * newPurity) / 750;
+                purityWeightInput.value = toPersianDigits(newWeight.toFixed(2)); // ۳ رقم اعشار دقیق‌تر
+            } else {
+                purityWeightInput.value = "";
+            }
+        });
+    }
+
+
+            // اتصال تابع محاسبه
+            attachRecalc('#productPurity', '#productWeight', '#productWeightPurity');
+    
+
+});
+
+// تب دوم وقتی فعال شد
+
+
+//tab 2 
+
+
+
+$(document).ready(function() {
+  $('#invoiceSeller2').select2({
+    
+    width: '100%',
+    dir: 'rtl',
+    placeholder: 'انتخاب کنید...'
+
+
+  });
+});
+
+
+
+//tab3
+
+function initSellerSelects(selectors) {
+
+    // 🔹 تبدیل اعداد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return '';
+        return str.replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 1728));
+    }
+
+    // 🔹 اجرای select2 برای هر شناسه در آرایه
+    selectors.forEach(selector => {
+        const $el = $(selector);
+        if (!$el.length) return; // اگر المان وجود ندارد، رد شو
+
+        $el.select2({
+            placeholder: "انتخاب کنید...",
+            allowClear: true,
+            width: '100%',
+            dir: 'rtl',
+            dropdownParent: $(document.body),
+
+            language: {
+                noResults: function () {
+                    return $('<div class="p-2 text-center">موردی یافت نشد</div>');
+                },
+                searching: function () {
+                    return "در حال جستجو...";
+                },
+                inputTooShort: function () {
+                    return "برای جستجو چند حرف وارد کنید...";
+                },
+            },
+
+            // ✳️ جستجو بر اساس نام، کد و اعداد فارسی یا انگلیسی
+            matcher: function (params, data) {
+                if ($.trim(params.term) === '') return data;
+
+                const term = persianToEnglish(params.term.toLowerCase());
+                const text = persianToEnglish((data.text || '').toLowerCase());
+                const code = persianToEnglish(($(data.element).data('code') || '').toString().toLowerCase());
+
+                if (text.includes(term) || code.includes(term)) {
+                    return data;
+                }
+                return null;
+            },
+
+            escapeMarkup: function (markup) { return markup; }
+        });
+    });
+}
+$(document).ready(function () {
+    initSellerSelects(['#invoiceSeller','#invoiceSeller2', '#invoiceSeller3']);
+});
+
+// --- پر کردن خودکار نام و آدرس مشتری ---
+document.addEventListener("DOMContentLoaded", function () {
+    const phoneInput = document.getElementById("phoneSeller");
+    const nameInput = document.getElementById("nameSeller");
+    const PHONE_LENGTH = 11;
+
+    phoneInput.addEventListener("input", function () {
+        const rawPhone = this.value.trim();
+        const phone = persianToEnglishDigits(rawPhone);  // تبدیل به انگلیسی
+        if (phone.length === PHONE_LENGTH) {
+            const url = `/customers/check/?phone=${encodeURIComponent(phone)}`;
+            console.log("Fetching:", url);  // این خط برای دیباگ
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exists) {
+                        nameInput.value = data.name;
+
+                    } else {
+                        nameInput.value = "";
+
+                    }
+                })
+                .catch(err => console.error(err));
+        } else {
+            // اگر شماره کامل نیست، پاک کن
+            nameInput.value = "";
+
+        }
+    });
+});
+
+
+// ✅ تابع بسته شدن مدال موفقیت
+function closeSuccessModal2(){
+    modalContent2.classList.add('exit');
+    setTimeout(() => {
+        modal2.style.display = 'none';
+        modalContent2.classList.remove('exit');
+        window.location.reload();
+    }, 350);
+}
+
+
+//tab3 jadid
+document.addEventListener("DOMContentLoaded", () => {
+  const openModalBtn = document.getElementById("invoiceSave3");
+  const confirmBtn = document.getElementById("confirmPaymentBtn3");
+  const totalInput = document.getElementById("totalPrice3");
+  const modalTotal = document.getElementById("receivableAmount3");
+  const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  const recievePaymentModal = document.getElementById('recievepayment-modal3');
+
+  // 🔹 وقتی روی ثبت فاکتور می‌زنی فقط مدال باز کن و مبلغ فرم رو نمایش بده
+  openModalBtn.addEventListener("click", () => {
+    const total = totalInput.value.trim();
+    console.log("total",total);
+    modalTotal.innerText = "مبلغ قابل پرداخت: " + total + " تومان";
+    //modalTotal.textContent = new Intl.NumberFormat("fa-IR").format(total);
+    const modal = new bootstrap.Modal(document.getElementById("recievepayment-modal3"));
+    modal.show();
+  });
+
+  // 🔹 وقتی داخل مدال تایید پرداخت رو زدی => اطلاعات فرم + پرداخت بره بک‌اند
+  // 🔹 ارسال فرم کامل (فاکتور + پرداخت‌ها)
+  confirmBtn.addEventListener("click", async () => {
+    const form = document.getElementById("purchaseForm3");
+    const formData = new FormData(form);
+
+    fetch("{% url 'save_purchase3' %}", {
+      method: "POST",
+      body: formData,
+      headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+        }
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            //alert("✅ فاکتور و پرداخت با موفقیت ثبت شدند");
+            //location.reload();
+            // بستن مدال پرداخت
+            const modalInstance = bootstrap.Modal.getInstance(recievePaymentModal);
+            modalInstance.hide();
+            // نمایش مدال موفقیت
+            currentInvoiceId = data.id;
+            label = false;
+            showSuccessModal(currentInvoiceId, label);
+    } 
+    else {
+      Swal.fire("خطا", data.message || "ذخیره با خطا مواجه شد", "error");
+    }
+    })
+    .catch(error => console.error("Error:", error));
+    });
+});//document
+
+//tab2 jadid
+document.addEventListener("DOMContentLoaded", () => {
+  const openModalBtn = document.getElementById("invoiceSave2");
+  const confirmBtn = document.getElementById("confirmPaymentBtn2");
+  const totalInput = document.getElementById("totalPrice2");
+  const modalTotal = document.getElementById("receivableAmount2");
+  const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  const recievePaymentModal = document.getElementById('recievepayment-modal2');
+
+  // 🔹 وقتی روی ثبت فاکتور می‌زنی فقط مدال باز کن و مبلغ فرم رو نمایش بده
+  openModalBtn.addEventListener("click", () => {
+    const total = totalInput.value.trim();
+    console.log("total",total);
+    modalTotal.innerText = "مبلغ قابل پرداخت: " + total + " تومان";
+    //modalTotal.textContent = new Intl.NumberFormat("fa-IR").format(total);
+    const modal = new bootstrap.Modal(document.getElementById("recievepayment-modal2"));
+    modal.show();
+  });
+
+  // 🔹 وقتی داخل مدال تایید پرداخت رو زدی => اطلاعات فرم + پرداخت بره بک‌اند
+  // 🔹 ارسال فرم کامل (فاکتور + پرداخت‌ها)
+  confirmBtn.addEventListener("click", async () => {
+    const form = document.getElementById("purchaseForm2");
+    const formData = new FormData(form);
+
+    fetch("{% url 'save_purchase2' %}", {
+      method: "POST",
+      body: formData,
+      headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+        }
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            //alert("✅ فاکتور و پرداخت با موفقیت ثبت شدند");
+            //location.reload();
+            // بستن مدال پرداخت
+            const modalInstance = bootstrap.Modal.getInstance(recievePaymentModal);
+            modalInstance.hide();
+            // نمایش مدال موفقیت
+            currentInvoiceId = data.id;
+            label = false;
+            showSuccessModal(currentInvoiceId, label);
+    } 
+    else {
+      Swal.fire("خطا", data.message || "ذخیره با خطا مواجه شد", "error");
+    }
+    })
+    .catch(error => console.error("Error:", error));
+    });
+});//document
+
+
+let label=false;
+//tab1 jadid
+document.addEventListener("DOMContentLoaded", () => {
+  const openModalBtn = document.getElementById("invoiceSave");
+  const confirmBtn = document.getElementById("confirmPaymentBtn");
+  const saveItemBtn = document.getElementById("saveItem");
+  const totalInput = document.getElementById("totalPrice");
+  const modalTotal = document.getElementById("receivableAmount");
+  const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
+  const recievePaymentModal = document.getElementById('recievepayment-modal');
+
+  // 🔹 وقتی روی ثبت فاکتور می‌زنی فقط مدال باز کن و مبلغ فرم رو نمایش بده
+  openModalBtn.addEventListener("click", () => {
+    const total = totalInput.value.trim();
+    console.log("total",total);
+    modalTotal.innerText = "مبلغ قابل پرداخت: " + total + " تومان";
+    //modalTotal.textContent = new Intl.NumberFormat("fa-IR").format(total);
+    const modal = new bootstrap.Modal(document.getElementById("recievepayment-modal"));
+    modal.show();
+  });
+
+  // 🔹 وقتی داخل مدال تایید پرداخت رو زدی => اطلاعات فرم + پرداخت بره بک‌اند
+  // 🔹 ارسال فرم کامل (فاکتور + پرداخت‌ها)
+  confirmBtn.addEventListener("click", async () => {
+    const form = document.getElementById("purchaseForm");
+    console.log(form);
+    const formData = new FormData(form);
+    console.log(formData);
+    fetch("{% url 'add_purchase_invoice' %}", {
+      method: "POST",
+      body: formData,
+      headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+        }
+    })
+
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === "success") {
+            //alert("✅ فاکتور و پرداخت با موفقیت ثبت شدند");
+            //location.reload();
+            // بستن مدال پرداخت
+            const modalInstance = bootstrap.Modal.getInstance(recievePaymentModal);
+            modalInstance.hide();
+            document.body.classList.remove("modal-open");
+                document.body.style.overflow = "auto";
+                document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+                currentInvoiceId = data.id;
+                label = true;
+                showSuccessModal(currentInvoiceId, label);
+
+            //Swal.fire("موفق!", "فاکتور ثبت شد", "success");
+
+            // وزن کل خرید را ذخیره کن برای محدودیت بعدی
+            window.maxWeight = parseFloat(toEnglishDigits(document.getElementById('totalWeight').value)) || 0;
+
+    } 
+    else {
+      Swal.fire("خطا", data.message || "ذخیره با خطا مواجه شد", "error");
+    }
+    })
+    .catch(error => console.error("Error:", error));
+    });
+
+    // ✅ اطمینان از اینکه بعد از بسته شدن مدال، صفحه قفل نشه
+    const recievePaymentModalEl = document.getElementById("recievepayment-modal");
+
+    recievePaymentModalEl.addEventListener("hidden.bs.modal", function () {
+    // اگر Bootstrap مدال رو بست، هر چیزی که مونده رو پاک می‌کنیم
+    document.body.classList.remove("modal-open");
+    document.body.style.overflow = "auto";
+    document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+    });
+    
+});//document
+
+// ghofl labor
+document.addEventListener("DOMContentLoaded", () => {
+
+    function setupLaborFields(percentSelector, priceSelector) {
+        const percentInput = document.querySelector(percentSelector);
+        const priceInput   = document.querySelector(priceSelector);
+
+        if (!percentInput || !priceInput) return;
+
+        // وقتی درصد وارد شد → تومان خالی و غیرفعال شود
+        percentInput.addEventListener("input", () => {
+            if (percentInput.value.trim() !== "") {
+                priceInput.value = "";
+                priceInput.setAttribute("disabled", "disabled");
+            } else {
+                priceInput.removeAttribute("disabled");
+            }
+        });
+
+        // وقتی تومان وارد شد → درصد خالی و غیرفعال شود
+        priceInput.addEventListener("input", () => {
+            if (priceInput.value.trim() !== "") {
+                percentInput.value = "";
+                percentInput.setAttribute("disabled", "disabled");
+            } else {
+                percentInput.removeAttribute("disabled");
+            }
+        });
+    }
+
+    // 🔥 اجرای اسکریپت برای تمام تب‌ها
+    setupLaborFields("#labor", "#laborPrice");         // تب اول - خرید کالا
+    setupLaborFields("#labor2", "#laborPrice2");       // تب دوم - آب شده
+    setupLaborFields("#labor3", "#laborPrice3");       // تب سوم - متفرقه
+    setupLaborFields("#pricePerGram", "#mesghal");         // تب اول - خرید کالا
+    setupLaborFields("#pricePerGram2", "#mesghal2");       // تب دوم - آب شده
+    setupLaborFields("#pricePerGram3", "#mesghal3"); 
+    setupLaborFields("#productLabor", "#productLaborPrice");
+});
+
+
+
+</script>
+
+{% endblock %}

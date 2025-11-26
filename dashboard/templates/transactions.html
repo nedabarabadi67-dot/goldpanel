@@ -1,0 +1,631 @@
+{% extends '_newsidebar.html' %}
+{% load static %}
+{% load jalali_tags %}
+{% block content %}
+
+<style>
+
+    /* واکنش‌گرا */
+        @media (max-width: 480px) {
+            .select2-container--default .select2-selection--single {
+                height: 36px;
+                line-height: 36px;
+                font-size: 14px;
+            }
+            .select2-container--default .select2-selection--single .select2-selection__arrow {
+                height: 36px;
+            }
+        }
+        /* استایل شفاف و ارتفاع 40px برای تمام select2 */
+        .select2-container--default .select2-selection--single {
+            background: rgba(255, 255, 255, 0.12) !important; /* شفاف */
+            color: #fff !important; /* متن سفید */
+            border: 0px solid rgba(255,255,255,0.2) !important; /* مشابه glassSelect */
+            border-radius: 4px;
+            height: 38px !important;
+            line-height: 40px;
+            padding: 4px 6px;
+            box-shadow: none;
+            font-size: 15px;
+            margin-left: 0;
+            transition: background 0.3s ease; /* فقط تغییر رنگ بدون درخشش */
+            appearance: none;
+
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 1 !important; /* placeholder کاملا واضح */
+            appearance: none;
+            box-shadow: none; /* غیرفعال کردن سایه */
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            top: 0;
+            height: 40px;
+        }
+
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: #fff !important;
+            opacity: 1 !important; /* placeholder کاملا واضح */
+            line-height: 38px !important;
+        
+        }
+
+        /* placeholder سفید */
+        .select2-container--default .select2-selection--single .select2-selection__placeholder {
+            color: #fff !important;
+            opacity: 1 !important;
+            font-weight: 500 !important; /* متن کمی پررنگ‌تر */
+        }
+
+        /* لیست گزینه‌ها */
+        .select2-container--default .select2-results__option {
+            background: rgba(20, 20, 20, 0.85);
+            color: #fff;
+        }
+
+        /* گزینه‌های انتخاب شده یا هاور */
+        .select2-container--default .select2-results__option--highlighted {
+            background: rgba(255, 255, 255, 0.12);
+            color: #fff;
+        }
+    /* ---------------- دکمه‌ها ---------------- */
+    .btn-gradient {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        margin-right: 5px;
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    .btn-receive {
+        background: linear-gradient(135deg, #28a745, #45d36b);
+    }
+    .btn-receive:hover {
+        background: linear-gradient(135deg, #45d36b, #28a745);
+    }
+
+    .btn-payment {
+        background: linear-gradient(135deg, #f57c00, #ffb74d);
+    }
+    .btn-payment:hover {
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
+
+    /* ---------------- کارت‌های داشبورد ---------------- */
+    .card-glass {
+        background-color: rgba(255,255,255,0.2);
+        backdrop-filter: blur(8px);
+        border-radius: 10px;
+        padding: 16px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+
+    .card-glass h2 {
+        margin-bottom: 8px;
+        font-size: 1.1rem;
+        font-weight: 600;
+    }
+
+    .card-glass ul {
+        padding-left: 16px;
+    }
+
+    /* ---------------- جدول ---------------- */
+    .table-glass th, .table-glass td {
+        padding: 12px 10px !important;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .table-glass tbody tr:hover {
+        background-color: rgba(255,255,255,0.1);
+    }
+
+    /* ---------------- مدال شفاف ---------------- */
+    .modal-content {
+        background-color: rgba(255,255,255,0.2);
+        backdrop-filter: blur(8px);
+        border-radius: 10px;
+    }
+
+    /* ---------------- واکنش‌گرایی ---------------- */
+    @media (max-width: 576px) {
+        .form-control { font-size: 0.9rem; }
+    }
+            
+        /* فرم‌ها با Glass Effect */
+        .form-control.input-shadow,
+        select.form-control.input-shadow {
+            background: rgba(255, 255, 255, 0.12);
+            border: none;
+            border-radius: 4px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #fff;
+            padding: 10px 14px;  /* کمی پدینگ بیشتر */
+            font-size: 16px;      /* فونت بزرگ‌تر */
+            box-shadow: none;
+        }
+
+        /* گزینه‌های select شفاف */
+        select.form-control.input-shadow option {
+            background: rgba(20, 20, 20, 0.3);
+            color: #fff;
+            backdrop-filter: blur(6px);
+            font-size: 16px;  /* فونت بزرگ‌تر */
+        }
+
+            /* تب‌ها */
+    .nav-tabs .nav-link {
+        color: #fff; /* رنگ متن سفید */
+        background: rgba(255, 255, 255, 0.1); /* شفاف */
+        border-radius: 8px 8px 0 0;
+        margin-right: 5px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* سایه متن برای خوانایی */
+        font-weight: 500;
+    }
+
+    .nav-tabs .nav-link.active {
+        background: rgba(255, 255, 255, 0.25); /* کمی روشن‌تر برای تب فعال */
+        color: #fff;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        font-weight: 600;
+    }
+
+    .nav-tabs .nav-link:hover {
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    }
+
+    /* اگر میخوای لبه‌ها هم کمی واضح بشه */
+    .nav-tabs {
+        border-bottom: 2px solid rgba(255,255,255,0.2);
+    }
+
+
+    /* دکمه‌های اکسل و چاپ حرفه‌ای */
+    /* دکمه‌های اکشن (ظاهر مشابه چاپ) */
+    .btn-action {
+        flex: 0 0 160px;
+        height: 50px;
+        border-radius: 12px;
+        border: none;
+        color: #fff;
+        font-weight: 600;
+        font-size: 16px;
+        text-align: center;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+    }
+
+    .btn-action i {
+        margin-left: 8px;
+        font-size: 18px;
+    }
+
+    /* دکمه‌های اکسل و پرینت */
+    #printsell, #printpartner {
+        font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+        padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+        margin-right: 5px;       /* فاصله بین دکمه‌ها */
+        margin-top:1px;
+        height: auto;            /* ارتفاع متناسب با محتوا */
+    }
+
+    /* رنگ گرادینت برای اکسل و چاپ */
+
+
+    #printpartner, #printsell,#printTransactions {
+        background: linear-gradient(135deg, #f57c00, #ffb74d);
+    }
+    #printpartner:hover, #printsell:hover,#printTransactions:hover {
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
+
+    #partnerBtn, #sellBtn ,#printTransactions{
+        font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+        padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+        margin-right: 5px;       /* فاصله بین دکمه‌ها */
+        margin-top:1px;
+        height: auto;            /* ارتفاع متناسب با محتوا */
+    }
+
+    /* واکنش‌گرایی بیشتر برای موبایل */
+    @media (max-width: 576px) {
+        .search-bar {
+            flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+        }
+
+        .search-bar input {
+            font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+        }
+
+        .btn.btn-success {
+            flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+        }
+    }
+
+    #partnerTable th, #partnerTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+    #sellTable th, #sellTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+    #transactionTable th, #transactionTable td {
+        padding: 12px 10px !important; /* override padding Bootstrap */
+        
+        vertical-align: middle;
+        text-align: center;
+    }
+
+    {tableId: 'transactionTable', printId: 'printTransactions', sheetName: 'تراکنش طلای فروشگاه'},
+
+    /* واکنش‌گرایی بیشتر برای موبایل */
+    @media (max-width: 576px) {
+        .search-bar {
+            flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+        }
+
+        .search-bar input {
+            font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+        }
+
+        .btn.btn-success {
+            flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+        }
+    }
+
+
+</style>
+
+
+
+<div class="container mx-auto">
+
+    <!-- ---------- داشبورد موجودی ---------- -->
+      <!-- KPI Cards -->
+	<div class="card mt-3">
+        <div class="card-content">
+            <div class="row row-group m-0">
+                <div class="col-12 col-lg-6 col-xl-5 border-light">
+                    <div class="card-body">
+                    <h5 class="mb-0">صندوق ها  <span class="float-right"></span></h5>
+                        <ul>
+                            {% for c in cashes %}
+                            <li>{{ c.name }}: {{ c.account.calculated_balance_recursive|default:0|persian_intcomma }} تومان</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6 col-xl-5 border-light">
+                    <div class="card-body">
+                    <h5 class="text-white mb-0">بانک ها   <span class="float-right"></span></h5>
+                        <ul>
+                            {% for b in banks %}
+                            <li>{{ b.name }}: {{ b.account.calculated_balance_recursive|default:0|persian_intcomma }} تومان</li>
+                            {% endfor %}
+                        </ul>
+                    
+                    </div>
+                </div>
+
+
+            </div>
+        </div>
+    </div> 
+
+
+    <!-- ---------- تب‌ها ---------- -->
+   <!-- Nav Tabs -->
+    <ul class="nav nav-tabs mt-5" id="aaccountingTabsNav" role="tablist" >
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="recieve-tabBtn" data-bs-toggle="tab" data-bs-target="#recieve-tab" type="button" role="tab">دریافت وجه </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="payment-tabBtn" data-bs-toggle="tab" data-bs-target="#payment-tab" type="button" role="tab"> پرداخت وجه </button>
+    </li>
+    </ul>
+
+      <div class="tab-content" id="accountingTabs">
+
+      <!-- persons -->
+    <div class="tab-pane fade show active" id="recieve-tab" role="tabpanel">
+                <form id="receiveForm" method="POST" class="mb-3">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="receive">
+
+            <div class="mb-2 mt-2">
+                <label> حساب مبدا </label>
+                <select name="recieve_account_source" id="select1" class="form-control" required>
+                    <option value="">انتخاب کنید...</option>
+                    {% for acc in recieve_account_source %}
+                        {% if acc.owner != "" %}
+                            <option value="{{acc.code}}">{{ acc.code|persian_digits }} {{acc.name}}   {{acc.owner}}</option>
+                        {% else %}
+                            <option value="{{acc.code}}">{{ acc.code|persian_digits }} {{acc.name}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label>  حساب مقصد </label>
+                <select name="recieve_account_destination" id="select2" class="form-control" required>
+                    <option value="">انتخاب کنید...</option>
+                    {% for b in recieve_account_destination %}
+                        {% if b.owner != "" %}
+                            <option value="{{b.code}}">{{b.code|persian_digits}} - {{ b.name }}  {{b.owner}} </option>
+                        {% else %}
+                            <option value="{{b.code}}">{{b.code|persian_digits}} - {{ b.name }} </option>
+                        {% endif %}
+                    {% endfor %}
+
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label>مبلغ</label>
+                <input type="text" name="amount" id="priceRecive" class="form-control" required>
+            </div>
+
+            <div class="mb-2">
+                <label>توضیحات</label>
+                <textarea class="form-control" id="note" name="note" rows="2" placeholder="توضیح اختیاری..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-action btn-receive mt-3">💾 ثبت دریافت</button>
+        </form>
+    </div><!--tab pane persons-->
+
+      <!-- cashbank -->
+    <div class="tab-pane fade" id="payment-tab" role="tabpanel">
+                <form id="paymentForm" method="POST" class="mb-3">
+            {% csrf_token %}
+            <input type="hidden" name="type" value="payment">
+
+            <div class="mb-2 mt-2">
+                <label>حساب مبدا </label>
+                <select name="payment_account_source" id="select3" class="form-control" required>
+                    <option value="">انتخاب کنید...</option>
+                    {% for e in payment_account_source %}
+                        {% if e.owner != "" %}
+                            <option value="{{e.code}}" data-balance="{{ e.calculated_balance_recursive }}">{{e.code|persian_digits}} - {{ e.name }} {{e.owner}}</option>
+                        {% else %}
+                            <option value="{{e.code}}" data-balance="{{ e.calculated_balance_recursive }}">{{e.code|persian_digits}} - {{ e.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label>حساب مقصد </label>
+                <select name="payment_account_destination" id="select4" class="form-control" required>
+                    <option value="">انتخاب کنید...</option>
+                    {% for b in payment_account_destination %}
+                        {% if b.owner != "" %}
+                            <option value="{{b.code}}"> {{b.code |persian_digits}} - {{ b.name }} {{b.owner}}</option>
+                        {% else %}
+                            <option value="{{b.code}}"> {{b.code |persian_digits}} - {{ b.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="mb-2">
+                <label>مبلغ</label>
+                <input type="text" name="amount" id="pricePayment" class="form-control" required>
+            </div>
+
+            <div class="mb-2">
+                <label>توضیحات</label>
+                <textarea class="form-control" id="note" name="note" rows="2" placeholder="توضیح اختیاری..."></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-gradient btn-payment mt-3">💾 ثبت پرداخت</button>
+        </form>
+    </div><!--tab pane persons-->
+
+  </div><!--tab content-->
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<!-- Select2 CSS -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    // تب‌ها
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            contents.forEach(c => c.classList.add('d-none'));
+            document.getElementById(tab.dataset.tab).classList.remove('d-none');
+        });
+    });
+
+  // تبدیل فارسی → انگلیسی
+function persianToEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+}
+
+// تبدیل انگلیسی → فارسی
+function englishToPersianDigits(str) {
+    return str.replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+}
+
+// 🔹 تابع فرمت جداکننده سه‌رقمی با حفظ موقعیت کرسر
+function formatPersianWithComma(input) {
+    let cursorPos = input.selectionStart;
+    let raw = persianToEnglishDigits(input.value.replace(/,/g, ""));
+    if (raw === "" || isNaN(raw)) {
+        input.value = "";
+        return;
+    }
+
+    let formatted = parseInt(raw, 10).toLocaleString("en-US");
+    formatted = englishToPersianDigits(formatted);
+
+    let diff = formatted.length - input.value.length;
+    input.value = formatted;
+    input.setSelectionRange(cursorPos + diff, cursorPos + diff);
+}
+
+// 🔹 فیلدهایی که باید فرمت بشن
+["priceRecive", "pricePayment" ].forEach(id => {
+    console.log('format');
+    let el = document.getElementById(id);
+    if (el) {
+        el.addEventListener("input", function(e) {
+            formatPersianWithComma(e.target);
+        });
+    }
+});
+
+function initSellerSelects(selectors) {
+
+    console.log('select');
+
+    // 🔹 تبدیل اعداد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return '';
+        return str.replace(/[۰-۹]/g, d => String.fromCharCode(d.charCodeAt(0) - 1728));
+    }
+
+    // 🔹 اجرای select2 برای هر شناسه در آرایه
+    selectors.forEach(selector => {
+        const $el = $(selector);
+        if (!$el.length) return; // اگر المان وجود ندارد، رد شو
+
+        $el.select2({
+            placeholder: "انتخاب کنید...",
+            allowClear: true,
+            width: '100%',
+            dir: 'rtl',
+            dropdownParent: $(document.body),
+
+            language: {
+                noResults: function () {
+                    return $('<div class="p-2 text-center">موردی یافت نشد</div>');
+                },
+                searching: function () {
+                    return "در حال جستجو...";
+                },
+                inputTooShort: function () {
+                    return "برای جستجو چند حرف وارد کنید...";
+                },
+            },
+
+            // ✳️ جستجو بر اساس نام، کد و اعداد فارسی یا انگلیسی
+            matcher: function (params, data) {
+                if ($.trim(params.term) === '') return data;
+
+                const term = persianToEnglish(params.term.toLowerCase());
+                const text = persianToEnglish((data.text || '').toLowerCase());
+                const code = persianToEnglish(($(data.element).data('code') || '').toString().toLowerCase());
+
+                if (text.includes(term) || code.includes(term)) {
+                    return data;
+                }
+                return null;
+            },
+
+            escapeMarkup: function (markup) { return markup; }
+        });
+    });
+}
+$(document).ready(function () {
+    initSellerSelects(['#select1','#select2', '#select3' , '#select4']);
+});
+
+//چک موجودی برای واریز
+document.addEventListener("DOMContentLoaded", () => {
+    const paymentForm = document.getElementById("paymentForm");
+
+
+    paymentForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+
+        // ارسال AJAX
+        fetch(paymentForm.action, {
+            method: 'POST',
+            body: new FormData(paymentForm),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(!data.success){
+                Swal.fire("خطا", data.error || "ذخیره با خطا مواجه شد", "error");
+                return;
+            }
+            Swal.fire("موفق", data.message || "تراکنش با موفقیت ثبت شد", "success")
+                .then(() => window.location.reload()); // بعد از OK صفحه رفرش شود
+            
+            })
+        .catch(err => {
+            Swal.fire("خطا", "ارسال درخواست با مشکل مواجه شد", "error");
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const paymentForm = document.getElementById("receiveForm");
+
+
+    paymentForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+
+        // ارسال AJAX
+        fetch(paymentForm.action, {
+            method: 'POST',
+            body: new FormData(paymentForm),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(!data.success){
+                Swal.fire("خطا", data.error || "ذخیره با خطا مواجه شد", "error");
+                return;
+            }
+            Swal.fire("موفق", data.message || "تراکنش با موفقیت ثبت شد", "success")
+                .then(() => window.location.reload()); // بعد از OK صفحه رفرش شود
+            
+            })
+        .catch(err => {
+            Swal.fire("خطا", "ارسال درخواست با مشکل مواجه شد", "error");
+        });
+    });
+});
+
+
+</script>
+{% endblock %}

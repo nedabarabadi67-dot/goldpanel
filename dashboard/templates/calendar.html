@@ -1,0 +1,131 @@
+{%load static %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<link rel="stylesheet" href="{% static 'assets/css/kamadatepicker.min.css' %}">
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="{% static 'assets/js/kamadatepicker.min.js' %}"></script>
+
+<input id="mydate" type="text">
+
+
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
+  
+  
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.4/build/moment-jalaali.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    kamaDatepicker('mydate', { closeAfterSelect: true });
+});
+</script>
+
+
+    document.addEventListener("DOMContentLoaded", function () {
+    kamaDatepicker('startDate', {
+        buttonsColor: "red",
+        forceFarsiDigits: true,
+        markToday: true,
+        markHolidays: true,
+        gotoToday: true
+    });
+    kamaDatepicker('endDate', {
+        buttonsColor: "blue",
+        forceFarsiDigits: true,
+        markToday: true,
+        gotoToday: true
+    });
+});
+
+  /* استایل شیشه‌ای و شفاف برای popup تقویم */
+/* افکت باز شدن smooth برای تقویم */
+.kdp-popup {
+    transition: transform 0.25s ease, opacity 0.25s ease;
+    transform: scale(0.9);
+    opacity: 0;
+    position: fixed; /* به طور پیش‌فرض */
+    pointer-events: none; /* وقتی بسته است کلیک ناپذیر */
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    color: #fff;
+    z-index: 99999999 !important; 
+}
+
+/* وقتی باز شد */
+.kdp-popup.show {
+    transform: scale(1);
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 99999999 !important; 
+}
+
+
+/* روزها */
+.kdp-popup .kdp-day {
+    color: #fff !important;
+    transition: all 0.2s;
+}
+
+.kdp-popup .kdp-day:hover {
+    background: rgba(76, 175, 80, 0.3) !important;
+    border-radius: 6px;
+}
+
+/* دکمه‌ها */
+.kdp-popup .kdp-btn {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border-radius: 8px;
+    padding: 4px 10px;
+    margin: 2px;
+    transition: all 0.2s;
+}
+
+.kdp-popup .kdp-btn:hover {
+    background: rgba(76, 175, 80, 0.3);
+}
+
+/* عنوان ماه و سال */
+.kdp-popup .kdp-header {
+    color: #fff !important;
+    font-weight: bold;
+}
+
+
+<link rel="stylesheet" href="{% static 'assets/css/kamadatepicker.min.css' %}">
+
+    <!-- kamaDatepicker -->
+    <link rel="stylesheet" href="{% static 'assets/css/kamadatepicker.min.css' %}">
+    <script src="{% static 'assets/js/kamadatepicker.min.js' %}"></script>
+
+    function setupKamaDatepicker(id) {
+    kamaDatepicker(id, {
+        markToday: true,
+        highlightSelectedDay: true,
+        closeAfterSelect: true,
+        appendToBody: true,  // اضافه کردن به body
+        onShow: function(input, calendar) {
+            const rect = input.getBoundingClientRect();
+            calendar.style.position = 'absolute';
+            calendar.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+            calendar.style.left = (rect.left + window.scrollX) + 'px';
+            calendar.style.zIndex = 999999; 
+        }
+    });
+}
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    setupKamaDatepicker('mydate');
+    setupKamaDatepicker('startDate');
+    setupKamaDatepicker('endDate');
+
+});

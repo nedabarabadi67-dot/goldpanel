@@ -1,0 +1,1050 @@
+{% extends "_newsidebar.html" %}
+{% load static %}
+{% load jalali_tags%}
+<!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+
+
+{% block title %}CRM{% endblock %}
+
+{% block content %}
+<style>
+    /* فرم‌ها با Glass Effect */
+.form-control.input-shadow,
+select.form-control.input-shadow {
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 10px 14px;  /* کمی پدینگ بیشتر */
+    font-size: 16px;      /* فونت بزرگ‌تر */
+    box-shadow: none;
+}
+
+/* گزینه‌های select شفاف */
+select.form-control.input-shadow option {
+    background: rgba(20, 20, 20, 0.3);
+    color: #fff;
+    backdrop-filter: blur(6px);
+    font-size: 16px;  /* فونت بزرگ‌تر */
+}
+
+/* مدال شفاف با blur */
+.modal-content {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 15px;
+    backdrop-filter: blur(8px);
+    color: #fff;
+    font-size: 18px; /* فونت مدال بزرگ‌تر */
+}
+
+/* عنوان مدال */
+.modal .card-title {
+    font-size: 20px; /* بزرگ‌تر کردن عنوان */
+    font-weight: 600;
+}
+
+/* دکمه‌ها */
+.modal-content .btn {
+    font-size: 16px; /* فونت دکمه‌ها کمی بزرگ‌تر */
+    padding: 8px 16px;
+}
+
+/* چک‌باکس */
+.form-check-label {
+    font-size: 16px; /* متن چک‌باکس بزرگ‌تر */
+}
+.modal-header.bg-gradient-primary {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+}
+.btn-gradient-success {
+    background: linear-gradient(135deg, #28a745, #85e085);
+    border: none;
+    color: white;
+}
+.btn-gradient-success:hover {
+    background: linear-gradient(135deg, #218838, #70d470);
+}
+
+
+
+@media (max-width: 768px) {
+    .modal-body .d-flex {
+        flex-wrap: nowrap; /* نذار پایین بیفته */
+        overflow-x: auto;  /* اسکرول افقی در موبایل */
+    }
+    .phone-preview-wrapper {
+        flex: 0 0 auto;
+    }
+}
+
+/* لیبل‌ها بزرگ‌تر و بولد */
+.modal .form-label {
+    font-size: 1.1rem;   /* اندازه بزرگ‌تر */
+    font-weight: 600;    /* ضخیم‌تر */
+    color: #fff;         /* سفید (اگر پس‌زمینه تیره است) */
+}
+
+/* اینپوت و کمبوباکس بزرگ‌تر */
+.modal .form-control,
+.modal .form-select {
+    font-size: 1.05rem;   /* بزرگ‌تر از معمول */
+    padding: 12px 14px;   /* ارتفاع بیشتر */
+    border-radius: 8px;   /* گردی بیشتر */
+}
+
+.modal-header.bg-gradient-primary {
+    background: rgba(52, 58, 64, 0.6); /* شفاف */
+    
+}
+.btn-gradient-success {
+    background: linear-gradient(135deg, #28a745, #85e085);
+    border: none;
+    color: white;
+}
+.btn-gradient-success:hover {
+    background: linear-gradient(135deg, #218838, #70d470);
+}
+.phone-preview {
+    width: 380px;
+    height:350px;
+    border-radius: 20px;
+    background: #f8f9fa;
+    overflow: hidden;
+    border: 2px solid #ddd;
+}
+.phone-header {
+    background: #343a40;
+    color: white;
+    text-align: center;
+    padding: 8px;
+    font-weight: bold;
+}
+.phone-screen {
+    padding: 15px;
+    min-height: 200px;
+    background: #fff;
+}
+.sms-message {
+    background: #e0ffe0;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 15px;
+    line-height: 1.6;
+    color: #333;
+    max-width: 90%;
+}
+    .phone-preview-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+.phone-preview {
+    width: 280px;
+    height: 340px;
+    border-radius: 20px;
+    background: #f8f9fa;
+    overflow: hidden;
+    border: 2px solid #ddd;
+}
+@media (max-width: 768px) {
+    .modal-body .d-flex {
+        flex-wrap: nowrap; /* نذار پایین بیفته */
+        overflow-x: auto;  /* اسکرول افقی در موبایل */
+    }
+    .phone-preview-wrapper {
+        flex: 0 0 auto;
+    }
+}
+@media (max-width: 768px) {
+    .modal-body .d-flex {
+        flex-direction: column; /* ستون‌ها روی هم بروند */
+        align-items: center;    /* وسط چین */
+        gap: 20px;              /* فاصله بین فرم و موبایل */
+    }
+    .phone-preview-wrapper {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+    }
+}
+
+#campaignTable th, #campaignTable td {
+
+    color: #fff;
+  font-weight: 600;
+
+  border-top: 1px solid rgba(255,255,255,.15);
+  font-size: 15px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+  
+  white-space: nowrap;  /* جلوگیری از شکستن متن */
+       /* یا center بسته به نیاز */
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#campaignTable thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 10;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+#smsTable th, #smsTable td {
+
+    color: #fff;
+  font-weight: 600;
+
+  border-top: 1px solid rgba(255,255,255,.15);
+  font-size: 15px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+  
+  white-space: nowrap;  /* جلوگیری از شکستن متن */
+       /* یا center بسته به نیاز */
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#smsTable thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 10;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+
+
+</style>
+
+<div class="container-fluid" style="direction: rtl; text-align: right;">
+
+<div input="text"></div>
+
+      <!-- KPI Cards -->
+	<div class="card mt-3">
+    <div class="card-content">
+        <div class="row row-group m-0">
+            <div class="col-12 col-lg-6 col-xl-3 border-light">
+                <div class="card-body">
+                  <h5 class="mb-0">کمپین های فعال  <span class="float-right"></span></h5>
+
+                  <p class="mb-0  mt-3 text-white small-font" id="activeCampaigns">{{ active_campaigns|persian_digits}}  <span class="float-right"> </span></p>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 col-xl-3 border-light">
+                <div class="card-body">
+                  <h5 class="text-white mb-0">کل مشتریان  <span class="float-right"></span></h5>
+
+                  <p class="mb-0 mt-3 text-white small-font" id="totalCustomers">{{ total_customers|persian_digits }}  <span class="float-right"></span></p>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 col-xl-3 border-light">
+                <div class="card-body">
+                  <h5 class="text-white mb-0"> پیامک های ارسال شده 
+                     <span class="float-right"></span></h5>
+                  <p class="mb-0 mt-3 text-white small-font" id="totalMessages">{{ total_messages|persian_digits }}  <span class="float-right"></span></p>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6 col-xl-3 border-light">
+                <div class="card-body">
+                  <h5 class="text-white mb-0">مشتریان بازگشتی   <span class="float-right"></span></h5>
+
+                  <p class="mb-0 mt-3 text-white small-font" id="returningsCustomers">{{ returning_customers|persian_digits }}  <span class="float-right"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+ </div> 
+
+
+
+  <!-- جدول کمپین‌ها -->
+    
+<div class="card mt-3">
+    <!-- هدر کارت با دکمه کمپین جدید -->
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">کمپین‌ها</h5>
+        <button type="button" class="btn btn-success btn-sm" onclick="openNewCampaignModal()">
+            ➕ کمپین جدید
+        </button>
+    </div>
+
+    <!-- جدول داخل کارت -->
+    <div class="table-container table-responsive">
+        <table class="table table-glass table-hover" id="campaignTable">
+            <thead class="table-light">
+                <tr>
+                    <th>نام کمپین</th>
+                    <th>نوع</th>
+                    <th>فعال؟</th>
+                    <th>روز بعد از خرید</th>
+                    <th>تاریخ فصلی</th>
+                    <th>امتیاز وفاداری</th>
+                    <th>روز غیر فعال</th>
+                    <th>پیامک</th>
+                    <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for campaign in campaigns %}
+                    <tr id="campaign-row-{{ campaign.id }}">
+                        <td>{{ campaign.name }}</td>
+                        <td>{{ campaign.get_campaign_type_display }}</td>
+                        <td>
+                            {% if campaign.active %}
+                                <span class="badge bg-success"> فعال</span>
+                            {% else %}
+                                <span class="badge bg-danger"> غیرفعال</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ campaign.send_days_after_purchase|default_if_none:"-"|persian_digits }}</td>
+                        <td>{% if campaign.specific_date %}{{ campaign.specific_date|to_jalali }}{% endif %}</td>
+                        <td>{{ campaign.loyalty_points|default_if_none:"-"|persian_digits }}</td>
+                        <td>{{ campaign.inactive_days|default_if_none:"-"|persian_digits }}</td>
+                        <td>{{ campaign.message|truncatechars:40 |persian_digits}}</td>
+                        <td>
+                            <button class="btn btn-warning btn-sm" onclick="openEditCampaignModal({{ campaign.id }})">
+                                ✏️ ویرایش
+                            </button>
+                            <button class="btn btn-info btn-sm" onclick="sendTestSMS({{ campaign.id }})">
+                                📩 تست پیامک
+                            </button> 
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9" class="text-center">هیچ کمپینی ثبت نشده</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+
+<!-- جدول گزارش پیامک‌ها -->
+<div class="card mt-4 shadow rounded-lg">
+    <!-- هدر کارت -->
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">گزارش پیامک‌های کمپین‌ها</h5>
+    </div>
+
+    <!-- جدول داخل کارت -->
+    <div class="table-container table-responsive">
+        <table class="table table-glass table-hover mb-0" id="smsTable">
+            <thead class="table-light">
+                <tr>
+                    <th>کمپین</th>
+                    <th>مشتری</th>
+                    <th>شماره</th>
+                    <th>وضعیت</th>
+                    <th>تاریخ ارسال</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in logs %}
+                <tr>
+                    <td>{{ log.campaign.name }}</td>
+                    <td>{{ log.customer.user.username }}</td>
+                    <td>{{ log.customer.phone|persian_digits }}</td>
+                    <td>
+                        {% if log.status == "SENT" %}
+                            <span class="badge bg-success">✅ ارسال شد</span>
+                        {% elif log.status == "FAILED" %}
+                            <span class="badge bg-danger">❌ ناموفق</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">⏳ در صف</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ log.sent_at|date:"Y/m/d H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">هیچ گزارشی ثبت نشده</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+</div>
+
+<!-- مدال کمپین -->
+<!-- مدال کمپین -->
+<div class="modal fade" id="campaignModal" tabindex="-1" aria-labelledby="campaignModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content glass-card border-0 shadow-lg rounded-4">
+      
+      <!-- هدر -->
+      <div class="modal-header glass-header rounded-top-4">
+        <h5 class="modal-title text-white" id="campaignModalLabel">📣 ایجاد کمپین جدید</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="بستن"></button>
+      </div>
+      
+      <!-- بدنه -->
+      <div class="modal-body p-4">
+        <div class="row g-4">
+
+          <!-- ستون فرم کمپین (چپ) -->
+          <div class="col-lg-6 col-12">
+            <form id="campaignForm" class="row g-3">
+              {% csrf_token %}
+              
+              <div class="col-12 mb-3">
+                <label for="id_name" class="form-label fw-bold text-white">نام کمپین</label>
+                <input type="text" name="name" class="form-control input-shadow form-control-lg w-100" id="id_name" placeholder="نام کمپین را وارد کنید" required>
+              </div>
+              
+              <div class="col-12 mb-3">
+                <label for="id_campaign_type" class="form-label fw-bold text-white">نوع کمپین</label>
+                <select name="campaign_type" class="form-select input-shadow form-select-lg w-100" id="id_campaign_type" required>
+                  {% for key, label in campaign_type_choices %}
+                    <option value="{{ key }}">{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <div class="col-12 mb-3" id="after_purchase_field" style="display:none;">
+                <label for="id_send_days_after_purchase" class="form-label fw-bold text-white">روز بعد از خرید</label>
+                <input type="text" name="send_days_after_purchase" class="form-control input-shadow form-control-lg w-100" id="id_send_days_after_purchase" min="0" value="0">
+              </div>
+
+              <div class="col-12 mb-3" id="seasonal_field" style="display:none;">
+                <label for="id_specific_date" class="form-label fw-bold text-white">تاریخ ارسال</label>
+                <input type="text" name="specific_date" class="form-control input-shadow form-control-lg w-100" id="id_specific_date">
+              </div>
+
+              <div class="col-12 mb-3" id="loyalty_points_field" style="display:none;">
+                <label for="id_loyalty_points" class="form-label fw-bold text-white">امتیاز وفاداری</label>
+                <input type="text" name="loyalty_points" class="form-control input-shadow form-control-lg w-100" id="id_loyalty_points" >
+                </div>
+
+
+              <div class="col-12 mb-3">
+                <label for="id_message" class="form-label fw-bold text-white">متن پیامک</label>
+                <textarea name="message" class="form-control input-shadow form-control-lg w-100" id="id_message" rows="4" placeholder="پیامک خود را وارد کنید" required></textarea>
+              </div>
+
+              <div class="col-12 form-check form-switch mb-3">
+                <input type="checkbox" class="form-check-input" name="active" id="id_active" checked>
+                <label class="form-check-label fw-bold text-white mr-4" for="id_active">فعال باشد</label>
+              </div>
+
+
+
+            </form>
+          </div>
+
+          <!-- ستون پیش‌نمایش پیامک (راست) -->
+          <div class="col-lg-6 col-12 d-flex justify-content-center">
+            <div class="phone-preview-wrapper">
+              <div class="phone-preview shadow">
+                <!-- هدر موبایل -->
+                <div class="phone-header bg-dark p-2 border-bottom">
+                  <div class="sender-name fw-bold" id="smsSenderName">میرا گالری</div>
+                  <div class="sender-number small text-muted" id="smsSenderNumber">30001234</div>
+                </div>
+                
+                <!-- صفحه پیام -->
+                <div class="phone-screen p-2">
+                  <div id="smsPreview" class="sms-message bg-white p-2 rounded">
+                    متن پیامک شما اینجا نمایش داده می‌شود...
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- row -->
+      </div> <!-- modal-body -->
+
+            <!-- فوتر مدال -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+
+        <button type="submit" form="campaignForm" class="btn btn-success mr-3">ذخیره کمپین</button>
+      </div>
+
+    </div> <!-- modal-content -->
+  </div> <!-- modal-dialog -->
+</div> <!-- modal fade -->
+
+
+<!-- مدال اطلاعیه تست پیامک -->
+
+
+<style>
+
+
+/* کارت شیشه‌ای */
+.glass-card {
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 16px;
+    color: #fff;
+}
+
+/* هدر شفاف */
+.glass-header {
+    background: rgba(0, 0, 0, 0.4) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* اینپوت‌ها */
+.form-control.input-shadow,
+textarea.form-control.input-shadow {
+    background: rgba(255, 255, 255, 0.06);
+    border: none;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 15px;
+    box-shadow: none;
+}
+
+/* کمبوباکس شفاف */
+select.form-select.input-shadow {
+    background: rgba(255, 255, 255, 0.06);
+    border: none;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 15px;
+    box-shadow: none;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='white' height='20' width='20' xmlns='http://www.w3.org/2000/svg'><path d='M5 7l5 5 5-5z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+}
+
+/* گزینه‌های کمبو */
+select.form-select.input-shadow option {
+    background: rgba(129, 125, 125, 0.85);
+    color: #fff;
+}
+
+/* پیش‌نمایش پیامک */
+.phone-preview-wrapper {
+    min-width: 200px;
+}
+.phone-preview {
+    width: 300px;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+}
+.phone-header {
+    font-size: 14px;
+}
+.phone-screen {
+    min-height: 150px;
+}
+</style>
+
+<div id="sms-modal" class="sms-modal">
+    <div class="sms-modal-content">
+        <span class="sms-close">&times;</span>
+        <div class="sms-modal-header">
+            <!-- آیکون پیامک -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="sms-icon" viewBox="0 0 24 24" width="60" height="60">
+                <path fill="none" stroke="#2196F3" stroke-width="2" d="M4 4h16v12H5.17L4 17.17V4z"/>
+            </svg>
+            <h2>پیامک ارسال شد!</h2>
+        </div>
+        <p>متن پیامک با موفقیت ارسال شد.</p>
+        <button id="close-sms-modal" class="sms-btn">✔ بستن</button>
+    </div>
+</div>
+
+<style>
+/* استایل ویژه مدال پیامک */
+.sms-modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(8px);
+}
+
+.sms-modal-content {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    width: 380px;
+    max-width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.2);
+    transform: scale(0);
+    animation: smsZoomIn 0.35s forwards;
+    backdrop-filter: blur(10px);
+    color: #fff;
+    position: relative;
+}
+
+.sms-modal-content.exit { animation: smsZoomOut 0.35s forwards; }
+
+.sms-modal-header { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    margin-bottom: 20px; 
+}
+
+.sms-icon { 
+    stroke-dasharray: 100; 
+    stroke-dashoffset: 100; 
+    animation: smsDrawIcon 0.5s forwards; 
+}
+
+.sms-close { 
+    position: absolute; 
+    top: 15px; 
+    right: 20px; 
+    font-size: 25px; 
+    cursor: pointer; 
+    color: #fff; 
+    transition: color 0.2s; 
+}
+.sms-close:hover { color: #2196F3; }
+
+.sms-btn {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.sms-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+/* انیمیشن‌ها */
+@keyframes smsZoomIn { from {transform: scale(0);} to {transform: scale(1);} }
+@keyframes smsZoomOut { from {transform: scale(1);} to {transform: scale(0);} }
+@keyframes smsDrawIcon { to { stroke-dashoffset: 0; } }
+
+/* ریسپانسیو */
+@media (max-width: 480px) {
+    .sms-modal-content { padding: 20px 15px; max-width: 95%; }
+    .sms-icon { width: 40px; height: 40px; }
+    .sms-btn { font-size: 15px; padding: 10px 18px; }
+}
+</style>
+
+
+
+<!-- استایل سفارشی -->
+
+
+
+
+{% endblock %}
+{% block scripts %}
+<!-- Bootstrap JS + Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- KamaDatepicker CSS & JS -->
+<link rel="stylesheet" href="{% static 'assets/css/kamadatepicker.min.css' %}">
+<script src="{% static 'assets/js/kamadatepicker.min.js' %}"></script>
+
+<script>
+
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+function toPersianDigits(str) {
+    if (!str) return '';
+    return String(str).replace(/\d/g, d => persianDigits[d]);
+}
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const body = document.body;
+    const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+    
+    if (!modals.length) return;
+
+    // گرفتن رنگ واقعی از computedStyle
+    const computedStyle = window.getComputedStyle(body);
+    const bgColor = computedStyle.backgroundColor;
+    const bgImage = computedStyle.backgroundImage;
+
+    modals.forEach(modal => {
+        console.log("Computed background color:", bgColor);
+        console.log("Computed background image:", bgImage);
+
+        // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+        if (bgImage !== 'none') {
+            modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+            modal.style.backdropFilter = 'blur(8px)';
+        } else {
+            // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+            modal.style.backgroundColor = bgColor;
+            modal.style.backdropFilter = 'none';
+        }
+
+        // گوشه‌های مدال و استایل دلخواه
+        modal.style.borderRadius = '10px';
+    });
+});
+
+
+// وقتی DOM آماده شد
+document.addEventListener("DOMContentLoaded", function() {
+
+    const form = document.getElementById("campaignForm");
+    const smsPreview = document.getElementById("smsPreview");
+    const messageInput = document.getElementById("id_message");
+
+    // پیش‌نمایش پیامک هنگام تایپ
+    messageInput.addEventListener("input", function() {
+        smsPreview.textContent = this.value.trim() || "متن پیامک شما اینجا نمایش داده می‌شود...";
+    });
+
+    // ارسال فرم (ایجاد یا ویرایش کمپین)
+// ارسال فرم (ایجاد یا ویرایش کمپین)
+form.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const campaignId = form.getAttribute('data-campaign-id') || '';
+    const url = campaignId ? `/campaign/${campaignId}/edit/` : `/campaign/create/`;
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Accept': 'application/json'
+        },
+        body: new FormData(form)
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            const row = document.getElementById(`campaign-row-${data.id}`);
+            const activeBadge = data.active ? '<span class="badge bg-success"> فعال</span>' : '<span class="badge bg-danger"> غیرفعال</span>';
+
+            const sendDays = toPersianDigits(data.send_days_after_purchase || '-');
+            const loyaltyPoints = toPersianDigits(data.loyalty_points || '-');
+            const inactiveDays = toPersianDigits(data.inactive_days || '-');
+            const message = data.message.length > 40 ? toPersianDigits(data.message.substring(0, 40)) + '...' : toPersianDigits(data.message);
+            const specificDate = data.specific_date ? toPersianDigits(data.specific_date) : '-';
+
+            const rowHTML = `
+                <td>${data.name}</td>
+                <td>${data.campaign_type_display}</td>
+                <td>${activeBadge}</td>
+                <td>${sendDays}</td>
+                <td>${specificDate}</td>
+                <td>${loyaltyPoints}</td>
+                <td>${inactiveDays}</td>
+                <td>${message}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm me-1" onclick="openEditCampaignModal(${data.id})">✏️ ویرایش</button>
+                    <button class="btn btn-info btn-sm" onclick="sendTestSMS(${data.id})">📩 تست پیامک</button>
+                </td>
+            `;
+
+            if(row){
+                row.innerHTML = rowHTML;
+            } else {
+                document.querySelector("#campaignTable tbody").insertAdjacentHTML('beforeend', `<tr id="campaign-row-${data.id}">${rowHTML}</tr>`);
+            }
+
+            // بستن مدال و ریست فرم
+            //bootstrap.Modal.getInstance(document.getElementById('campaignModal')).hide();
+            closeCampaignModal();
+            form.reset();
+            form.removeAttribute('data-campaign-id');
+            smsPreview.textContent = "متن پیامک شما اینجا نمایش داده می‌شود...";
+        }
+    })
+    .catch(err => console.error(err));
+});
+
+
+});
+
+// باز کردن مدال برای کمپین جدید
+function openNewCampaignModal() {
+    const modalEl = document.getElementById('campaignModal');
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById('campaignForm');
+
+    form.reset();
+    form.removeAttribute('data-campaign-id');
+
+    // ریست پیش‌نمایش
+    document.getElementById('smsPreview').textContent = "متن پیامک شما اینجا نمایش داده می‌شود...";
+
+    // ریست فیلدهای شرطی (همه مخفی بشن)
+    document.getElementById("after_purchase_field").style.display = "none";
+    document.getElementById("seasonal_field").style.display = "none";
+    document.getElementById("loyalty_points_field").style.display = "none";
+    document.getElementById('smsPreview').textContent = "متن پیامک شما اینجا نمایش داده می‌شود...";
+
+    modal.show();
+}
+
+// باز کردن مدال برای ویرایش کمپین
+// باز کردن مدال برای ویرایش کمپین
+function openEditCampaignModal(campaignId) {
+    const modalEl = document.getElementById('campaignModal');
+    const modal = new bootstrap.Modal(modalEl);
+    const form = document.getElementById('campaignForm');
+
+    const afterPurchaseField = document.getElementById("after_purchase_field");
+    const seasonalField = document.getElementById("seasonal_field");
+    const loyaltyField = document.getElementById("loyalty_points_field");
+
+    fetch(`/campaign/${campaignId}/json/`)
+    .then(response => response.json())
+    .then(data => {
+        form.setAttribute('data-campaign-id', campaignId);
+
+        // پر کردن فیلدهای عمومی
+        form.id_name.value = data.name;
+        form.id_campaign_type.value = data.campaign_type;
+        form.id_message.value = toPersianDigits(data.message);
+        form.id_active.checked = data.active;
+        smsPreview.textContent = toPersianDigits(data.message);
+
+        // ابتدا همه فیلدها مخفی
+        afterPurchaseField.style.display = "none";
+        seasonalField.style.display = "none";
+        loyaltyField.style.display = "none";
+
+        // نمایش فیلد مرتبط با نوع کمپین و پر کردن مقدار
+        if(data.campaign_type === "AFTER_PURCHASE" || data.campaign_type === "INACTIVE") {
+            afterPurchaseField.style.display = "block";
+            form.id_send_days_after_purchase.value = toPersianDigits(data.send_days_after_purchase )|| 0;
+        }
+        if(data.campaign_type === "SEASONAL") {
+            seasonalField.style.display = "block";
+            form.id_specific_date.value = toPersianDigits(data.specific_date) || '';
+        }
+        if(data.campaign_type === "LOYALTY") {
+            loyaltyField.style.display = "block";
+            form.id_loyalty_points.value = toPersianDigits(data.loyalty_points )|| '';
+        }
+
+        modal.show();
+    })
+    .catch(err => console.error(err));
+}
+
+// بستن مدال با اطمینان
+function closeCampaignModal() {
+    const modalEl = document.getElementById('campaignModal');
+    let modal = bootstrap.Modal.getInstance(modalEl);
+
+    if (!modal) {
+        modal = new bootstrap.Modal(modalEl);
+    }
+    modal.hide();
+}
+
+// ارسال پیامک تستی
+function sendTestSMS(campaignId) {
+    fetch(`/campaign/${campaignId}/send-test/`, {
+        method: "POST",
+        headers: {
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value,
+            "Accept": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const modal = document.getElementById('sms-modal');
+        const modalContent = modal.querySelector('.sms-modal-content');
+        const header = modal.querySelector('.sms-modal-header h2');
+        const paragraph = modal.querySelector('p');
+
+        if (data.success) {
+            header.textContent = "پیامک ارسال شد!";
+            paragraph.textContent = "پیامک تستی با موفقیت به شماره تلفن شما ارسال شد ";
+        } else {
+            header.textContent = "خطا ❌";
+            paragraph.textContent = "ارسال پیامک موفق نبود: " + (data.error || "خطای ناشناخته");
+        }
+
+        modal.style.display = 'flex';
+
+        // بستن با دکمه یا ایکس
+        const closeBtn = modal.querySelector('.sms-close');
+        const okBtn = modal.querySelector('#close-sms-modal');
+
+        function closeHandler() {
+            modalContent.classList.add('exit');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modalContent.classList.remove('exit');
+            }, 350);
+        }
+
+        closeBtn.onclick = closeHandler;
+        okBtn.onclick = closeHandler;
+        window.onclick = function(event){
+            if(event.target === modal) closeHandler();
+        };
+    })
+    .catch(err => {
+        const modal = document.getElementById('sms-modal');
+        const modalContent = modal.querySelector('.modal-content');
+        const header = modal.querySelector('.modal-header h2');
+        const paragraph = modal.querySelector('p');
+
+        header.textContent = "خطا ❌";
+        paragraph.textContent = "خطای شبکه یا سرور: " + err;
+        modal.style.display = 'flex';
+
+        const closeBtn = modal.querySelector('.close');
+        const okBtn = modal.querySelector('#close-sms-modal');
+
+        function closeHandler() {
+            modalContent.classList.add('exit');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                modalContent.classList.remove('exit');
+            }, 350);
+        }
+
+        closeBtn.onclick = closeHandler;
+        okBtn.onclick = closeHandler;
+        window.onclick = function(event){
+            if(event.target === modal) closeHandler();
+        };
+    });
+}
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const typeSelect = document.getElementById("id_campaign_type");
+    const afterPurchaseField = document.getElementById("after_purchase_field");
+    const seasonalField = document.getElementById("seasonal_field");
+    const loyaltyField = document.getElementById("loyalty_points_field");
+
+    function toggleFields() {
+        const value = typeSelect.value;
+
+        // پیش‌فرض همه مخفی
+        afterPurchaseField.style.display = "none";
+        seasonalField.style.display = "none";
+        loyaltyField.style.display="none";
+
+        if (value === "AFTER_PURCHASE" || value === "INACTIVE") {
+            afterPurchaseField.style.display = "block";
+        }
+        if (value === "SEASONAL") {
+            seasonalField.style.display = "block";
+        }
+        if (value === "LOYALTY") {
+            loyaltyField.style.display = "block";
+        }
+        // تولد (BIRTHDAY) هیچ فیلد اضافه‌ای نیاز نداره
+    }
+
+    typeSelect.addEventListener("change", toggleFields);
+    toggleFields(); // بار اول هم اجرا بشه
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+
+
+    // فیلد "روز بعد از خرید"
+    const daysInput = document.getElementById("id_send_days_after_purchase");
+    if(daysInput) {
+        daysInput.addEventListener("input", function() {
+            const cursorPos = this.selectionStart;
+            this.value = toPersianDigits(this.value);
+            this.setSelectionRange(cursorPos, cursorPos);
+        });
+    }
+
+
+
+     // فیلد "امتیاز وفاداری"
+    const loyaltyInput = document.getElementById("id_loyalty_points");
+    if (loyaltyInput) {
+        loyaltyInput.addEventListener("input", function() {
+            const cursorPos = this.selectionStart;
+            this.value = toPersianDigits(this.value);
+            this.setSelectionRange(cursorPos, cursorPos);
+        });
+    }
+
+    // فیلد "متن پیامک" و پیش نمایش
+    const messageInput = document.getElementById("id_message");
+    const smsPreview = document.getElementById("smsPreview");
+
+    if(messageInput) {
+        messageInput.addEventListener("input", function() {
+            const cursorPos = this.selectionStart;
+            this.value = toPersianDigits(this.value);
+            this.setSelectionRange(cursorPos, cursorPos);
+
+            // بروز رسانی پیش‌نمایش پیامک
+            smsPreview.textContent = this.value.trim() || "متن پیامک شما اینجا نمایش داده می‌شود...";
+        });
+    }
+});
+
+// تقویم شمسی
+document.addEventListener("DOMContentLoaded", function () {
+    const dateInput = document.getElementById("id_specific_date");
+
+    kamaDatepicker("id_specific_date", {
+        forceFarsiDigits: true,
+        closeAfterSelect: true,
+        markToday: true,
+        gotoToday: true,
+        nextButtonIcon:"./static/assets/images/next.png",
+        previousButtonIcon:"./static/assets/images/prev.png",
+        markHolidays:true,
+        sync:false,
+
+    });
+
+
+});
+
+
+
+
+
+</script>
+{% endblock %}

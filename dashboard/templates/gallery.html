@@ -1,0 +1,721 @@
+{% extends "_newsidebar.html" %}
+{% load static %}
+{% load jalali_tags %}
+{% block title %}MeltedGold{% endblock %}
+
+{% block content %}
+<style>
+        /* تب‌ها */
+.nav-tabs .nav-link {
+    color: #fff; /* رنگ متن سفید */
+    background: rgba(255, 255, 255, 0.1); /* شفاف */
+    border-radius: 8px 8px 0 0;
+    margin-right: 5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* سایه متن برای خوانایی */
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    background: rgba(255, 255, 255, 0.25); /* کمی روشن‌تر برای تب فعال */
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+}
+
+/* اگر میخوای لبه‌ها هم کمی واضح بشه */
+.nav-tabs {
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+
+/* دکمه‌های اکسل و چاپ حرفه‌ای */
+/* دکمه‌های اکشن (ظاهر مشابه چاپ) */
+.btn-action {
+    flex: 0 0 160px;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-action i {
+    margin-left: 8px;
+    font-size: 18px;
+}
+
+/* دکمه‌های اکسل و پرینت */
+#printproduct, #printaccount {
+    font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+    padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+    margin-right: 5px;       /* فاصله بین دکمه‌ها */
+    margin-top:1px;
+    height: auto;            /* ارتفاع متناسب با محتوا */
+}
+
+/* رنگ گرادینت برای اکسل و چاپ */
+
+
+#printproduct, #printaccount,#printTransactions {
+    background: linear-gradient(135deg, #f57c00, #ffb74d);
+}
+#prinproduct:hover, #printaccount:hover,#printTransactions:hover {
+    background: linear-gradient(135deg, #ffb74d, #f57c00);
+}
+
+#accountBtn, #productBtn ,#printTransactions{
+    font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+    padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+    margin-right: 5px;       /* فاصله بین دکمه‌ها */
+    margin-top:1px;
+    height: auto;            /* ارتفاع متناسب با محتوا */
+}
+
+/* واکنش‌گرایی بیشتر برای موبایل */
+@media (max-width: 576px) {
+    .search-bar {
+        flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+    }
+
+    .search-bar input {
+        font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+    }
+
+    .btn.btn-success {
+        flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+    }
+}
+
+#productTable th, #productTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+#accountTable th, #accountTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+#transactionTable th, #transactionTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+{tableId: 'transactionTable', printId: 'printTransactions', sheetName: 'تراکنش طلای فروشگاه'},
+
+</style>
+
+
+
+    
+    <!-- دکمه‌ها -->
+    
+        <div class="card table-glass p-3 mt-3">
+            <div class="report-actions d-flex align-items-center mb-3  ml-3">
+                
+            <a href="javascript:void(0);" id="productBtn" class="btn btn-primary me-2 "
+            data-bs-toggle="modal" data-bs-target="#buyModal"> محصولات فروشگاه</a>
+            <a href="javascript:void(0);" id="Btn" class="btn btn-success mr-4"
+            data-bs-toggle="modal" data-bs-target="#sellModal">موجودی فروشگاه</a>
+        </div>
+    </div>
+    
+
+    <!-- Nav Tabs -->
+    <ul class="nav nav-tabs mt-3" id="goldTabs" role="tablist" >
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="product-tab" data-bs-toggle="tab" data-bs-target="#product" type="button" role="tab">محصولات فروشگاه </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="account-tab" data-bs-toggle="tab" data-bs-target="#account" type="button" role="tab">موجودی فروشگاه </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="transactions-tab" data-bs-toggle="tab" data-bs-target="#transactions" type="button" role="tab">
+                تراکنش طلای آب شده فروشگاه
+            </button>
+        </li>
+
+    </ul>
+    <div class="tab-content" id="reportTabsContent">
+
+  <!-- Buy MeltedGold -->
+        <div class="tab-pane fade show active" id="product" role="tabpanel">
+            <div class="card table-glass p-3 mt-3">
+            <div class="report-actions d-flex align-items-center mb-3  ml-3">
+            
+            <button id="printproduct" class="btn-action">چاپ </button>
+            <form class="search-bar">
+                <input type="text" id="productInput" class="form-control mr-4 " placeholder="عبارت جستجو">
+                <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+            </form>
+
+            </div>
+            <div class="table-container table-responsive">
+            <table class="table table-hover table-glass " id="productTable">
+                <thead>
+                <tr>
+                        <th>گروه کالا</th>
+                        
+                        <th> تعداد </th>
+                        <th>وزن (گرم)</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                    {% for item in summary %}
+                    <tr>
+                        <td>{{ item.category|cat_fa }}</td>
+                        <td>{{ item.total_quantity|persian_digits }}</td>
+                        <td>{{ item.total_weight|floatformat:2 |persian_digits}}</td>
+                    </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center">هیچ محصولی ثبت نشده است.</td>
+                                </tr>
+                            {% endfor %}
+                </tbody>
+            </table>
+            </div>
+        </div><!-- card-->
+        </div>
+
+    <!-- Sell MeltedGold-->
+    <div class="tab-pane fade" id="account" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+    <div class="report-actions d-flex align-items-center mb-3  ml-3">
+      
+      <button id="printaccount" class="btn-action">چاپ </button>
+      <form class="search-bar">
+        <input type="text" id="accountInput" class="form-control mr-4 " placeholder="عبارت جستجو">
+        <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+      </form>
+
+    </div>
+    <div class="table-container table-responsive">
+      <table class="table table-hover table-glass " id="accountTable">
+        <thead>
+          <tr>
+                <th>کد</th>
+                <th>نام مشتری</th>
+                <th>شماره تلفن </th>
+                <th>وزن (گرم)</th>
+                <th>تاریخ فروش</th>
+          </tr>
+        </thead>
+        <tbody>
+            {% for s in sales %}
+                        <tr>
+                            <td>{{ s.code|persian_digits }}</td>
+                            <td>{{ s.customer.name }}</td>
+                            <td>{{ s.customer.phone|persian_digits }}</td>
+                            <td>{{ s.weight|persian_digits }}</td>
+                            <td>{{ s.date|to_jalali }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">هیچ موجودی ثبت نشده است.</td>
+                        </tr>
+                    {% endfor %}
+        </tbody>
+      </table>
+            </div>
+        </div><!-- card-->
+        </div>
+
+        <!-- Store Transactions -->
+<div class="tab-pane fade" id="transactions" role="tabpanel">
+  <div class="card table-glass p-3 mt-3">
+    <div class="report-actions d-flex align-items-center mb-3 ml-3">
+      <button id="printTransactions" class="btn-action">چاپ</button>
+      <form class="search-bar">
+        <input type="text" id="transactionInput" class="form-control mr-4" placeholder="عبارت جستجو">
+        <a href="javascript:void(0);"><i class="icon-magnifier"></i></a>      
+      </form>
+    </div>
+
+    <div class="table-container table-responsive">
+      <table class="table table-hover table-glass" id="transactionTable">
+        <thead>
+          <tr>
+            <th>نوع تراکنش</th>
+                    <th>منبع ورود</th>
+                    <th>مقصد خروج</th>
+                    <th>وزن (گرم)</th>
+                    <th>تاریخ</th>
+                    <th>توضیحات</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in transactions %}
+                <tr>
+                    
+                    <td>
+                        {% if t.transaction_type == 'IN' %}
+                            <span class="badge bg-success">ورود</span>
+                        {% else %}
+                            <span class="badge bg-danger">خروج</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ t.source|default:"-"|persian_digits }}</td>
+                    <td>{{ t.destination|default:"-" }}</td>
+                    <td>{{ t.weight|persian_digits }}</td>
+                    <td>{{ t.date|to_jalali }}</td>
+                    <td>{{ t.note|default:"-" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center">هیچ تراکنشی ثبت نشده است.</td>
+                </tr>
+                {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+    </div><!--tab-->
+
+
+<!-- Modal خرید طلای آب‌شده -->
+<div class="modal fade" id="buyModal" tabindex="-1" aria-labelledby="buyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="buyForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="buyModalLabel">خرید طلای آب‌شده</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>کد</label>
+            <input type="text" name="code" id="codeInput" class="form-control" >
+          </div>
+          <div class="mb-3">
+            <label>وزن (گرم)</label>
+            <input type="text" step="0.01" name="weight" id="weightInput" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>عیار</label>
+            <input type="text" name="purity" id="purityInput" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>نام فروشنده</label>
+            <input type="text" name="seller_name" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>شماره تلفن فروشنده</label>
+            <input type="text" name="seller_phone" id="sellerPhoneInput" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label>نام ری‌گیری</label>
+            <input type="text" name="assay_office" class="form-control" >
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-primary mr-3">ثبت خرید</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal فروش طلای آب‌شده -->
+<div class="modal fade" id="sellModal" tabindex="-1" aria-labelledby="sellModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form id="sellForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="sellModalLabel">فروش طلای آب‌ شده</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>کد طلای آب‌ شده</label>
+            <input type="text" name="code" id="sellCodeInput" class="form-control" >
+          </div>
+          <div class="mb-3">
+            <label>تلفن مشتری</label>
+            <input type="text" name="customer_phone" id="sellPhoneInput" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>نام مشتری</label>
+            <input type="text" name="customer_name" id="sellNameInput" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>وزن (گرم)</label>
+            <input type="text" name="weight" id="sellWeightInput" class="form-control" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-success mr-3">ثبت فروش</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+ function toPersianDigits(str) {
+        const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+        return String(str).replace(/\d/g, d => persianDigits[d]);
+    }
+
+document.addEventListener("DOMContentLoaded", function() {
+        const body = document.body;
+        const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+        
+        if (!modals.length) return;
+
+        // گرفتن رنگ واقعی از computedStyle
+        const computedStyle = window.getComputedStyle(body);
+        const bgColor = computedStyle.backgroundColor;
+        const bgImage = computedStyle.backgroundImage;
+
+        modals.forEach(modal => {
+            console.log("Computed background color:", bgColor);
+            console.log("Computed background image:", bgImage);
+
+            // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+            if (bgImage !== 'none') {
+                modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                modal.style.backdropFilter = 'blur(8px)';
+            } else {
+                // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+                modal.style.backgroundColor = bgColor;
+                modal.style.backdropFilter = 'none';
+            }
+
+            // گوشه‌های مدال و استایل دلخواه
+            modal.style.borderRadius = '10px';
+        });
+});
+
+
+
+
+// 🔢 تبدیل اعداد به فارسی
+const persianDigits = {
+  '0': '۰',
+  '1': '۱',
+  '2': '۲',
+  '3': '۳',
+  '4': '۴',
+  '5': '۵',
+  '6': '۶',
+  '7': '۷',
+  '8': '۸',
+  '9': '۹'
+};
+
+function makeInputPersian(input) {
+  input.addEventListener('input', function() {
+    const cursorPos = input.selectionStart;
+    input.value = input.value.replace(/[0-9]/g, d => persianDigits[d]);
+    input.setSelectionRange(cursorPos, cursorPos);
+  });
+}
+
+function persianToEnglishDigits(str) {
+    const persian = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    const english = ['0','1','2','3','4','5','6','7','8','9'];
+    let result = '';
+    for(let i=0;i<str.length;i++){
+        const idx = persian.indexOf(str[i]);
+        result += (idx >= 0) ? english[idx] : str[i];
+    }
+    return result;
+}
+
+// 🎯 فعال کردن برای تمام فیلدهای عددی مدال
+document.querySelectorAll('#buyModal input').forEach(input => {
+  if (['text', 'number', 'tel'].includes(input.type)) {
+    makeInputPersian(input);
+  }
+});
+
+
+
+
+// تبدیل اعداد به فارسی در فیلدهای عددی فروش
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart;
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos);
+    });
+}
+
+makeInputPersian('productInput');
+makeInputPersian('accountInput');
+
+
+
+// --- پر کردن خودکار نام و آدرس مشتری ---
+document.addEventListener("DOMContentLoaded", function () {
+    const phoneInput = document.getElementById("sellPhoneInput");
+    const nameInput = document.getElementById("sellNameInput");
+
+    const PHONE_LENGTH = 11;
+
+    phoneInput.addEventListener("input", function () {
+        const rawPhone = this.value.trim();
+        const phone = persianToEnglishDigits(rawPhone);  // تبدیل به انگلیسی
+        if (phone.length === PHONE_LENGTH) {
+            const url = `/customers/check/?phone=${encodeURIComponent(phone)}`;
+            console.log("Fetching:", url);  // این خط برای دیباگ
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exists) {
+                        nameInput.value = data.name;
+
+                    } else {
+                        nameInput.value = "";
+
+                    }
+                })
+                .catch(err => console.error(err));
+        } else {
+            // اگر شماره کامل نیست، پاک کن
+            nameInput.value = "";
+
+        }
+    });
+});
+
+// ======================
+// فیلتر جدول خرید و فروش
+// ======================
+
+// تابع عمومی برای جستجو
+function setupTableSearch(inputId, tableId) {
+    const input = document.getElementById(inputId);
+    const table = document.getElementById(tableId);
+    if (!input || !table) return;
+
+    input.addEventListener("keyup", function () {
+        const filter = this.value.trim();
+        const normalizedFilter = filter
+            .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+            .toLowerCase();
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            const cellsText = Array.from(row.cells)
+                .map(td => td.innerText.toLowerCase())
+                .join(" ");
+            // تبدیل اعداد فارسی داخل سلول‌ها هم به انگلیسی
+            const normalizedRow = cellsText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+            if (normalizedRow.includes(normalizedFilter)) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    });
+}
+
+// فعال‌سازی برای هر دو جدول
+setupTableSearch("productInput", "productTable");
+setupTableSearch("accountInput", "accountTable");
+
+
+
+function parseNumberFromCellText(text) {
+    if (!text && text !== 0) return null;
+    let s = String(text).trim();
+
+    // تبدیل ارقام فارسی به انگلیسی
+    const persianMap = { '۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9' };
+    s = s.replace(/[۰-۹]/g, ch => persianMap[ch] || ch);
+
+    // حذف متن‌های غیر عددی متداول مانند "ریال" یا "%" و فاصله و علامت هزارگان
+    s = s.replace(/ریال/g, '');
+    s = s.replace(/٪|%/g, '');
+    s = s.replace(/[,٬\s\u00A0]/g, ''); // کاما انگلیسی، کاما فارسی، فاصله معمولی و nbsp
+
+    // حالا فقط کاراکترهای عدد و نقطه و منفی را نگه دار
+    s = s.replace(/[^\d\.\-]/g, '');
+
+    // اگر خالی شد، عدد نیست
+    if (s === '' || s === '.' || s === '-' || s === '-.') return null;
+
+    // parseFloat با fallback
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : null;
+}
+
+function sortTableByColumn(table, columnIndex, asc = true) {
+    const tbody = table.tBodies[0];
+    const rowsArray = Array.from(tbody.querySelectorAll("tr"));
+
+    rowsArray.sort((a, b) => {
+        const aText = a.children[columnIndex].textContent.trim();
+        const bText = b.children[columnIndex].textContent.trim();
+
+        const aNum = parseNumberFromCellText(aText);
+        const bNum = parseNumberFromCellText(bText);
+
+        // هر دو عدد بودند => مقایسه عددی
+        if (aNum !== null && bNum !== null) {
+            return asc ? aNum - bNum : bNum - aNum;
+        }
+
+        // اگر فقط یکی عدد بود، عدد را بالاتر/پایین‌تر قرار بده (می‌تونی معکوس کنی)
+        if (aNum !== null && bNum === null) return asc ? -1 : 1;
+        if (aNum === null && bNum !== null) return asc ? 1 : -1;
+
+        // هر دو عدد نبودند => مقایسه رشته‌ای فارسی-محلی
+        return asc 
+            ? aText.localeCompare(bText, 'fa', { sensitivity: 'base' })
+            : bText.localeCompare(aText, 'fa', { sensitivity: 'base' });
+    });
+
+    // جایگذاری دوباره سطرها و بازشماری ردیف اول ستون (در صورت نیاز)
+    rowsArray.forEach((row, index) => {
+        tbody.appendChild(row);
+        // اگر ستون اول حاوی شماره ردیف هست و می‌خوای آپدیت بشه:
+        
+    });
+}
+
+// activation — مطمئن شو ایندکس‌ها صفر‌بیس هستند
+document.addEventListener("DOMContentLoaded", function() {
+    const sortableTables = [
+        { id: "productTable", columns: [1, 2] }, // ستون‌ها صفر‌بیس
+        { id: "accountTable", columns: [0, 3] },
+
+    ];
+
+    sortableTables.forEach(item => {
+        const table = document.getElementById(item.id);
+        if (!table) return;
+
+        item.columns.forEach(colIndex => {
+            // th:nth-child expects 1-based index
+            const header = table.querySelector(`th:nth-child(${colIndex + 1})`);
+            if (!header) return;
+
+            let asc = true;
+            header.style.cursor = "pointer";
+            header.title = "برای سورت کلیک کنید";
+
+            header.addEventListener("click", function() {
+                sortTableByColumn(table, colIndex, asc);
+                asc = !asc;
+            });
+        });
+    });
+});
+
+//print
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل/چاپ (حذف تصاویر و راست‌چین کردن)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+
+        // حذف تصاویر
+        table.querySelectorAll('img').forEach(img => img.remove());
+
+        // راست‌چین کردن متن‌ها
+        Array.from(table.rows).forEach(row => {
+            Array.from(row.cells).forEach(cell => {
+                cell.style.textAlign = "right"; // راست‌چین
+                cell.style.direction = "rtl";   // جهت RTL
+            });
+        });
+        return table;
+    }
+
+    // تنظیم دکمه‌ها و جدول‌ها
+    const tables = [
+        {tableId: 'productTable', printId: 'printproduct', sheetName: 'محصولات فروشگاه'},
+        {tableId: 'accountTable', printId: 'printaccount', sheetName: 'موجودی فروشگاه'}
+    ];
+
+    tables.forEach(item => {
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const tableClone = cleanTableForExport(item.tableId);
+
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title>');
+
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: right; }
+                        th, td { border: 1px solid #ccc; padding: 8px; }
+                        th { background-color: #f0f0f0; }
+                        td { font-size: 0.95rem; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                         footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(tableClone.outerHTML);
+                newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
+
+</script>
+
+
+{% endblock %}

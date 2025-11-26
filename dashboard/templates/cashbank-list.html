@@ -1,0 +1,961 @@
+{% load jalali_tags %}
+<style>
+    /* استایل مشترک برای دکمه‌ها */
+    #printCash, #partnerBtn , #printBank {
+        font-size: 0.85rem;      
+        padding: 4px 10px;       
+        margin-right: 5px;       
+        margin-top: 1px;
+        height: auto;            
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    /* رنگ و گرادینت دکمه‌ها */
+    #printCash,#printBank {
+        background: linear-gradient(135deg, #f57c00, #ffb74d);  /* نارنجی/زرد */
+    }
+    #printCash:hover , #printBank:hover {
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
+
+    #partnerBtn {
+        background: linear-gradient(135deg, #28a745, #45d36b);  /* سبز */
+    }
+    #partnerBtn:hover {
+        background: linear-gradient(135deg, #45d36b, #28a745);
+    }
+
+
+
+
+        #personTable th, #personTable td {
+            padding: 12px 10px !important; /* override padding Bootstrap */
+            
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        
+
+        /* واکنش‌گرایی بیشتر برای موبایل */
+        @media (max-width: 576px) {
+            .search-bar {
+                flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+            }
+
+            .search-bar input {
+                font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+            }
+
+            .btn.btn-action {
+                flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+            }
+        }
+
+        #cashTable th, #cashTable td {
+            padding: 12px 10px !important; /* override padding Bootstrap */
+            
+            vertical-align: middle;
+            text-align: center;
+        }
+        #bankTable th, #bankTable td {
+            padding: 12px 10px !important; /* override padding Bootstrap */
+            
+            vertical-align: middle;
+            text-align: center;
+        }
+</style>
+</hr>
+<!-- تب داخلی بین صندوق و بانک -->
+<ul class="nav nav-tabs mb-3 mt-3" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="cash-tabBtn" data-bs-toggle="pill" data-bs-target="#cash-tab" type="button" role="tab">
+      صندوق‌ها
+    </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="bank-tabBtn" data-bs-toggle="pill" data-bs-target="#bank-tab" type="button" role="tab">
+      بانک‌ها
+    </button>
+  </li>
+</ul>
+
+<div class="tab-content">
+
+  <!-- صندوق‌ها -->
+  <div class="tab-pane fade show active" id="cash-tab" role="tabpanel" aria-labelledby="cash-tabBtn">
+    <div class="card table-glass p-3 mt-3">
+      <div class="report-actions d-flex align-items-center mb-3 ml-3">
+        <a href="javascript:void(0);" id="partnerBtn" class="btn-action me-2"
+           data-bs-toggle="modal" data-bs-target="#cashbankModal">تعریف صندوق</a>
+        <button id="printCash" class="btn-action mr-2">چاپ</button>
+        <form class="search-bar" style="margin-right: 15px;">
+          <input type="text" id="cashInput" class="form-control" placeholder="عبارت جستجو">
+          <a href="javascript:void(0);"><i class="icon-magnifier"></i></a>
+        </form>
+      </div>
+
+      <div class="table-container table-responsive">
+        <table class="table table-hover table-glass " id="cashTable">
+            <thead>
+            <tr><th>نام صندوق</th><th>کد حساب</th><th>توضیحات</th><th>مانده</th><th>عملیات</th></tr>
+            </thead>
+            <tbody>
+            {% for c in cash_accounts %}
+            <tr>
+                
+                <td>{{ c.name|persian_digits }}</td>
+                <td>{{ c.account.code|persian_digits }}</td>
+                <td>{{ c.note|default:"-"|persian_digits }}</td>
+                <td>{{ c.account.calculated_balance_money|persian_intcomma }}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm js-edit-cash" data-id="{{ c.id }}">✏️</button>
+                    <a href="{% url 'ledger_cash' c.account.id %}" class="btn btn-sm btn-info" target="_blank">📘 دفتر حساب</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-center text-centered">صندوقی ثبت نشده است.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+  </div>
+
+  <!-- بانک‌ها -->
+  <div class="tab-pane fade" id="bank-tab" role="tabpanel" aria-labelledby="bank-tabBtn">
+    <div class="card table-glass p-3 mt-3">
+      <div class="report-actions d-flex align-items-center mb-3 ml-3">
+        <a href="javascript:void(0);" id="partnerBtn" class="btn-action me-2"
+           data-bs-toggle="modal" data-bs-target="#bankModal">تعریف بانک</a>
+        <button id="printBank" class="btn-action mr-2">چاپ</button>
+        <form class="search-bar" style="margin-right: 15px;">
+          <input type="text" id="bankInput" class="form-control" placeholder="عبارت جستجو">
+          <a href="javascript:void(0);"><i class="icon-magnifier"></i></a>
+        </form>
+      </div>
+
+      <div class="table-container table-responsive">
+        <table class="table table-hover table-glass " id="bankTable">
+            <thead>
+            <tr>
+
+                <th>نام بانک</th>
+                <th>کد حساب</th>
+                <th>صاحب حساب</th>
+                <th>شعبه</th>
+                <th>شماره حساب</th>
+                
+                <th>شماره کارت</th>
+                <th>شماره شبا</th>
+                <th> مانده</th>
+                <th>توضیحات</th>
+                <th>عملیات</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for b in bank_accounts %}
+            <tr>
+                <td>{{ b.name|persian_digits }}</td>
+                <td>{{ b.account.code|persian_digits }}</td>
+                <td>{{ b.owner|persian_digits }}</td>
+                <td>{{ b.branch_name|persian_digits }}</td>
+                <td>{{ b.account_number|persian_digits }}</td>
+                <td>{{ b.card_number|persian_digits }}</td>
+                <td>{{ b.iban|persian_digits }}</td>
+                <td>{{ b.account.calculated_balance_money|persian_intcomma }}</td>
+                <td>{{ b.note|persian_digits }}</td>
+                <td>
+                    <button class="btn btn-warning btn-sm js-edit-bank" data-id="{{ b.id }}">✏️</button>
+                    <a href="{% url 'bank_report' b.id %}" class="btn btn-sm btn-info" target="_blank">📘 دفتر حساب</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="10" class="text-center text-centered">هیچ حساب بانکی ثبت نشده است.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </div>
+  </div>
+
+</div> <!-- tab-content -->
+
+
+<!-- 🔹 Modal افزودن -->
+<!-- 🟢 Modal ادیت صندوق -->
+<div class="modal fade" id="cashbankModal" tabindex="-1" aria-labelledby="cashbankModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content ">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="cashbankModalLabel"> تعریف صندوق <h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="cashForm" method="POST">
+          {% csrf_token %}
+          <div class="row g-3">
+
+            <div class="col-md-6">
+              <label for="name" class="form-label">نام صندوق</label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="مثلاً صندوق مرکزی" required>
+            </div>
+
+            <div class="col-md-6">
+              <label for="balance" class="form-label">موجودی اولیه</label>
+              <input type="text" class="form-control" id="balance" name="balance" placeholder="مثال {{5000000|persian_intcomma}}" >
+            </div>
+
+            <div class="col-12 mt-2">
+              <label for="note" class="form-label">توضیحات</label>
+              <textarea class="form-control" id="note" name="note" rows="2" placeholder="توضیح اختیاری..."></textarea>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+        <button type="button" id="saveCashBtn" class="btn btn-success mr-3">💾 ذخیره صندوق</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="cashEditModal" tabindex="-1" aria-labelledby="cashEditModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content ">
+      <div class="modal-header ">
+        <h5 class="modal-title" id="cashEditModalLabel"> ویرایش صندوق <h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="cashEditForm" method="POST">
+          {% csrf_token %}
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="balance" class="form-label">کد حساب</label>
+              <input type="text" class="form-control" id="codeCash" name="code" readonly >
+            </div>
+            <div class="col-md-6">
+              <label for="name" class="form-label">نام صندوق</label>
+              <input type="text" class="form-control" id="nameCash" name="name" placeholder="مثلاً صندوق مرکزی" required>
+            </div>
+
+            <div class="col-12 mt-2">
+              <label for="note" class="form-label">توضیحات</label>
+              <textarea class="form-control" id="noteCash" name="note" rows="2" placeholder="توضیح اختیاری..."></textarea>
+            </div>
+
+          </div>
+        
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+        <button type="submit" id="saveEditCashBtn" class="btn btn-success mr-3">💾 ذخیره صندوق</button>
+      </div>
+    </div>
+  </form>
+  </div>
+</div>
+
+
+<!-- Modal تعریف بانک -->
+<div class="modal fade" id="bankModal" tabindex="-1" aria-labelledby="bankModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="bankForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="bankModalLabel">تعریف بانک</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <!-- ستون اول -->
+            <div class="col-md-6">
+
+              <div class="mb-3">
+                <label>نام بانک</label>
+                <input type="text" name="name" id="bankName" class="form-control" required>
+              </div>
+
+              <div class="mb-3">
+                <label>نام شعبه</label>
+                <input type="text" name="branch_name" id="branchName" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label>نام صاحب حساب</label>
+                <input type="text" name="owner_name" id="ownerName" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>شماره حساب</label>
+                <input type="text" name="account_number" id="bankAccountNumber" class="form-control persian-number">
+              </div>
+            </div>
+
+            <!-- ستون دوم -->
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label>شماره کارت</label>
+                    <input type="text" name="card_number" id="bankcardNumber" class="form-control persian-number">
+                </div>
+              <div class="mb-3">
+                <label>شماره شبا (IBAN)</label>
+                <input type="text" name="iban" id="bankIBAN" class="form-control persian-number">
+              </div>
+
+              <div class="mb-3">
+                <label>موجودی اولیه</label>
+                <input type="text" name="balance" id="bankBalance" class="form-control persian-number" placeholder="مثال {{1000000|persian_intcomma}}">
+              </div>
+
+              <div class="mb-3">
+                <label>توضیحات</label>
+                <textarea name="note" id="bankNote" class="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-primary mr-3">ثبت بانک</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal ادیت بانک -->
+<div class="modal fade" id="bankEditModal" tabindex="-1" aria-labelledby="bankModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="bankEditForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="bankModalLabel">ویرایش بانک</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <!-- ستون اول -->
+            <div class="col-md-6">
+                <div class="mb-3">
+                        <label>کد حساب </label>
+                        <input type="text" name="code" id="editbankCode" class="form-control" readonly>
+                    </div>
+              <div class="mb-3">
+                <label>نام بانک</label>
+                <input type="text" name="name" id="editbankName" class="form-control" required>
+              </div>
+
+              <div class="mb-3">
+                <label>نام شعبه</label>
+                <input type="text" name="branch_name" id="editbranchName" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label>نام صاحب حساب</label>
+                <input type="text" name="owner_name" id="editownerName" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>شماره حساب</label>
+                <input type="text" name="account_number" id="editbankAccountNumber" class="form-control persian-number">
+              </div>
+            </div>
+
+            <!-- ستون دوم -->
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label>شماره کارت</label>
+                    <input type="text" name="card_number" id="editbankcardNumber" class="form-control persian-number">
+                </div>
+              <div class="mb-3">
+                <label>شماره شبا (IBAN)</label>
+                <input type="text" name="iban" id="editbankIBAN" class="form-control persian-number">
+              </div>
+
+
+              <div class="mb-3">
+                <label>توضیحات</label>
+                <textarea name="note" id="editbankNote" class="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-primary mr-3">ثبت بانک</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+
+        //شفاف سازی مدال 
+    document.addEventListener("DOMContentLoaded", function() {
+        const body = document.body;
+        const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+        
+        if (!modals.length) return;
+
+        // گرفتن رنگ واقعی از computedStyle
+        const computedStyle = window.getComputedStyle(body);
+        const bgColor = computedStyle.backgroundColor;
+        const bgImage = computedStyle.backgroundImage;
+
+        modals.forEach(modal => {
+            console.log("Computed background color:", bgColor);
+            console.log("Computed background image:", bgImage);
+
+            // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+            if (bgImage !== 'none') {
+                modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                modal.style.backdropFilter = 'blur(8px)';
+            } else {
+                // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+                modal.style.backgroundColor = bgColor;
+                modal.style.backdropFilter = 'none';
+            }
+
+            // گوشه‌های مدال و استایل دلخواه
+            modal.style.borderRadius = '10px';
+        });
+});
+
+    // تبدیل اعداد به فارسی در فیلدهای عددی فروش
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart;
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos);
+    });
+}
+
+makeInputPersian('name');
+makeInputPersian('note');
+makeInputPersian('bankCode');
+makeInputPersian('bankName');
+makeInputPersian('branchName');
+makeInputPersian('bankAccountNumber');
+makeInputPersian('bankIBAN');
+makeInputPersian('bankBalance');
+makeInputPersian('bankNote');
+makeInputPersian('bankcardNumber');
+makeInputPersian('ownerName');
+makeInputPersian('editbankCode');
+makeInputPersian('editbankName');
+makeInputPersian('editbranchName');
+makeInputPersian('editbankAccountNumber');
+makeInputPersian('editbankIBAN');
+makeInputPersian('editbankNote');
+makeInputPersian('editbankcardNumber');
+makeInputPersian('editownerName');
+makeInputPersian('bankInput');
+makeInputPersian('cashInput');
+makeInputPersian('nameCash');
+makeInputPersian('codeCash');
+makeInputPersian('noteCash');
+
+
+//add cash
+document.addEventListener("DOMContentLoaded", () => {
+  const saveBtn = document.getElementById("saveCashBtn");
+  const form = document.getElementById("cashForm");
+
+  saveBtn.addEventListener("click", () => {
+    const formData = new FormData(form);
+
+    fetch("add_cash_account", {
+      method: "POST",
+      body: formData,
+      headers: { "X-CSRFToken": formData.get("csrfmiddlewaretoken") },
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          Swal.fire({
+            icon: "success",
+            title: "ثبت شد",
+            text: "صندوق با موفقیت ذخیره شد ✅",
+            confirmButtonText: "باشه",
+          });
+          form.reset();
+          // بستن مدال
+          const modal = bootstrap.Modal.getInstance(document.getElementById("cashbankModal"));
+          modal.hide();
+
+          // بروزرسانی جدول (اختیاری)
+           location.reload();
+        } else {
+          Swal.fire({
+            icon: "error",
+            title: "خطا",
+            text: data.message || "در ثبت صندوق مشکلی پیش آمد!",
+          });
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire({ icon: "error", title: "خطا در ارتباط با سرور" });
+      });
+  });
+});
+
+//فرمت 3 رقمی
+document.addEventListener("DOMContentLoaded", () => {
+  const balanceInput = document.getElementById("balance");
+
+  // تابع تبدیل اعداد انگلیسی به فارسی
+  function toPersianDigits(num) {
+    return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  // تابع تبدیل فارسی به انگلیسی برای محاسبات
+  function toEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  }
+
+  // زمان تایپ در فیلد
+  balanceInput.addEventListener("input", (e) => {
+    let value = e.target.value;
+    // حذف کاما و تبدیل به انگلیسی برای محاسبه
+    value = toEnglishDigits(value).replace(/,/g, "").replace(/[^\d]/g, "");
+    if (value === "") {
+      e.target.value = "";
+      return;
+    }
+    // تبدیل عدد به سه‌رقمی
+    const formatted = Number(value).toLocaleString("en-US");
+    // تبدیل خروجی به فارسی
+    e.target.value = toPersianDigits(formatted);
+  });
+
+  // حذف ویرگول و تبدیل به انگلیسی در هنگام ارسال فرم
+  const form = document.getElementById("cashForm");
+  form.addEventListener("submit", () => {
+    balanceInput.value = toEnglishDigits(balanceInput.value.replace(/,/g, ""));
+  });
+});
+
+// بانک فرمت 3 رقمی
+document.addEventListener("DOMContentLoaded", () => {
+  const balanceInput = document.getElementById("bankBalance");
+
+  // تابع تبدیل اعداد انگلیسی به فارسی
+  function toPersianDigits(num) {
+    return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  // تابع تبدیل فارسی به انگلیسی برای محاسبات
+  function toEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  }
+
+  // زمان تایپ در فیلد
+  balanceInput.addEventListener("input", (e) => {
+    let value = e.target.value;
+    // حذف کاما و تبدیل به انگلیسی برای محاسبه
+    value = toEnglishDigits(value).replace(/,/g, "").replace(/[^\d]/g, "");
+    if (value === "") {
+      e.target.value = "";
+      return;
+    }
+    // تبدیل عدد به سه‌رقمی
+    const formatted = Number(value).toLocaleString("en-US");
+    // تبدیل خروجی به فارسی
+    e.target.value = toPersianDigits(formatted);
+  });
+
+  // حذف ویرگول و تبدیل به انگلیسی در هنگام ارسال فرم
+  const form = document.getElementById("bankForm");
+  form.addEventListener("submit", () => {
+    balanceInput.value = toEnglishDigits(balanceInput.value.replace(/,/g, ""));
+  });
+});
+
+//save bank
+document.addEventListener('DOMContentLoaded', function() {
+    const bankModal = new bootstrap.Modal(document.getElementById('bankModal'));
+    const bankForm = document.getElementById('bankForm');
+
+    // تابع تبدیل اعداد انگلیسی به فارسی
+    function toPersian(str) {
+        if (!str) return str;
+        const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+        return str.replace(/\d/g, d => persianDigits[d]);
+    }
+
+    bankForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // جلوگیری از ارسال معمولی فرم
+
+        const formData = new FormData(bankForm);
+
+        fetch("{% url 'add_edit_bank' %}", {
+            method: "POST",
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const b = data.bank;
+
+                // حذف ردیف empty اگر وجود داشت
+                const emptyRow = document.querySelector('#bankTable tbody tr td[colspan="10"]');
+                if(emptyRow) emptyRow.parentElement.remove();
+
+                // افزودن ردیف جدید به جدول
+                const tbody = document.querySelector('#bankTable tbody');
+                const newRow = document.createElement('tr');
+                newRow.dataset.id = b.id;
+                newRow.innerHTML = `
+                    <td>${b.name}</td>
+                    <td>${toPersian(b.account_code)}</td>
+                    <td>${b.owner}</td>
+                    <td>${b.branch_name || '-'}</td>
+                    <td>${toPersian(b.account_number) || '-'}</td>
+                    <td>${toPersian(b.card_number) || '-'}</td>
+                    <td>${toPersian(b.iban) || '-'}</td>
+                    <td>${toPersian(b.balance)}</td>
+                    <td>${b.note || '-'}</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm js-edit-bank" data-id="${b.id}">✏️</button>
+                        <a href="/reports/bank/${b.id}/" target="_blank" class="btn btn-sm btn-info">📘 دفتر حساب</a>
+                        
+                    </td>
+                `;
+                tbody.appendChild(newRow);
+
+                bankForm.reset();     // خالی کردن فرم
+                bankModal.hide();     // بستن مدال
+            } else {
+                alert('⚠️ خطا در ثبت بانک: ' + (data.message || 'خطای ناشناخته'));
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alert('⚠️ خطا در ارتباط با سرور');
+        });
+    });
+});
+
+
+
+//edit
+document.addEventListener('DOMContentLoaded', function() {
+    const bankEditModal = new bootstrap.Modal(document.getElementById('bankEditModal'));
+    const bankEditForm = document.getElementById('bankEditForm');
+    let clickedRow; // ردیف کلیک شده
+
+    // تابع تبدیل اعداد انگلیسی به فارسی
+    function toPersian(str) {
+        if (!str) return str;
+        const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+        return str.replace(/\d/g, d => persianDigits[d]);
+    }
+
+    // وقتی روی دکمه ویرایش کلیک شد
+    document.querySelector('#bankTable').addEventListener('click', function(e) {
+        if (e.target.classList.contains('js-edit-bank')) {
+            clickedRow = e.target.closest('tr');
+            const id = e.target.dataset.id;
+
+            // پر کردن فیلدهای فرم ویرایش
+            document.getElementById('editbankName').value = clickedRow.children[0].innerText.trim();
+            document.getElementById('editbankCode').value = clickedRow.children[1].innerText.trim();
+            document.getElementById('editownerName').value = clickedRow.children[2].innerText.trim();
+            document.getElementById('editbranchName').value = clickedRow.children[3].innerText.trim();
+            document.getElementById('editbankcardNumber').value = clickedRow.children[5].innerText.trim();
+            document.getElementById('editbankAccountNumber').value = clickedRow.children[4].innerText.trim();
+            document.getElementById('editbankIBAN').value = clickedRow.children[6].innerText.trim();
+            document.getElementById('editbankNote').value = clickedRow.children[8].innerText.trim();
+
+
+            // ذخیره id روی فرم
+            bankEditForm.dataset.id = id;
+
+            // نمایش مدال
+            bankEditModal.show();
+        }
+    });
+
+    // ارسال فرم ویرایش
+    bankEditForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(bankEditForm);
+        const id = bankEditForm.dataset.id;
+        formData.append('id', id);
+        console.log('edit');
+        fetch("{% url 'add_edit_bank' %}", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const b = data.bank;
+                console.log(b.id);
+                // بروزرسانی ردیف موجود در جدول
+                clickedRow.innerHTML = `
+                    <td>${toPersian(b.name)}</td>
+                    <td>${toPersian(b.account_code)}</td>
+                    <td>${b.owner}</td>
+                    <td>${b.branch_name}</td>
+                    <td>${toPersian(b.account_number) || '-'}</td>
+                    <td>${toPersian(b.card_number) || '-'}</td>
+                    <td>${toPersian(b.iban) || '-'}</td>
+                    <td>${toPersian(b.balance) || '-'}</td>
+                    <td>${b.note}</td>
+
+                    <td>
+                        <button class="btn btn-warning btn-sm js-edit-bank" data-id="${b.id}">✏️</button>
+                        <a href="/reports/bank/${b.id}/" target="_blank" class="btn btn-sm btn-info">📘 دفتر حساب</a>
+
+                       
+                    </td>
+                `;
+
+                bankEditForm.reset();
+                bankEditModal.hide();
+            } else {
+                alert('⚠️ خطا در ثبت تغییرات');
+            }
+        })
+        .catch(err => {
+            console.error("خطا:", err);
+            alert("⚠️ خطا در ارتباط با سرور");
+        });
+    });
+});
+
+//edit cash
+document.addEventListener('DOMContentLoaded', function() {
+    const cashEditModal = new bootstrap.Modal(document.getElementById('cashEditModal'));
+    const cashEditForm = document.getElementById('cashEditForm');
+    let clickedRow; // ردیف کلیک شده
+
+
+    // تابع تبدیل اعداد انگلیسی به فارسی
+    function toPersian(str) {
+        if (!str) return str;
+        const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+        return str.replace(/\d/g, d => persianDigits[d]);
+    }
+
+    // وقتی روی دکمه ویرایش کلیک شد
+    document.querySelector('#cashTable').addEventListener('click', function(e) {
+        if (e.target.classList.contains('js-edit-cash')) {
+            clickedRow = e.target.closest('tr');
+            const id = e.target.dataset.id;
+            console.log(id);
+            // پر کردن فیلدهای فرم ویرایش
+            document.getElementById('codeCash').value = clickedRow.children[1].innerText.trim();
+            
+            document.getElementById('nameCash').value = clickedRow.children[0].innerText.trim();
+            document.getElementById('noteCash').value = clickedRow.children[2].innerText.trim();
+
+            // ذخیره id روی فرم
+            cashEditForm.dataset.id = id;
+
+            // نمایش مدال
+            cashEditModal.show();
+        }
+
+    });
+
+    // ارسال فرم ویرایش
+    cashEditForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(cashEditForm);
+        const id = cashEditForm.dataset.id;
+        console.log(id);
+        formData.append('id', id);
+
+        fetch("{% url 'add_edit_cash' %}", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const p = data.cash;
+                console.log(p.id);
+                // بروزرسانی ردیف موجود در جدول
+                clickedRow.innerHTML = `
+                    <td>${toPersian(p.name)}</td>
+                    <td>${toPersian(p.account_code)}</td>
+                    <td>${toPersian(p.note) || '-'}</td>
+                    <td>${toPersian(p.balance) || '-'}</td>
+
+                    <td>
+                        <button class="btn btn-warning btn-sm js-edit-cash" data-id="${p.id}">✏️</button>
+                        <a href="/ledger_cash/${p.account_id}" target="_blank" class="btn btn-sm btn-info">📘 دفتر حساب</a>
+                    </td>
+                `;
+
+                cashEditForm.reset();
+                cashEditModal.hide();
+            } else {
+                alert('⚠️ خطا در ثبت تغییرات');
+            }
+        })
+        .catch(err => {
+            console.error("خطا:", err);
+            alert("⚠️ خطا در ارتباط با سرور");
+        });
+    });
+});
+
+
+//print
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل/چاپ (حذف تصاویر و راست‌چین کردن)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+
+        // حذف ستون عملیات (فرض می‌کنیم آخرین ستون است)
+        Array.from(table.rows).forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+
+        // حذف تصاویر
+        table.querySelectorAll('img').forEach(img => img.remove());
+
+        // راست‌چین کردن متن‌ها
+        Array.from(table.rows).forEach(row => {
+            Array.from(row.cells).forEach(cell => {
+                cell.style.textAlign = "right"; // راست‌چین
+                cell.style.direction = "rtl";   // جهت RTL
+            });
+        });
+        return table;
+    }
+
+    // تنظیم دکمه‌ها و جدول‌ها
+    const tables = [
+        {tableId: 'cashTable', printId: 'printCash', sheetName: ' لیست صندوق‌ها '},
+        {tableId: 'bankTable', printId: 'printBank', sheetName: ' لیست بانک ها '},
+        ]
+
+    tables.forEach(item => {
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const tableClone = cleanTableForExport(item.tableId);
+
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title>');
+
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: right; }
+                        th, td { border: 1px solid #ccc; padding: 8px; }
+                        th { background-color: #f0f0f0; }
+                        td { font-size: 0.95rem; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                         footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(tableClone.outerHTML);
+                newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
+
+function setupTableSearchMulti(inputId, tableId, columnsToSearch = []) {
+    const input = document.getElementById(inputId);
+    const table = document.getElementById(tableId);
+    if (!input || !table) return;
+
+    input.addEventListener("keyup", function () {
+        const filter = this.value.trim().toLowerCase();
+        console.log(input.value);
+
+        // جدا کردن چند کلیدواژه با فاصله
+        const keywords = filter.split(/\s+/).map(k => 
+            k.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        );
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            let match = true;
+
+            // بررسی هر کلیدواژه
+            keywords.forEach(kw => {
+                let found = false;
+
+                columnsToSearch.forEach(colIndex => {
+                    const cell = row.cells[colIndex];
+                    if (!cell) return;
+
+                    let cellText = cell.innerText.toLowerCase();
+                    let normalizedCell = cellText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+                    if (normalizedCell.includes(kw)) {
+                        found = true;
+                    }
+                });
+
+                // اگر یک کلیدواژه پیدا نشد → ردیف نمایش داده نشود
+                if (!found) match = false;
+            });
+
+            row.style.display = match ? "" : "none";
+        });
+    });
+}
+
+// مثال استفاده برای جدول محصولات (نام کالا و گروه کالا)
+setupTableSearchMulti("bankInput", "bankTable", [2,0,1]);
+setupTableSearchMulti("cashInput", "cashTable", [0,1]);
+</script>

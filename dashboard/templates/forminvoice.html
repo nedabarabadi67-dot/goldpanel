@@ -1,0 +1,230 @@
+{% extends "_sidebar.html" %}
+{% block title %}Invoice{% endblock %}
+{% block content %}
+{% load static %}
+
+<div class="container mt-5">
+
+  <!-- هدر فاکتور -->
+  <div class="row mb-4">
+    <div class="col-6">
+      <h2>Invoice</h2>
+      <p><strong>Invoice No:</strong> {{ invoice.number }}</p>
+      <p><strong>Date:</strong> {{ invoice.date|date:"Y-m-d" }}</p>
+    </div>
+    <div class="col-6 text-end">
+      <h5>Customer Info</h5>
+      <p><strong>Name:</strong> {{ customer.name }}</p>
+      <p><strong>Phone:</strong> {{ customer.phone }}</p>
+      <p><strong>Address:</strong> {{ customer.address }}</p>
+    </div>
+  </div>
+
+  <!-- جدول محصولات -->
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title mb-3">Purchased Products</h5>
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover align-middle">
+          <thead class="table-light text-center">
+            <tr>
+              <th>#</th>
+              <th>Image</th>
+              <th>Code</th>
+              <th>Name</th>
+              <th>Quantity</th>
+              <th>Unit Price</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr class="text-center">
+              <td>{{ forloop.counter }}</td>
+              <td>
+                {% if item.product.image %}
+                  <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" width="50" class="rounded">
+                {% else %}
+                  <img src="{% static 'img/no-image.png' %}" alt="No Image" width="50" class="rounded">
+                {% endif %}
+              </td>
+              <td>{{ item.product.code }}</td>
+              <td class="text-start">{{ item.product.name }}</td>
+              <td>{{ item.quantity }}</td>
+              <td>{{ item.price|floatformat:2 }}</td>
+              <td>{{ item.quantity|floatformat:0|add:"0"|floatformat:0|floatformat:2 }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot class="table-light">
+            <tr>
+              <th colspan="6" class="text-end">Grand Total:</th>
+              <th>{{ invoice.total|floatformat:2 }}</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- دکمه پرینت -->
+  <div class="text-end mt-3">
+    <button onclick="window.print()" class="btn btn-primary">
+      🖨 Print Invoice
+    </button>
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% extends "_sidebar.html" %}
+{% block title %}Create Invoice{% endblock %}
+{% block content %}
+{% load static %}
+
+<div class="container mt-5">
+
+  <h2 class="mb-4">Create Invoice</h2>
+
+  <form method="post" enctype="multipart/form-data" action="invoice" id="invoiceForm">
+    {% csrf_token %}
+
+    <!-- اطلاعات فاکتور -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Invoice Info</h5>
+        <div class="row">
+            <div class="col-md-4 d-flex align-items-center mb-3">
+                <label class="form-label mb-0 me-2"><strong>Invoice No:  </strong></label>
+                <span class="invoice-number">{{ invoice_number }}</span>
+                <input type="hidden" name="invoice_number" value="{{ invoice_number }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-center mb-3">
+                <label class="form-label mb-0 me-2"><strong>Date:  </strong></label>
+                <span class="invoice-date">{{ invoice_date|date:"Y-m-d" }}</span>
+                <input type="hidden" name="invoice_date" value="{{ invoice_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-md-4 d-flex align-items-center mb-3">
+                <label class="form-label mb-0 me-2"><strong>Time:  </strong></label>
+                <span class="current_time ">{{ current_time }}</span>
+                <input type="hidden" name="current_time" value="{{ current_time }}">
+            </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- بخش اطلاعات مشتری -->
+    <div class="card mb-4">
+      <div class="card-body">
+        <h5 class="card-title">Customer Info</h5>
+        <div class="row">
+          <div class="col-md-4 mb-3">
+            <label for="customerName" class="form-label">Name</label>
+            <input type="text" name="name" id="customerName" class="form-control" required>
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="customerPhone" class="form-label">Phone</label>
+            <input type="text" name="phone" id="customerPhone" class="form-control">
+          </div>
+          <div class="col-md-4 mb-3">
+            <label for="customerAddress" class="form-label">Address</label>
+            <input type="text" name="address" id="customerAddress" class="form-control">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- جدول محصولات -->
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title d-flex justify-content-between">
+          Products
+          <button type="button" id="addRow" class="btn btn-success btn-sm">➕ Add Row</button>
+        </h5>
+
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle" id="productsTable">
+            <thead class="table-light text-center">
+              <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Unit Price</th>
+                <th>Total</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <!-- ردیف‌ها با JS اضافه می‌شوند -->
+            </tbody>
+            <tfoot>
+              <tr>
+                <th colspan="4" class="text-end">Grand Total:</th>
+                <th id="grandTotal">0.00</th>
+                <th></th>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- دکمه ذخیره -->
+    <div class="text-end mt-3">
+      <button type="submit" class="btn btn-primary">💾 Save Invoice</button>
+    </div>
+
+  </form>
+</div>
+
+
+{% block script %}
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    let rowCount = 0;
+
+    function updateTotals() {
+        let grandTotal = 0;
+        document.querySelectorAll("#productsTable tbody tr").forEach(row => {
+            const qty = parseFloat(row.querySelector(".quantity").value) || 0;
+            const price = parseFloat(row.querySelector(".price").value) || 0;
+            const total = qty * price;
+            row.querySelector(".total").textContent = total.toFixed(2);
+            grandTotal += total;
+        });
+        document.getElementById("grandTotal").textContent = grandTotal.toFixed(2);
+    }
+
+    document.getElementById("addRow").addEventListener("click", function() {
+        rowCount++;
+        const tbody = document.querySelector("#productsTable tbody");
+        const row = document.createElement("tr");
+
+        row.innerHTML = `
+          <td>${rowCount}</td>
+          <td><input type="text" name="product_name[]" class="form-control" required></td>
+          <td><input type="number" name="quantity[]" class="form-control quantity" min="1" value="1"></td>
+          <td><input type="number" name="price[]" class="form-control price" step="0.01" value="0.00"></td>
+          <td class="total text-center">0.00</td>
+          <td class="text-center">
+            <button type="button" class="btn btn-danger btn-sm removeRow">🗑</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+
+        // event listeners
+        row.querySelector(".quantity").addEventListener("input", updateTotals);
+        row.querySelector(".price").addEventListener("input", updateTotals);
+        row.querySelector(".removeRow").addEventListener("click", function() {
+            row.remove();
+            updateTotals();
+        });
+
+        updateTotals();
+    });
+
+});
+</script>
+{% endblock %}
+{% endblock %}

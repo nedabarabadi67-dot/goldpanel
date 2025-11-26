@@ -1,0 +1,742 @@
+{% load jalali_tags %}
+<style>
+    /* استایل مشترک برای دکمه‌ها */
+    #printPersons, #partnerBtn {
+        font-size: 0.85rem;      
+        padding: 4px 10px;       
+        margin-right: 5px;       
+        margin-top: 1px;
+        height: auto;            
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    /* رنگ و گرادینت دکمه‌ها */
+    #printPersons {
+        background: linear-gradient(135deg, #f57c00, #ffb74d);  /* نارنجی/زرد */
+    }
+    #printPersons:hover {
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
+
+    #partnerBtn {
+        background: linear-gradient(135deg, #28a745, #45d36b);  /* سبز */
+    }
+    #partnerBtn:hover {
+        background: linear-gradient(135deg, #45d36b, #28a745);
+    }
+
+
+
+
+        #personTable th, #personTable td {
+            padding: 12px 10px !important; /* override padding Bootstrap */
+            
+            vertical-align: middle;
+            text-align: center;
+        }
+
+        
+
+        /* واکنش‌گرایی بیشتر برای موبایل */
+        @media (max-width: 576px) {
+            .search-bar {
+                flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+            }
+
+            .search-bar input {
+                font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+            }
+
+            .btn.btn-success {
+                flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+            }
+        }
+</style>
+<div class="card table-glass p-3 mt-3">
+  <div class="report-actions d-flex align-items-center mb-3  ml-3">
+      <a href="javascript:void(0);" id="partnerBtn" class="btn-action me-2 "
+         data-bs-toggle="modal" data-bs-target="#partnerModal">تعریف اشخاص</a>
+         <button id="printPersons" class="btn-action mr-2">چاپ </button>
+        <form class="search-bar " style="margin-right: 15px;">
+            <input type="text" id="personsInput" class="form-control " placeholder="عبارت جستجو">
+            <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+        </form>
+  </div>
+
+  <div class="table-container table-responsive">
+    <table class="table table-hover table-glass " id="personTable">
+      <thead>
+        <tr>
+          <th>کد</th>
+          <th>نام مجموعه</th>
+          <th>نام و نام خانوادگی</th>
+          <th>نوع شخص</th>
+          <th>شماره حساب</th>
+          <th>شماره تلفن</th>
+          <th>توضیحات</th>
+          <th>مانده پول</th>
+          <th>مانده طلا (گرم)</th>
+          <th>عملیات</th>
+        </tr>
+      </thead>
+      <tbody>
+       
+        {% for row in persons %}
+        <tr data-type="{{ row.type }}">
+          <td>{{ row.code|persian_digits }}</td>
+          <td>{{ row.store|persian_digits }}</td>
+          <td>{{ row.name }}</td>
+          <td class="td-type" data-value="{{ row.type_partner }}">{{ row.get_type_partner_display }}</td>
+          <td>{{ row.account_number|default:"-"|persian_digits }}</td>
+          <td>{{ row.phone|default:"-" |persian_digits}}</td>
+          <td>{{ row.note |default:"-" |persian_digits}}</td>
+          <td>{% if row.account.calculated_balance_money %}{{ row.account.calculated_balance_money|format_balance|persian_intcomma }}{% else %}<span>تسویه</span>{% endif %}</td>
+          <td>{% if row.account.calculated_balance_gold %}{{ row.account.calculated_balance_gold|format_gold|persian_digits }}{% else %}<span>تسویه</span>{% endif %}</td>
+          <td>
+            <button class="btn btn-warning btn-sm js-edit-partner" data-id="{{ row.id }}">✏️</button>
+            <a href="{% url 'ledger' row.account.id %}" class="btn btn-sm btn-info" target="_blank">📘 دفتر حساب</a>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="10" class="text-center">هیچ همکاری ثبت نشده است.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- مدال‌ها -->
+
+<!-- Modal تعریف اشخاص -->
+<!-- Modal تعریف اشخاص -->
+<div class="modal fade" id="partnerModal" tabindex="-1" aria-labelledby="partnerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="partnerForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="partnerModalLabel">تعریف اشخاص</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <!-- ستون اول -->
+            <div class="col-md-6">
+
+              <div class="mb-3">
+                <label>نام مجموعه</label>
+                <input type="text" name="store" id="storeName" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label>نام و نام خانوادگی</label>
+                <input type="text" name="name" id="partnerName" class="form-control" required>
+              </div>
+
+              <div class="mb-3">
+                <label>نوع شخص</label>
+                <select name="type_partner" id="partnerType" class="form-control input-shadow" required>
+                  <option value="">انتخاب کنید</option>
+                  <option value="customer">مشتری</option>
+                  <option value="partner">طرف حساب</option>
+                  <option value="supplier">بنکدار</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label>شماره تلفن</label>
+                <input type="text" name="phone" id="partnerPhone" class="form-control persian-number">
+              </div>
+
+
+
+            </div>
+
+            <!-- ستون دوم -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <div class="row">
+                    <div class="col-md-6 mb-2">
+                        <label>بدهکار پول</label>
+                          <input type="text" name="bedcash" id="bedCash" class="form-control persian-number">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <label>بستانکار پول</label>
+                      <input type="text" name="bescash" id="besCash" class="form-control persian-number">
+                    </div>
+                  </div>
+              </div>
+
+              
+                <div class="mb-3">
+                  <div class="row">
+                    <div class="col-md-6 mb-2">
+                          <label>بدهکار طلا</label>
+                          <input type="text" name="bedgold" id="bedGold" class="form-control persian-number">
+                    </div>
+                    <div class="col-md-6 mb-2">
+                      <label>بستانکار طلا</label>
+                      <input type="text" name="besgold" id="besGold" class="form-control persian-number">
+                    </div>
+                  </div>
+                </div>
+              
+
+              <div class="mb-3">
+                <label>شماره حساب بانکی</label>
+                <input type="text" name="account_number" id="partnerAccount" class="form-control persian-number">
+              </div>
+
+              <div class="mb-3">
+                <label>توضیحات</label>
+                <textarea name="note" id="partnerNote" class="form-control"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-success mr-3">ثبت شخص</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- Modal ادیت اشخاص -->
+<div class="modal fade" id="partnerEditModal" tabindex="-1" aria-labelledby="partnerModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="partnerEditForm" method="post">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title" id="partnerModalLabel">ویرایش اشخاص</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="row">
+            <!-- first coloum -->
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label>کد </label>
+                        <input type="text" name="code" id="editCode" class="form-control" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label>نام مجموعه </label>
+                        <input type="text" name="store" id="editStoreName" class="form-control" >
+                    </div>
+                    <div class="mb-3">
+                        <label>نام</label>
+                        <input type="text" name="name" id="editName" class="form-control" required>
+                    </div>
+
+
+                    <div class="mb-3">
+                      <label for="editInputRole" class="form-label">نوع شخص</label>
+                      <select id="editPartnerType" name="type_partner" class="form-control input-shadow">
+                        <option value="">انتخاب</option>
+                        <option value="partner">طرف حساب</option>
+                        <option value="supplier">بنکدار</option>
+                        <option value="supplier">مشتری</option>
+                    </select>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="mb-3">
+                        <label>شماره تلفن</label>
+                        <input type="text" name="phone"  id="editPhone"class="form-control persian-number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>شماره حساب</label>
+                        <input type="text" name="account_number"  id="editAccount" class="form-control persian-number">
+                    </div>
+
+                    <div class="mb-3">
+                        <label>توضیحات</label>
+                        <textarea name="note" id="editNote" class="form-control"></textarea>
+                        
+                    </div>
+                </div>
+
+              </div>
+            </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-primary mr-4">ثبت  تغییرات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+
+    //شفاف سازی مدال 
+    document.addEventListener("DOMContentLoaded", function() {
+        const body = document.body;
+        const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+        
+        if (!modals.length) return;
+
+        // گرفتن رنگ واقعی از computedStyle
+        const computedStyle = window.getComputedStyle(body);
+        const bgColor = computedStyle.backgroundColor;
+        const bgImage = computedStyle.backgroundImage;
+
+        modals.forEach(modal => {
+            console.log("Computed background color:", bgColor);
+            console.log("Computed background image:", bgImage);
+
+            // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+            if (bgImage !== 'none') {
+                modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+                modal.style.backdropFilter = 'blur(8px)';
+            } else {
+                // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+                modal.style.backgroundColor = bgColor;
+                modal.style.backdropFilter = 'none';
+            }
+
+            // گوشه‌های مدال و استایل دلخواه
+            modal.style.borderRadius = '10px';
+        });
+});
+
+// تبدیل اعداد به فارسی در فیلدهای عددی فروش
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart;
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos);
+    });
+}
+
+makeInputPersian('partnerNote');
+makeInputPersian('partnerName');
+makeInputPersian('partnerPhone');
+makeInputPersian('partnerAccount');
+makeInputPersian('editStoreName');
+makeInputPersian('storeName');
+makeInputPersian('editAccount');
+makeInputPersian('editCode');
+makeInputPersian('editPhone');
+makeInputPersian('partnerInput');
+makeInputPersian('buyInput');
+makeInputPersian('sellInput');
+makeInputPersian('transactionInput');
+makeInputPersian('bedGold');
+makeInputPersian('besGold');
+makeInputPersian('personsInput');
+
+
+//save
+document.addEventListener('DOMContentLoaded', function() {
+  const form = document.getElementById('partnerForm');
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(form);
+
+    fetch("{% url 'add_or_edit_partner' %}", {
+      method: "POST",
+      body: formData,
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        const p = data.partner;
+        // حذف ردیف "هیچ همکاری ثبت نشده است" اگر وجود دارد
+        const emptyRow = document.querySelector('#personTable tbody tr td[colspan]');
+        if (emptyRow) {
+        emptyRow.parentElement.remove();
+        }
+
+        const row = `
+          <tr>
+            <td>${toPersian(p.account_id)}</td>
+            <td>${toPersian(p.store)}</td>
+            <td>${p.name}</td>
+            <td>${(p.type_partner)}</td>
+            <td>${toPersian(p.account_number) || '-'}</td>
+            <td>${toPersian(p.phone) || '-'}</td>
+            <td>${toPersian(p.note)|| '-'}</td>
+            <td>${toPersian(p.cash) || 'تسویه'}</td>
+            <td>${toPersian(p.gold) || 'تسویه'}</td>
+           <td>
+                        <button class="btn btn-warning btn-sm js-edit-partner" data-id="${p.id}">✏️</button>
+                        <a href="/ledger/${p.account_id}" target="_blank" class="btn btn-sm btn-info">📘 دفتر حساب</a>
+                    </td>
+            
+          </tr>`;
+        document.querySelector('#personTable tbody').insertAdjacentHTML('afterbegin', row);
+        form.reset();
+        //bootstrap.Modal.getInstance(document.getElementById('partnerModal')).hide();
+        const modalInstance = bootstrap.Modal.getInstance(document.getElementById("partnerModal"));
+            modalInstance.hide();
+            document.body.classList.remove("modal-open");
+            document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+            // 🔥 ریفرش صفحه بعد از نیم ثانیه
+          setTimeout(() => {
+              location.reload();
+          }, 300);
+      } else {
+        Swal.fire("خطا", data.message || "ذخیره با خطا مواجه شد", "error");
+      }
+    })
+    .catch(err => {
+      console.error("خطا:", err);
+      alert("⚠️ خطا در ارتباط با سرور");
+    });
+  });
+
+  // تبدیل اعداد انگلیسی به فارسی
+  window.toPersian = function(num) {
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return String(num).replace(/[0-9]/g, d => persianDigits[d]);
+  };
+});
+
+
+
+//print
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل/چاپ (حذف تصاویر و راست‌چین کردن)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+
+        // حذف ستون عملیات (فرض می‌کنیم آخرین ستون است)
+        Array.from(table.rows).forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+
+
+        // حذف تصاویر
+        table.querySelectorAll('img').forEach(img => img.remove());
+
+        // راست‌چین کردن متن‌ها
+        Array.from(table.rows).forEach(row => {
+            Array.from(row.cells).forEach(cell => {
+                cell.style.textAlign = "right"; // راست‌چین
+                cell.style.direction = "rtl";   // جهت RTL
+            });
+        });
+        return table;
+    }
+
+    // تنظیم دکمه‌ها و جدول‌ها
+    const tables = [
+        {tableId: 'personTable', printId: 'printPersons', sheetName: ' لیست اشخاص '},
+    ];
+
+    tables.forEach(item => {
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const tableClone = cleanTableForExport(item.tableId);
+
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title>');
+
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: right; }
+                        th, td { border: 1px solid #ccc; padding: 8px; }
+                        th { background-color: #f0f0f0; }
+                        td { font-size: 0.95rem; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                         footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(tableClone.outerHTML);
+                newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
+
+
+//edit
+document.addEventListener('DOMContentLoaded', function() {
+    const partnerEditModal = new bootstrap.Modal(document.getElementById('partnerEditModal'));
+    const partnerEditForm = document.getElementById('partnerEditForm');
+    let clickedRow; // ردیف کلیک شده
+    let money;
+    let gold;
+
+    // تابع تبدیل اعداد انگلیسی به فارسی
+    function toPersian(str) {
+        if (!str) return str;
+        const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+        return str.replace(/\d/g, d => persianDigits[d]);
+    }
+
+    // وقتی روی دکمه ویرایش کلیک شد
+    document.querySelector('#personTable').addEventListener('click', function(e) {
+        if (e.target.classList.contains('js-edit-partner')) {
+            clickedRow = e.target.closest('tr');
+            const id = e.target.dataset.id;
+
+            // پر کردن فیلدهای فرم ویرایش
+            document.getElementById('editCode').value = clickedRow.children[0].innerText.trim();
+            document.getElementById('editStoreName').value = clickedRow.children[1].innerText.trim();
+            document.getElementById('editName').value = clickedRow.children[2].innerText.trim();
+            document.getElementById('editPhone').value = clickedRow.children[5].innerText.trim();
+            document.getElementById('editAccount').value = clickedRow.children[4].innerText.trim();
+            document.getElementById('editNote').value = clickedRow.children[6].innerText.trim();
+
+            // ذخیره money و gold
+            money = clickedRow.children[7].innerText.trim();
+            gold = clickedRow.children[8].innerText.trim();
+
+            // ست کردن select نوع شخص
+            const typeValue = clickedRow.querySelector('.td-type').dataset.value;
+            document.getElementById('editPartnerType').value = typeValue;
+
+            // ذخیره id روی فرم
+            partnerEditForm.dataset.id = id;
+
+            // نمایش مدال
+            partnerEditModal.show();
+        }
+    });
+
+    // ارسال فرم ویرایش
+    partnerEditForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(partnerEditForm);
+        const id = partnerEditForm.dataset.id;
+        formData.append('id', id);
+
+        fetch("{% url 'add_or_edit_partner' %}", {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const p = data.partner;
+                console.log(p.id);
+                // بروزرسانی ردیف موجود در جدول
+                clickedRow.innerHTML = `
+                    <td>${toPersian(p.code)}</td>
+                    <td>${toPersian(p.store)}</td>
+                    <td>${p.name}</td>
+                    <td>${p.type_partner === 'customer' ? 'مشتری' : p.type_partner === 'partner' ? 'طرف حساب' : 'بنکدار'}</td>
+                    <td>${toPersian(p.account_number) || '-'}</td>
+                    <td>${toPersian(p.phone) || '-'}</td>
+                    <td>${toPersian(p.note) || '-'}</td>
+                    <td>${money}</td>
+                    <td>${gold}</td>
+                    <td>
+                        
+                        <button class="btn btn-warning btn-sm js-edit-partner" data-id="${p.id}">✏️</button>
+                        <a href="/ledger/${p.account_id}" target="_blank" class="btn btn-sm btn-info">📘 دفتر حساب</a>
+                        
+                    </td>
+                `;
+
+                partnerEditForm.reset();
+                partnerEditModal.hide();
+            } else {
+                alert('⚠️ خطا در ثبت تغییرات');
+            }
+        })
+        .catch(err => {
+            console.error("خطا:", err);
+            alert("⚠️ خطا در ارتباط با سرور");
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const balanceInput = document.getElementById("bedCash");
+
+  // تابع تبدیل اعداد انگلیسی به فارسی
+  function toPersianDigits(num) {
+    return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  // تابع تبدیل فارسی به انگلیسی برای محاسبات
+  function toEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  }
+
+  // زمان تایپ در فیلد
+  balanceInput.addEventListener("input", (e) => {
+    let value = e.target.value;
+    // حذف کاما و تبدیل به انگلیسی برای محاسبه
+    value = toEnglishDigits(value).replace(/,/g, "").replace(/[^\d]/g, "");
+    if (value === "") {
+      e.target.value = "";
+      return;
+    }
+    // تبدیل عدد به سه‌رقمی
+    const formatted = Number(value).toLocaleString("en-US");
+    // تبدیل خروجی به فارسی
+    e.target.value = toPersianDigits(formatted);
+  });
+
+  // حذف ویرگول و تبدیل به انگلیسی در هنگام ارسال فرم
+  const form = document.getElementById("partnerForm");
+  form.addEventListener("submit", () => {
+    balanceInput.value = toEnglishDigits(balanceInput.value.replace(/,/g, ""));
+  });
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const balanceInput = document.getElementById("besCash");
+
+  // تابع تبدیل اعداد انگلیسی به فارسی
+  function toPersianDigits(num) {
+    return num.toString().replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  }
+
+  // تابع تبدیل فارسی به انگلیسی برای محاسبات
+  function toEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+  }
+
+  // زمان تایپ در فیلد
+  balanceInput.addEventListener("input", (e) => {
+    let value = e.target.value;
+    // حذف کاما و تبدیل به انگلیسی برای محاسبه
+    value = toEnglishDigits(value).replace(/,/g, "").replace(/[^\d]/g, "");
+    if (value === "") {
+      e.target.value = "";
+      return;
+    }
+    // تبدیل عدد به سه‌رقمی
+    const formatted = Number(value).toLocaleString("en-US");
+    // تبدیل خروجی به فارسی
+    e.target.value = toPersianDigits(formatted);
+  });
+
+  // حذف ویرگول و تبدیل به انگلیسی در هنگام ارسال فرم
+  const form = document.getElementById("partnerForm");
+  form.addEventListener("submit", () => {
+    balanceInput.value = toEnglishDigits(balanceInput.value.replace(/,/g, ""));
+  });
+});
+
+function setupTableSearchMulti(inputId, tableId, columnsToSearch = []) {
+    const input = document.getElementById(inputId);
+    const table = document.getElementById(tableId);
+    if (!input || !table) return;
+
+    input.addEventListener("keyup", function () {
+        const filter = this.value.trim().toLowerCase();
+        console.log(input.value);
+
+        // جدا کردن چند کلیدواژه با فاصله
+        const keywords = filter.split(/\s+/).map(k => 
+            k.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        );
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            let match = true;
+
+            // بررسی هر کلیدواژه
+            keywords.forEach(kw => {
+                let found = false;
+
+                columnsToSearch.forEach(colIndex => {
+                    const cell = row.cells[colIndex];
+                    if (!cell) return;
+
+                    let cellText = cell.innerText.toLowerCase();
+                    let normalizedCell = cellText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+                    if (normalizedCell.includes(kw)) {
+                        found = true;
+                    }
+                });
+
+                // اگر یک کلیدواژه پیدا نشد → ردیف نمایش داده نشود
+                if (!found) match = false;
+            });
+
+            row.style.display = match ? "" : "none";
+        });
+    });
+}
+
+// مثال استفاده برای جدول محصولات (نام کالا و گروه کالا)
+setupTableSearchMulti("personsInput", "personTable", [0,1,2,3]);
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    function setupLaborFields(percentSelector, priceSelector) {
+        const percentInput = document.querySelector(percentSelector);
+        const priceInput   = document.querySelector(priceSelector);
+
+        if (!percentInput || !priceInput) return;
+
+        // وقتی درصد وارد شد → تومان خالی و غیرفعال شود
+        percentInput.addEventListener("input", () => {
+            if (percentInput.value.trim() !== "") {
+                priceInput.value = "";
+                priceInput.setAttribute("disabled", "disabled");
+            } else {
+                priceInput.removeAttribute("disabled");
+            }
+        });
+
+        // وقتی تومان وارد شد → درصد خالی و غیرفعال شود
+        priceInput.addEventListener("input", () => {
+            if (priceInput.value.trim() !== "") {
+                percentInput.value = "";
+                percentInput.setAttribute("disabled", "disabled");
+            } else {
+                percentInput.removeAttribute("disabled");
+            }
+        });
+    }
+
+    // 🔥 اجرای اسکریپت برای تمام تب‌ها
+    setupLaborFields("#bedCash", "#besCash");         // تب اول - خرید کالا
+    setupLaborFields("#bedGold", "#besGold");       // تب دوم - آب شده
+
+});
+</script>

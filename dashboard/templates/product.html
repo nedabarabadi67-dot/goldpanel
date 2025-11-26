@@ -1,0 +1,1146 @@
+{% extends "_newsidebar.html" %}
+{% block title%}Product{%endblock%}
+{% block content %}
+{%load static %}
+{% load jalali_tags %}
+<style>
+
+body {
+    margin-left: 10px; /* هر عددی خواستی */
+}
+#productTable th, #productTable td {
+
+    color: #fff;
+  font-weight: 600;
+
+  border-top: 1px solid rgba(255,255,255,.15);
+  font-size: 15px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+  
+  white-space: nowrap;  /* جلوگیری از شکستن متن */
+       /* یا center بسته به نیاز */
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#productTable thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 10;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+/* واکنش‌گرایی بیشتر برای موبایل */
+@media (max-width: 576px) {
+    .search-bar {
+        flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+    }
+
+    .search-bar input {
+        font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+    }
+
+    .btn.btn-success {
+        flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+    }
+}
+
+
+
+</style>
+        <!--دکمه افزودن  محصولات -->
+        <button type="button" class="btn btn-success btn-lg  mt-1 mb-3 flex-shrink-0 "
+            data-bs-toggle="modal" data-bs-target="#addModal" >
+            ➕ ثبت محصول
+        </button>
+
+        <div class="col-lg-12">
+            <div class="card mt-1">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                        <form class="search-bar">
+                            <input type="text" id="productSearchInput" class="form-control " placeholder="کد نام گروه وزن">
+                            <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+                        </form>
+                    </div>
+                
+                    <div class="table-container table-responsive">
+                        <table class="table table-hover table-glass" id="productTable">
+                            <thead>
+                                <tr>
+                                    <th>کد کالا</th>
+                                    <th>تصویر</th>
+                                    
+                                    <th>گروه کالا</th>
+                                    <th>نام کالا</th> 
+    
+                                    <th>وزن</th>
+                                    <th>اجرت کالا %</th>
+                                    <th>اجرت (تومان)</th>
+                                    <th>عیار</th>
+                                    <th>تعداد</th>
+                                    <th>شرح کالا</th>
+                                    <th>عملیات</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                {% for product in products %}
+                                    <tr id="product-row-{{ product.id }}">
+                                       <td class="td-code">{{product.code|persian_digits}}</td>
+                                    <td class="td-image">
+                                        {% if product.image %}
+                                            <img src="{{ product.image.url }}" alt='{{product.name}}' width="50">
+                                        {% else %}
+                                            بدون تصویر
+                                        {% endif %}
+                                    </td>
+                                    
+                                    <td class="td-category" data-value="{{ product.category }}">{{ product.category|cat_fa }}</td>
+
+                                    <td class="td-name">{{ product.name }}</td>
+                                    <td class="td-weight">{{ product.weight|persian_digits }}</td>
+                                    <td class="td-labor">{{ product.labor|floatformat:1|persian_digits }}</td>
+                                    <td class="td-laborprice">{{ product.laborprice|persian_intcomma }}</td>
+                                    <td class="td-purity">{{ product.purity|persian_digits }}</td>
+                                    <td class="td-quantity">{{ product.quantity|persian_digits }}</td>
+                                    <td class="td-description">{{ product.description|persian_digits}}</td>
+
+                                    <td>
+                                        <button class="btn btn-warning btn-sm js-edit-product" 
+                                        data-id="{{ product.id }}">✏️</button>
+                                        <a href="{% url 'print_label' product.pk %}" 
+                                            target="_blank" 
+                                            class="btn btn-sm btn-warning">
+                                            چاپ لیبل
+                                        </a>
+                                        <button class="btn btn-danger btn-sm js-delete-product d-none "
+                                        data-id="{{ product.id }}"  data-url="">🗑</button>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center text-centered">هیچ محصولی ثبت نشده است.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                
+                </div>
+            </div>
+        </div>
+    </div><!-- container -->
+
+
+
+<!--Add Modal-->
+<!-- Modal Add Product -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="addModalLabel">ثیت محصول</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="addProductForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row g-3">
+            <!-- first coloum -->
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="addCode" class="form-label">کد کالا</label>
+                    <input type="text" name="code" id="addCode" class="form-control" required>
+                </div>
+
+            <!-- Name -->
+                <div class="mb-3">
+                    <label for="addName" class="form-label">نام کالا</label>
+                    <input type="text" name="name" id="addName" class="form-control" required>
+                </div>
+
+            <!-- Category -->
+                <div class="mb-3">
+                    <label for="addCategory2" class="form-label">گروه کالا</label>
+                       
+                        <select  name='category' id="id_category" class="form-control " >
+                            <option value="">انتخاب کنید...</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat|cat_fa }}</option>
+                            {% endfor %}
+                        </select>
+                </div>
+
+            <!-- Weight -->
+                <div class="mb-3">
+                    <label for="addWeight" class="form-label">وزن</label>
+                    <div class="row g-2">
+                        <div class="col-md-6 ">
+                            <input type="text" class="form-control" name="weight" id="addWeight" placeholder="{{750|persian_digits}}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="weightpurity" id="addWeightPurity" class="form-control"
+                                        placeholder="وزن معادل {{750|persian_digits}}">
+                        </div>
+                    </div>
+                </div>
+
+                    <div class="mb-3">
+                        <label for="addWeight" class="form-label">اجرت</label>
+                            <div class="row g-2">
+                                <div class="col-md-6 ">
+                                    <input type="text"  name="labor" id="addLabor" class="form-control" placeholder='درصد'>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="laborprice" id="addLaborPrice" class="form-control"
+                                        placeholder="تومان">
+                                </div>
+                    
+                            </div>
+                        </div>
+            </div><!--first coloum-->
+
+            <!-- Quantity -->
+
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="addQuantity" class="form-label">عیار</label>
+                    <input type="text" name="purity" id="addPurity" class="form-control" >
+                </div>
+        
+                <div class="mb-3">
+                    <label for="addQuantity" class="form-label">موجودی اولیه</label>
+                    <input type="text" name="quantity" id="addQuantity" class="form-control" value='0'>
+                </div>
+
+            <!-- Description -->
+                <div class="mb-3">
+                    <label for="addDescription" class="form-label">شرح کالا</label>
+                    <textarea name="description" id="addDescription" class="form-control"></textarea>
+                </div>
+
+            <!-- Image Upload -->
+                <div class="mb-3">
+                    <label for="addImage" class="form-label">تصویر</label>
+                    <input type="file" name="image" id="addImage" class="form-control">
+                    <img id="addImagePreview" src="#" alt="Preview" class="img-thumbnail mt-2" style="display:none; max-height:150px;">
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-success mr-3">ثبت محصول</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!--Edit Modal-->
+<!-- Edit Product Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg"> <!-- modal-lg برای بزرگ‌تر شدن -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editModalLabel">ویرایش محصول</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form id="editProductForm" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="hidden" id="editProductId" name="id">
+
+        <div class="modal-body">
+          <div class="row">
+            <!-- ستون اول -->
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label for="editCode" class="form-label">کد کالا</label>
+                <input type="text" name="code" id="editCode" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                <label for="editName" class="form-label">نام کالا</label>
+                <input type="text" name="name" id="editName" class="form-control">
+              </div>
+
+              <div class="mb-3">
+                
+                <label for="editCategory" class="form-label">گروه کالا</label>
+                
+                    
+                    <select name="category" id="editCategory" class="form-control" required>
+                            <option value="">انتخاب کنید...</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}">{{ cat|cat_fa }}</option>
+                            {% endfor %}
+                        </select>
+                </div>
+
+              <div class="mb-3">
+                <label for="editWeight" class="form-label">وزن</label>
+                <div class="row g-2">
+                        <div class="col-md-6 ">
+                            <input type="text" name="weight" id="editWeight" class="form-control" placeholder="{{750|persian_digits}}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <input type="text" name="weightpurity" id="editWeightPurity" class="form-control"
+                                        placeholder="وزن معادل {{750|persian_digits}}">
+                        </div>
+                    </div>
+              </div>
+
+              <div class="mb-3">
+                        <label for="addWeight" class="form-label">اجرت</label>
+                            <div class="row g-2">
+                                <div class="col-md-6 ">
+                                    <input type="text"  name="labor" id="editLabor" class="form-control" placeholder='درصد' readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="text" name="laborprice" id="editLaborPrice" class="form-control" readonly placeholder="تومان">
+                                </div>
+                    
+                            </div>
+                        </div>
+
+            </div>
+
+            <!-- ستون دوم -->
+            <div class="col-md-6">
+                <div class="mb-3">
+                    <label for="editQuantity" class="form-label">عیار</label>
+                    <input type="text" name="purity" id="editPurity" class="form-control" >
+              </div>
+              <div class="mb-3">
+                <label for="editQuantity" class="form-label">تعداد</label>
+                <input type="text" name="quantity" id="editQuantity" class="form-control" readonly required>
+              </div>
+
+              <div class="mb-3">
+                <label for="editDescription" class="form-label">شرح کالا</label>
+                <textarea name="description" id="editDescription" class="form-control" rows="3"></textarea>
+              </div>
+
+              <div class="mb-3">
+                <label for="editImage" class="form-label">تصویر</label>
+                <input type="file" name="image" id="editImage" class="form-control">
+
+                <!-- پیش‌نمایش عکس -->
+                <div class="mt-2">
+                  <img id="editImagePreview" src="" alt="Current Image"
+                       style="max-width: 150px; display:none; border:1px solid #ddd; padding:4px; border-radius:8px;">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-primary mr-3">ثبت تغییرات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 shadow-lg">
+      <div class="modal-header">
+        <h5 class="modal-title text-danger">Delete Confirmation</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        
+          <path d="M3 6h18M9 6v12m6-12v12M10 10h4m-2 0v4" />
+        </svg>
+        <p class="mt-3 fs-5">Are you sure you want to delete this product?</p>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Yes, Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Duplicate Code Modal (Styled like SMS Modal) -->
+<div id="duplicate-code-modal" class="sms-modal">
+    <div class="sms-modal-content">
+        <span class="sms-close" id="close-duplicate-code">&times;</span>
+        <div class="sms-modal-header">
+            <!-- آیکون هشدار -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="sms-icon" viewBox="0 0 24 24" width="60" height="60">
+                <path fill="none" stroke="#f44336" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h2>خطای کد کالا</h2>
+        </div>
+        <p>⚠️ کد کالای وارد شده قبلاً استفاده شده است. لطفاً یک کد یکتا وارد کنید.</p>
+        <button id="ok-duplicate-code" class="sms-btn">متوجه شدم</button>
+    </div>
+</div>
+
+<style>
+    /* استایل مدال کد تکراری کالا */
+    #duplicate-code-modal.sms-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        justify-content: center;
+        align-items: center;
+        background: rgba(0, 0, 0, 0.3); /* پشت‌زمینه تار */
+        backdrop-filter: blur(8px); /* بلور پشت‌زمینه */
+    }
+
+    #duplicate-code-modal .sms-modal-content {
+        background: rgba(255, 255, 255, 0.08); /* شفاف و سبک شیشه‌ای */
+        border-radius: 20px;
+        padding: 40px 30px;
+        text-align: center;
+        width: 380px;
+        max-width: 90%;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+        border: 1px solid rgba(255,255,255,0.2);
+        transform: scale(0);
+        animation: smsZoomIn 0.35s forwards;
+        backdrop-filter: blur(10px);
+        color: #fff;
+        position: relative;
+    }
+
+    #duplicate-code-modal .sms-modal-content.exit {
+        animation: smsZoomOut 0.35s forwards;
+    }
+
+    #duplicate-code-modal .sms-modal-header { 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        margin-bottom: 20px; 
+    }
+
+    #duplicate-code-modal .sms-icon { 
+        stroke-dasharray: 100; 
+        stroke-dashoffset: 100; 
+        animation: smsDrawIcon 0.5s forwards; 
+        stroke: #f44336; /* رنگ قرمز هشدار */
+    }
+
+    #duplicate-code-modal .sms-close { 
+        position: absolute; 
+        top: 15px; 
+        right: 20px; 
+        font-size: 25px; 
+        cursor: pointer; 
+        color: #fff; 
+        transition: color 0.2s; 
+    }
+    #duplicate-code-modal .sms-close:hover { color: #f44336; }
+
+    #duplicate-code-modal .sms-btn {
+        background: linear-gradient(135deg, #f44336, #d32f2f);
+        color: white;
+        border: none;
+        padding: 14px 25px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 17px;
+        font-weight: bold;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    #duplicate-code-modal .sms-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    /* انیمیشن‌ها */
+    @keyframes smsZoomIn { from {transform: scale(0);} to {transform: scale(1);} }
+    @keyframes smsZoomOut { from {transform: scale(1);} to {transform: scale(0);} }
+    @keyframes smsDrawIcon { to { stroke-dashoffset: 0; } }
+
+    /* ریسپانسیو */
+    @media (max-width: 480px) {
+        #duplicate-code-modal .sms-modal-content { padding: 20px 15px; max-width: 95%; }
+        #duplicate-code-modal .sms-icon { width: 40px; height: 40px; }
+        #duplicate-code-modal .sms-btn { font-size: 15px; padding: 10px 18px; }
+    }
+
+</style>
+
+<!-- Modal: Form Errors -->
+<div class="modal fade" id="formErrorModal" tabindex="-1" aria-labelledby="formErrorLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="formErrorLabel">خطا در ثبت محصول</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="بستن"></button>
+      </div>
+      <div class="modal-body" id="formErrorBody">
+        <!-- پیام خطا اینجا داینامیک تزریق میشه -->
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">متوجه شدم</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+{%block scripts%}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+// باز کردن مدال
+function showDuplicateCodeModal() {
+    const modal = document.getElementById("duplicate-code-modal");
+    modal.style.display = "flex";
+    modal.querySelector(".sms-modal-content").classList.remove("exit");
+}
+
+// بستن مدال با انیمیشن
+function closeDuplicateCodeModal() {
+    const modal = document.getElementById("duplicate-code-modal");
+    const content = modal.querySelector(".sms-modal-content");
+    content.classList.add("exit");
+    setTimeout(() => {
+        modal.style.display = "none";
+        content.classList.remove("exit");
+    }, 350); // مدت زمان انیمیشن
+}
+
+// دکمه‌ها و کلیک بیرون مدال
+document.getElementById("close-duplicate-code").addEventListener("click", closeDuplicateCodeModal);
+document.getElementById("ok-duplicate-code").addEventListener("click", closeDuplicateCodeModal);
+document.getElementById("duplicate-code-modal").addEventListener("click", function(e){
+    if(e.target === this) closeDuplicateCodeModal();
+});
+
+
+
+    
+// نمایش پیش‌نمایش عکس وقتی کاربر انتخاب میکنه
+document.getElementById("addImage").addEventListener("change", function () {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const preview = document.getElementById("addImagePreview");
+            preview.src = e.target.result;
+            preview.style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+document.getElementById("addProductForm").addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+
+    console.log("weight:", formData.get("weight"));
+    
+    fetch(`/products/add/`, {
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // یک سطر جدید به جدول اضافه میشه
+            const tableBody = document.querySelector("#productTable tbody");
+            const emptyRow = document.querySelector('#partnerTable tbody tr td[colspan]');
+            if (emptyRow) {
+                emptyRow.parentElement.remove();
+            }
+            tableBody.insertAdjacentHTML("beforeend", `
+            <tr id="product-row-${data.id}">
+                <td class="td-code">${data.code}</td>
+                <td class="td-image">
+                ${data.image ? `<img src="${data.image}" width="50">` : 'بدون تصویر'}
+                </td>
+                
+                <td class="td-category">${data.category}</td>
+                <td class="td-name">${data.name}</td>
+                <td class="td-weight">${toPersianDigits(data.weight)}</td>
+                <td class="td-labor">${toPersianDigits(data.labor)}</td>
+                <td class="td-laborprice">${toPersianDigits(data.laborprice)}</td>
+                <td class="td-purity">${toPersianDigits(data.purity)}</td>
+                <td class="td-quantity">${toPersianDigits(data.quantity)}</td>
+                <td class="td-description">${data.description}</td>
+                <td>
+                <button class="btn btn-warning btn-sm js-edit-product" 
+                        data-id="${data.id}">✏️</button>
+                <a href="/product/${data.id}/print-label/" target="_blank" class="btn btn-sm btn-warning">
+                    چاپ لیبل
+                </a>
+
+                <button class="btn btn-danger btn-sm js-delete-product d-none"
+                        data-id="${data.id}">🗑</button>
+                </td>
+            </tr>
+            `);
+            const modalInstance = bootstrap.Modal.getInstance(document.getElementById("addModal"));
+            modalInstance.hide();
+            document.body.classList.remove("modal-open");
+            document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
+
+            // بستن مدال
+            //bootstrap.Modal.getInstance(document.getElementById("addModal")).hide();
+            this.reset();
+            document.getElementById("addImagePreview").style.display = "none";
+        } else {
+            if (data.errors && data.errors.code) {
+                // اگر خطا مربوط به کد کالا بود → مدال مخصوص باز کن
+                showDuplicateCodeModal();
+            } else {
+                // سایر خطاها
+                alert("Error: " + JSON.stringify(data.errors));
+            }
+        }
+    })
+    .catch(err => console.error("Fetch error:", err));
+});
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const body = document.body;
+    const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+    
+    if (!modals.length) return;
+
+    // گرفتن رنگ واقعی از computedStyle
+    const computedStyle = window.getComputedStyle(body);
+    const bgColor = computedStyle.backgroundColor;
+    const bgImage = computedStyle.backgroundImage;
+
+    modals.forEach(modal => {
+        console.log("Computed background color:", bgColor);
+        console.log("Computed background image:", bgImage);
+
+        // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+        if (bgImage !== 'none') {
+            modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+            modal.style.backdropFilter = 'blur(8px)';
+        } else {
+            // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+            modal.style.backgroundColor = bgColor;
+            modal.style.backdropFilter = 'none';
+        }
+
+        // گوشه‌های مدال و استایل دلخواه
+        modal.style.borderRadius = '10px';
+    });
+});
+
+
+// نمایش پیش‌نمایش عکس وقتی کاربر فایل جدید انتخاب میکنه
+document.getElementById("editImage").addEventListener("change", function () {
+    const file = this.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById("editImagePreview").src = e.target.result;
+            document.getElementById("editImagePreview").style.display = "block";
+        };
+        reader.readAsDataURL(file);
+    }
+});
+
+
+
+
+// حذف محصول با AJAX و رفرش جدول
+let productIdToDelete = null;  // نگهداری id موقت
+
+// وقتی روی دکمه حذف کلیک می‌کنیم
+document.addEventListener("click", function(e){
+    if(e.target.classList.contains("js-delete-product")){
+        productIdToDelete = e.target.dataset.id; // ذخیره id
+        const deleteModal = new bootstrap.Modal(document.getElementById("deleteConfirmModal"));
+        deleteModal.show(); // نمایش مدال
+    }
+});
+
+// وقتی روی دکمه "Yes, Delete" داخل مدال کلیک میشه
+document.getElementById("confirmDeleteBtn").addEventListener("click", function(){
+    if(!productIdToDelete) return;
+
+    fetch(`/products/${productIdToDelete}/delete/`, {
+        method: "POST",
+        headers: {"X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value}
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            // حذف سطر از جدول
+            const row = document.getElementById(`product-row-${productIdToDelete}`);
+            if(row) row.remove();
+
+            // بروزرسانی شماره ردیف‌ها
+            document.querySelectorAll("#productTable tbody tr").forEach((tr, index) => {
+                tr.children[0].textContent = index + 1;
+            });
+        } else {
+            alert("Error deleting product.");
+        }
+        // بستن مدال
+        const modalEl = document.getElementById("deleteConfirmModal");
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+        productIdToDelete = null;
+    })
+    .catch(err => console.error("Fetch error:", err));
+});
+
+// تبدیل فارسی به انگلیسی
+function persianToEnglish(str){
+    const persian = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return String(str).replace(/[۰-۹]/g, d => persian.indexOf(d).toString());
+}
+
+
+document.getElementById('productSearchInput').addEventListener('input', function() {
+    const filter = persianToEnglish(this.value.toLowerCase()).trim(); // تبدیل به انگلیسی و حذف فاصله اضافی
+    const keywords = filter.split(/\s+/); // جدا کردن کلمات بر اساس فاصله
+    const rows = document.querySelectorAll('#productTable tbody tr');
+
+    rows.forEach(row => {
+        const code = persianToEnglish(row.querySelector('.td-code').textContent.toLowerCase());
+        const name = persianToEnglish(row.querySelector('.td-name').textContent.toLowerCase());
+        const category = persianToEnglish(row.querySelector('.td-category').textContent.toLowerCase());
+        const weight = persianToEnglish(row.querySelector('.td-weight').textContent.toLowerCase());
+
+        // ترکیب متن تمام ستون‌های موردنظر
+        const combinedText = `${code} ${name} ${category} ${weight}`;
+
+        // بررسی اینکه تمام کلمات جستجو در متن ردیف وجود داشته باشند
+        const matches = keywords.every(word => combinedText.includes(word));
+
+        row.style.display = matches ? '' : 'none';
+    });
+});
+
+
+
+
+// تابع سورت جدول بر اساس ستون مشخص
+function sortTableByColumn(table, columnIndex, asc = true) {
+    const tbody = table.tBodies[0];
+    const rowsArray = Array.from(tbody.querySelectorAll("tr"));
+
+    rowsArray.sort((a, b) => {
+        let aText = a.children[columnIndex].textContent.trim();
+        let bText = b.children[columnIndex].textContent.trim();
+
+        aText = persianToEnglish(aText);
+        bText = persianToEnglish(bText);
+
+        // تبدیل به عدد برای ستون‌های عددی
+        const aNum = parseFloat(aText) || 0;
+        const bNum = parseFloat(bText) || 0;
+
+        return asc ? aNum - bNum : bNum - aNum;
+    });
+
+    // جایگذاری دوباره سطرها
+    rowsArray.forEach((row, index) => {
+        tbody.appendChild(row);
+        // بروزرسانی شماره ردیف
+        //row.children[0].textContent = toPersianDigits(index + 1);
+
+    });
+}
+
+// اضافه کردن event listener به header ستون تعداد و وزن
+document.addEventListener("DOMContentLoaded", function() {
+    const table = document.getElementById("productTable");
+
+    // ستون تعداد (index 7)
+    const quantityHeader = table.querySelector("th:nth-child(9)");
+    let ascQuantity = true;
+    quantityHeader.style.cursor = "pointer";
+    quantityHeader.title = "برای سورت کلیک کنید";
+    quantityHeader.addEventListener("click", function() {
+        sortTableByColumn(table, 8, ascQuantity);
+        ascQuantity = !ascQuantity;
+    });
+
+    // ستون وزن (index 4)
+    const weightHeader = table.querySelector("th:nth-child(5)");
+    let ascWeight = true;
+    weightHeader.style.cursor = "pointer";
+    weightHeader.title = "برای سورت کلیک کنید";
+    weightHeader.addEventListener("click", function() {
+        sortTableByColumn(table, 4, ascWeight);
+        ascWeight = !ascWeight;
+    });
+
+    
+});
+
+
+
+const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+function toPersianDigits(str) {
+    return String(str).replace(/\d/g, d => persianDigits[d]);
+}
+
+// هندل کلیک روی دکمه ویرایش محصول (با delegation)
+document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("js-edit-product")) {
+        const productId = e.target.dataset.id;
+        openEditProductModal(productId);
+    }
+});
+
+
+//ویرایش
+function openEditProductModal(productId) {
+    const row = document.getElementById(`product-row-${productId}`);
+    if (!row) return;
+
+    // پر کردن input های فرم
+    document.getElementById('editProductId').value = productId;
+    document.getElementById('editCode').value = row.children[0].innerText.trim();
+    document.getElementById('editName').value = row.children[3].innerText.trim();
+    
+    // mapping متن فارسی جدول به value select
+    const catTextToValue = {
+        "دستبند": "bracelet",
+        "گوشواره": "earing",
+        "گردنبند": "neckles",
+        "انگشتر": "ring",
+        "سرویس":"set",
+        "نیم ست":"nimset",
+        "سکه":"coine",
+        "سایر": "other"
+    };
+    const catValue = row.querySelector('.td-category').dataset.value;
+    document.getElementById('editCategory').value = catValue;
+
+    //const catText = row.children[3].innerText.trim();
+    //document.getElementById('editCategory').value = catTextToValue[catText] || "";
+    document.getElementById('editPurity').value=toPersianDigits(row.children[7].innerText.trim());
+    document.getElementById('editWeight').value = toPersianDigits(row.children[4].innerText.trim());
+    document.getElementById('editLabor').value = toPersianDigits(row.children[5].innerText.trim());
+    document.getElementById('editLaborPrice').value = toPersianDigits(row.children[6].innerText.trim());
+    document.getElementById('editQuantity').value = toPersianDigits(row.children[8].innerText.trim());
+    document.getElementById('editDescription').value = row.children[9].innerText.trim();
+
+    // نمایش تصویر فعلی
+    const imgTag = row.querySelector('.td-image img');
+    const preview = document.getElementById('editImagePreview');
+    if (imgTag && imgTag.src) {
+        preview.src = imgTag.src;
+        preview.style.display = "block";
+    } else {
+        preview.style.display = "none";
+    }
+
+    // باز کردن مدال
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    modal.show();
+}
+
+// تبدیل اعداد فارسی به انگلیسی قبل از ارسال
+function persianToEnglish(str){
+    const persian = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return str.replace(/[۰-۹]/g, d => persian.indexOf(d));
+}
+
+// submit فرم ویرایش محصول
+document.getElementById("editProductForm").addEventListener("submit", function(e){
+    e.preventDefault();
+
+    const formData = new FormData(this);
+    const productId = document.getElementById("editProductId").value;
+
+    // تبدیل فیلدهای عددی به انگلیسی
+    formData.set("weight", persianToEnglish(formData.get("weight")));
+    formData.set("quantity", persianToEnglish(formData.get("quantity")));
+    
+
+    fetch(`/products/${productId}/edit/`, { // مسیر view ویرایش محصول
+        method: "POST",
+        body: formData,
+        headers: {
+            "X-CSRFToken": document.querySelector('[name=csrfmiddlewaretoken]').value
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            const row = document.getElementById(`product-row-${productId}`);
+            
+            row.children[0].innerText = data.code;
+            //row.children[2].innerText = data.category; // متن فارسی
+            const catCell = row.querySelector('.td-category');
+            catCell.dataset.value = data.category;           // value واقعی
+            catCell.innerText = data.category_fa || catCell.innerText;  // متن فارسی
+
+            row.children[3].innerText = data.name;
+            row.children[4].innerText = toPersianDigits(data.weight);
+            row.children[5].innerText = toPersianDigits(data.labor);
+            row.children[6].innerText = toPersianDigits(data.laborprice);
+            row.children[7].innerText = toPersianDigits(data.purity);
+            row.children[8].innerText = toPersianDigits(data.quantity);
+            row.children[9].innerText = data.description;
+
+            // آپدیت تصویر
+            const imgTag = row.querySelector(".td-image img");
+            if(data.image){
+                if(imgTag){
+                    imgTag.src = data.image;
+                } else {
+                    row.querySelector(".td-image").innerHTML = `<img src="${data.image}" width="50">`;
+                }
+            }
+
+            // بستن مدال
+            bootstrap.Modal.getInstance(document.getElementById("editModal")).hide();
+        } else {
+            alert("خطا در بروزرسانی محصول: " + JSON.stringify(data.errors));
+        }
+    })
+    .catch(err => console.error("Fetch error:", err));
+});
+
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart; // حفظ مکان کرسر
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos); // برگرداندن کرسر
+    });
+}
+
+// فعال کردن روی فیلدها
+makeInputPersian('editWeight');
+makeInputPersian('editQuantity');
+makeInputPersian('addWeight');
+makeInputPersian('addWeightPurity');
+makeInputPersian('editWeightPurity');
+makeInputPersian('addQuantity');
+makeInputPersian('editLabor');
+makeInputPersian('addLabor');
+makeInputPersian('editLaborPrice');
+makeInputPersian('addLaborPrice');
+makeInputPersian('editPurity');
+makeInputPersian('addPurity');
+makeInputPersian('productSearchInput')
+
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const navbar = document.querySelector('.navbar-top');
+    if (!navbar) return; // اگر پیدا نشد، کاری نکن
+
+    function toggleNavbarDark() {
+        if (window.scrollY > 60) {
+            navbar.classList.add('bg-dark', 'text-white');
+        } else {
+            navbar.classList.remove('bg-dark', 'text-white');
+        }
+    }
+
+    // اجرای اولیه و ثبت روی اسکرول
+    toggleNavbarDark();
+    window.addEventListener('scroll', toggleNavbarDark);
+});
+
+//عیار
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // 🔹 تبدیل عدد فارسی به انگلیسی
+    function persianToEnglish(str) {
+        if (!str) return "";
+        return str.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+    }
+
+    // 🔹 تبدیل عدد انگلیسی به فارسی
+    function toPersianDigits(num) {
+        if (num === null || num === undefined || num === "") return "";
+        return num.toString().replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+    }
+
+    // 🔹 اتصال محاسبه وزن معادل بر اساس عیار
+    function attachRecalc(puritySelector, weightSelector, purityWeightSelector) {
+        const purityInput = document.querySelector(puritySelector);
+        const weightInput = document.querySelector(weightSelector);
+        const purityWeightInput = document.querySelector(purityWeightSelector);
+
+        if (!purityInput || !weightInput || !purityWeightInput) return;
+
+        // وقتی وزن اصلی تغییر می‌کند، آن را به عنوان وزن پایه ذخیره می‌کنیم
+        weightInput.addEventListener("input", () => {
+            const val = parseFloat(persianToEnglish(weightInput.value));
+            if (!isNaN(val)) {
+                weightInput.dataset.originalWeight = val;
+            }
+        });
+
+        // وقتی عیار تغییر کرد، وزن معادل را حساب می‌کنیم
+        purityInput.addEventListener("input", () => {
+            const newPurity = parseFloat(persianToEnglish(purityInput.value));
+            const baseWeight = parseFloat(weightInput.dataset.originalWeight || 0);
+
+            if (!isNaN(newPurity) && newPurity > 0 && !isNaN(baseWeight) && baseWeight > 0) {
+                const newWeight = (baseWeight * newPurity) / 750;
+                purityWeightInput.value = toPersianDigits(newWeight.toFixed(2)); // ۳ رقم اعشار دقیق‌تر
+            } else {
+                purityWeightInput.value = "";
+            }
+        });
+        // وقتی وزن تغییر کرد، وزن معادل را حساب می‌کنیم
+        weightInput.addEventListener("input", () => {
+            const newPurity = parseFloat(persianToEnglish(purityInput.value));
+            const baseWeight = parseFloat(weightInput.dataset.originalWeight || 0);
+
+            if (!isNaN(newPurity) && newPurity > 0 && !isNaN(baseWeight) && baseWeight > 0) {
+                const newWeight = (baseWeight * newPurity) / 750;
+                purityWeightInput.value = toPersianDigits(newWeight.toFixed(2)); // ۳ رقم اعشار دقیق‌تر
+            } else {
+                purityWeightInput.value = "";
+            }
+        });
+    }
+
+    // 🔸 مدال افزودن محصول
+    const addModal = document.getElementById('addModal');
+    if (addModal) {
+        addModal.addEventListener('shown.bs.modal', function() {
+            const purityInput = document.querySelector('#addPurity');
+            const quantityInput = document.querySelector('#addQuantity');
+            const weightInput = document.querySelector('#addWeight');
+            const purityWeightInput = document.querySelector('#addWeightPurity');
+
+            // مقدار پیش‌فرض‌ها
+            if (purityInput) purityInput.value = toPersianDigits(750);
+            if (quantityInput) quantityInput.value = toPersianDigits(0);
+            if (purityWeightInput) purityWeightInput.value = "";
+            if (weightInput) delete weightInput.dataset.originalWeight;
+
+            // اتصال تابع محاسبه
+            attachRecalc('#addPurity', '#addWeight', '#addWeightPurity');
+        });
+    }
+
+    // 🔸 مدال ویرایش محصول
+    const editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('shown.bs.modal', function() {
+            attachRecalc('#editPurity', '#editWeight', '#editWeightPurity');
+        });
+    }
+});
+
+
+
+// مپ گروه کالا به کد
+const categoryCodeMap = {
+    bracelet: "DA",
+    earing: "GO",
+    neckles: "GA",
+    ring: "AN",
+    set: "ST",
+    coine: "CN",
+    other: "OT"
+};
+
+// وقتی گروه انتخاب شد، کد کالا تولید کن
+document.addEventListener("DOMContentLoaded", function() {
+    const categorySelect = document.querySelector("#id_category");
+    const codeInput = document.getElementById("addCode");
+    console.log(categorySelect);
+    if (!categorySelect || !codeInput) return;
+
+    categorySelect.addEventListener("change", async function() {
+        const categoryValue = this.value;
+        if (!categoryValue) return;
+
+        const prefix = categoryCodeMap[categoryValue] || "XX";
+
+        try {
+            // درخواست به سرور برای گرفتن آخرین شماره اون گروه
+            console.log(categoryValue);
+            const res = await fetch(`/products/get_next_code/${categoryValue}/`);
+            const data = await res.json();
+
+            if (data.next_number) {
+                codeInput.value = `${prefix}-${data.next_number.toString().padStart(3, "0")}`;
+            } else {
+                codeInput.value = `${prefix}-001`;
+            }
+        } catch (err) {
+            console.error("Error fetching next code:", err);
+            codeInput.value = `${prefix}-001`;
+        }
+    });
+});
+
+  // تبدیل فارسی → انگلیسی
+function persianToEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => "۰۱۲۳۴۵۶۷۸۹".indexOf(d));
+}
+
+// تبدیل انگلیسی → فارسی
+function englishToPersianDigits(str) {
+    return str.replace(/\d/g, d => "۰۱۲۳۴۵۶۷۸۹"[d]);
+}
+
+// 🔹 تابع فرمت جداکننده سه‌رقمی با حفظ موقعیت کرسر
+function formatPersianWithComma(input) {
+    let cursorPos = input.selectionStart;
+    let raw = persianToEnglishDigits(input.value.replace(/,/g, ""));
+    if (raw === "" || isNaN(raw)) {
+        input.value = "";
+        return;
+    }
+
+    let formatted = parseInt(raw, 10).toLocaleString("en-US");
+    formatted = englishToPersianDigits(formatted);
+
+    let diff = formatted.length - input.value.length;
+    input.value = formatted;
+    input.setSelectionRange(cursorPos + diff, cursorPos + diff);
+}
+
+// 🔹 فیلدهایی که باید فرمت بشن
+["addLaborPrice", "editLaborPrice" ].forEach(id => {
+    console.log('format');
+    let el = document.getElementById(id);
+    if (el) {
+        el.addEventListener("input", function(e) {
+            formatPersianWithComma(e.target);
+        });
+    }
+});
+
+
+</script>
+{%endblock%}

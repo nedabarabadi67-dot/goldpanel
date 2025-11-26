@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  {% load static %}
+{% load jalali_tags %}
+ <!--font-->
+  <link rel="stylesheet" href="{% static 'assets/css/fonts.css' %}"/>
+  <title>فاکتور {{ invoice.number }}</title>
+  {% load humanize %}
+
+
+  <style>
+    @page { size: A4; margin: 18mm 18mm 18mm 18mm; }
+    body {
+      font-size: 13px;
+      color: #333;
+      direction: rtl;
+      text-align: right;
+    }
+
+    .wrapper { max-width: 800px; margin: 0 auto; border: 1px solid #e0e0e0; padding: 18px; background: #fff }
+
+    .header { display: flex; align-items: flex-start; justify-content: space-between; }
+    .invoice-title { font-size: 32px; font-weight: 700; color: #555; letter-spacing: 1px }
+    .logo { width: 120px; height: 70px; object-fit: contain }
+
+    .meta-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start; /* 👈 باعث میشه هر دو ستون از بالا تراز بشن */
+  margin-top: 18px;
+  gap: 20px;
+}
+
+ .bill-to,
+.meta {
+  width: 50%;
+  font-size: 14px;   /* 👈 متن اصلی */
+  line-height: 1.6;
+}
+
+.bill-to h4,
+.meta h4 {
+  margin: 0 0 8px 0;
+  font-size: 14px;   /* 👈 تیتر */
+  font-weight: 600;
+}
+
+.meta {
+  text-align: right;
+}
+
+.meta .label {
+  display: inline-block;
+  min-width: 84px;
+  font-weight: 600;
+  font-size: 16px;   /* 👈 لیبل‌ها */
+}
+
+
+    table.items { width: 100%; border-collapse: collapse; margin-top: 18px; }
+    table.items thead th { background: #e6b97b; color: #333; padding: 8px; text-align: center; font-weight: 700; border-bottom: 2px solid #ddd }
+    table.items tbody td { padding: 10px; border-bottom: 1px solid #eaeaea; text-align: center }
+    table.items tbody tr:nth-child(odd) { background: #fbfbfb }
+    .text-right { text-align: right }
+    .text-left { text-align: left } /* اگر برای عدد لازم شد */
+
+    .totals { width: 100%; margin-top: 14px; display: flex; justify-content: flex-end }
+    .totals table { width: 300px; border-collapse: collapse }
+    .totals td { padding: 6px 8px }
+    .totals .label { color: #666 }
+
+    .signature { margin-top: 30px; display: flex; justify-content: space-between; align-items: center }
+    .footer-bar { background: #3f3f3f; color: #fff; padding: 12px; margin-top: 18px; font-size: 12px }
+    .footer-bar div { direction: rtl }
+  </style>
+</head>
+{% load static %}
+<body>
+  <div class="wrapper">
+
+    <header class="header" style="padding: 20px; border-bottom: 1px solid #ddd;">
+      <!-- سمت راست: عنوان -->
+      <div class="invoice-title">فاکتور</div>
+
+      <!-- سمت چپ: لوگو -->
+      <div style="width:70px; height:70px; display:flex; align-items:center; justify-content:center; border-radius:8px; overflow:hidden;">
+        <img class="logo" src="{% static 'images/logo.jpg' %}" alt="لوگو">
+      </div>
+    </header>
+
+    <div class="meta-row" style="padding:20px 0; border-bottom:1px solid #ccc; display:flex; justify-content:space-between; align-items:flex-start; gap:20px;">
+
+      <!-- مشخصات مشتری -->
+      <div class="bill-to">
+        <h4>مشخصات مشتری</h4>
+        <table style="border-collapse: collapse; width: 100%;">
+          <tr>
+            <td style="font-weight: bold; padding: 6px 8px;">نام</td>
+            <td style="padding: 6px 8px;">{{ customer.name }}</td>
+          </tr>
+          <tr>
+            <td style="font-weight: bold; padding: 6px 8px;">تلفن</td>
+            <td style="padding: 6px 8px;">{{ customer.phone|persian_digits }}</td>
+          </tr>
+          {% if customer.birth_date %}
+          <tr>
+            <td style="font-weight: bold; padding: 6px 8px;">تاریخ تولد </td>
+            <td style="padding: 6px 8px;">{{ customer.birth_date|to_jalali }}</td>
+          </tr>
+          {% endif %}
+          {% if customer.address %}
+          <tr>
+            <td style="font-weight: bold; padding: 6px 8px;">آدرس</td>
+            <td style="padding: 6px 8px;">{{ customer.address }}</td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+
+      <!-- مشخصات فاکتور -->
+      <div class="meta">
+        <h4>اطلاعات فاکتور</h4>
+        <table style="border-collapse: collapse; width: 100%;">
+          <tr>
+            <td style="font-weight:bold; padding:6px 8px;">شماره فاکتور</td>
+            <td style="padding:6px 8px;">{{ invoice.number|persian_digits }}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; padding:6px 8px;">تاریخ</td>
+            <td style="padding:6px 8px;">{{ invoice.date|to_jalali }}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; padding:6px 8px;">ساعت</td>
+             
+            <td style="padding:6px 8px;">{{ invoice.time |time:"H:i"|persian_digits}}</td>
+          </tr>
+          <tr>
+            <td style="font-weight:bold; padding:6px 8px;">صادر کننده</td>
+            <td style="padding:6px 8px;">{{ invoice.user.first_name }} {{invoice.user.last_name}}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+
+    <!-- جدول محصولات -->
+    <table class="items">
+      <thead>
+        <tr>
+          <th>کد</th>
+          <th>نام محصول</th>
+          <th>وزن (گرم)</th>
+          <th>تعداد</th>
+          <th>قیمت هر گرم</th>
+          <th>اجرت هر گرم %</th>
+          <th>سود %</th>
+          <th>مجموع</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in invoice.items.all %}
+        <tr>
+          <td>{{ item.product.code }}</td>
+          <td class="text-right">{{ item.product.name }}</td>
+          <td>{{ item.weight|persian_digits }}</td>
+          <td>{{ item.quantity|persian_digits }}</td>
+          <td>{{ item.gold_price_per_gram|default:0|floatformat:0|persian_intcomma }}</td>
+          <td>{{ item.labor_per_gram|default:0|floatformat:1|persian_digits }}</td>
+          <td>{{ item.profit_percent|default:0|floatformat:1|persian_digits }}</td>
+          <td>{{ item.total|default:0|floatformat:0|persian_intcomma }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- جمع‌بندی -->
+    <div class="totals">
+      <table>
+        <tr>
+          <td class="label">مالیات ({{ invoice.tax_rate|default:"0%"|persian_digits }}):</td>
+          <td>{{ invoice.tax }}</td>
+        </tr>
+        <tr>
+          <td class="label">مجموع کل:</td>
+          <td style="font-weight:700">{{ invoice.total_price|persian_intcomma  }} </td>
+        </tr>
+        <tr>
+          <td class="label">مبلغ پرداختی:</td>
+          <td>{{ invoice.paid|persian_intcomma }}</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- امضا -->
+        <div class="signature">
+      <div class="sig-left">
+        <div style="font-family: 'Brush Script MT', cursive; font-size:18px; color:#b4a48d">MIRA JEWELLERY</div>
+        <div style="border-top:1px solid #ddd; width:180px; margin-top:10px"></div>
+      </div>
+
+    </div>
+
+    <!-- فوتر -->
+    <div class="footer-bar">
+      <div style="display:flex; justify-content:space-between">
+        <div>
+          <div>مجموعه طلا و جواهر میرا</div>
+          <div>بازار تهران - پاساژ ۱۲</div>
+          <div>{{ "09121101010 - 55236800"|persian_digits }}</div>
+        </div>
+        <div style="align-self:center">از خرید شما سپاسگزاریم</div>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>

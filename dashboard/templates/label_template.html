@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>Label</title>
+{% load jalali_tags %}
+<style>
+  @page { size: 49mm 10mm; margin: 0; }
+  body {
+    font-family: sans-serif;
+    width: 49mm;
+    height: 10mm;
+    margin: 0;
+    padding: 2mm;
+  }
+  .label {
+    text-align: center;
+    font-size: 10px;
+  }
+  img.barcode {
+    width: 45mm;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+  <div class="label">
+    <strong>{{ store_name }}</strong><br>
+    وزن: {{ product.weight |persian_digits}} گرم<br>
+     {{ product.code }} : کد <br>
+     عیار : {{ product.purity|persian_digits }} <br>
+    <!--<img class="barcode" src="data:image/png;base64,{{ barcode_data }}" alt="barcode">-->
+    
+  </div>
+  <script>
+    window.print();  // خودکار باز کردن چاپگر
+  </script>
+</body>
+</html>

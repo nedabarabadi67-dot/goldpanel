@@ -1,0 +1,387 @@
+{% extends "_newsidebar.html" %}
+{% load static %}
+{% load jalali_tags %}
+{% block title %}user managment{% endblock %}
+
+{% block content %}
+
+<style>
+/* فرم‌ها با Glass Effect */
+.form-control.input-shadow,
+select.form-control.input-shadow {
+    background: rgba(255, 255, 255, 0.06);
+    border: none;
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 8px 12px;
+    font-size: 15px;
+    box-shadow: none;
+}
+
+/* گزینه‌های select شفاف */
+select.form-control.input-shadow option {
+    background: rgba(20, 20, 20, 0.3);
+    color: #fff;
+    backdrop-filter: blur(6px);
+}
+
+
+
+#userTable th, #userTable td {
+
+    color: #fff;
+  font-weight: 600;
+
+  border-top: 1px solid rgba(255,255,255,.15);
+  font-size: 15px;
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+  
+  white-space: nowrap;  /* جلوگیری از شکستن متن */
+       /* یا center بسته به نیاز */
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#userTable thead th {
+    position: sticky;
+    top: 0;
+    background: rgba(0,0,0,0.35);
+    z-index: 10;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+
+/* فرم‌ها با Glass Effect */
+.form-control.input-shadow,
+select.form-control.input-shadow {
+    background: rgba(255, 255, 255, 0.12);
+    border: none;
+    border-radius: 4px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 10px 14px;  /* کمی پدینگ بیشتر */
+    font-size: 16px;      /* فونت بزرگ‌تر */
+    box-shadow: none;
+}
+
+/* گزینه‌های select شفاف */
+select.form-control.input-shadow option {
+    background: rgba(20, 20, 20, 0.3);
+    color: #fff;
+    backdrop-filter: blur(6px);
+    font-size: 16px;  /* فونت بزرگ‌تر */
+}
+
+/* مدال شفاف با blur */
+.modal-content {
+    background-color: rgba(255, 255, 255, 0.25);
+    border-radius: 15px;
+    backdrop-filter: blur(8px);
+    color: #fff;
+    font-size: 18px; /* فونت مدال بزرگ‌تر */
+}
+
+/* عنوان مدال */
+.modal .card-title {
+    font-size: 20px; /* بزرگ‌تر کردن عنوان */
+    font-weight: 600;
+}
+
+/* دکمه‌ها */
+.modal-content .btn {
+    font-size: 18px; /* فونت دکمه‌ها کمی بزرگ‌تر */
+    padding: 8px 16px;
+}
+
+/* چک‌باکس */
+.form-check-label {
+    font-size: 16px; /* متن چک‌باکس بزرگ‌تر */
+}
+.modal-header.bg-gradient-primary {
+    background: linear-gradient(135deg, #6a11cb, #2575fc);
+}
+.btn-gradient-success {
+    background: linear-gradient(135deg, #28a745, #85e085);
+    border: none;
+    color: white;
+}
+.btn-gradient-success:hover {
+    background: linear-gradient(135deg, #218838, #70d470);
+}
+
+
+
+/* واکنش‌گرایی بیشتر برای موبایل */
+@media (max-width: 576px) {
+    .search-bar {
+        flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+    }
+
+    .search-bar input {
+        font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+    }
+
+    .btn.btn-success {
+        flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+    }
+}
+</style>
+                            <!-- دکمه افزودن کاربر -->
+                            <button type="button"  class="btn btn-success btn-lg  mt-1 mb-3" data-bs-toggle="modal" data-bs-target="#userModal">
+                                ➕ کاربر جدید
+                            </button>
+    <div class="col-lg-12">
+        <div class="card mt-3">
+            <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+
+                            <form class="search-bar ">
+                            <input type="text" id="productSearchInput" class="form-control" placeholder="عبارت جستجو">
+                            <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+                        </form>
+
+                    </div>
+            
+                <div class=" table-container table-responsive">
+                    <table class="table table-hover table-glass" id="userTable">
+                        <thead>
+                            <tr>
+                                <th>نام کاربری</th>
+                                <th>نام</th>
+                                <th>نام خانوادگی</th>
+                                <th>شماره تلفن</th>
+                                <th>گروه</th>
+                                <th>وضعیت</th>
+                                <th>عملیات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                    
+                                <tr id="user-row-{{ user.id }}">
+                                    <td>{{ user.username }}</td>
+                                    <td>{{ user.first_name }}</td>
+                                    <td>{{ user.last_name }}</td>
+                                    <td class="persian-phone">{{ user.userprofile.phone|persian_digits }}</td>
+                                    <td>{{ user.userprofile.role|role_fa}}</td>
+                                    <td>
+                                        {% if user.userprofile.is_active %}
+                                            <span class="badge bg-success">فعال</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">غیر فعال</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-warning btn-sm" onclick="openEditUserModal({{ user.id }})">✏️ ویرایش</button>
+                                        
+                                    </td>
+                                </tr>
+                                
+                            {% empty %}
+                                <tr>
+                                    <td colspan="8" class="text-center">هیچ کاربری یافت نشد</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add User -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
+  <div class="modal-dialog ">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="userModalLabel">ثبت کاربر</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="post" id="userFormModal" action="{% url 'register' %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          
+            <!-- ستون اول -->
+            
+              <div class="mb-3">
+                <label for="firstName" class="form-label">نام</label>
+                <input type="text" name="first_name" id="firstName" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label for="lastName" class="form-label">نام خانوادگی</label>
+                <input type="text" name="last_name" id="lastName" class="form-control" required>
+              </div>
+              <div class="mb-3">
+                <label for="phone" class="form-label">شماره تلفن</label>
+                <input type="text" name="phone" id="phone" class="form-control">
+              </div>
+          
+
+            <!-- ستون دوم -->
+            
+              <div class="mb-3">
+                <label for="role" class="form-label">گروه کاری</label>
+                <select name="role" id="role" class="form-control input-shadow">
+                  <option value="">انتخاب گروه کاری</option>
+                  <option value="admin">ادمین</option>
+                  <option value="seller">فروشنده</option>
+                  <option value="accountant">حسابدار</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="username" class="form-label">نام کاربری</label>
+                <input type="text" name="username" id="username" class="form-control">
+              </div>
+              <div class="mb-3">
+                <label for="password" class="form-label">رمز عبور</label>
+                <input type="password" name="password" id="password" class="form-control">
+              </div>
+            </div>
+          
+      
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-success mr-3">ثبت کاربر</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- مدال Edit User -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- هدر مدال -->
+      <div class="modal-header">
+        <h5 class="modal-title">ویرایش کاربر</h5>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- بدنه مدال -->
+      <form method="post" id="editUserFormModal" action="{% url 'register' %}">
+        {% csrf_token %}
+        <input type="hidden" id="editUserId" name="user_id">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="editInputName" class="form-label">نام</label>
+            <input type="text" id="editInputName" name="first_name" class="form-control input-shadow" placeholder="نام">
+          </div>
+          <div class="mb-3">
+            <label for="editInputLastname" class="form-label">نام خانوادگی</label>
+            <input type="text" id="editInputLastname" name="last_name" class="form-control input-shadow" placeholder="نام خانوادگی">
+          </div>
+          <div class="mb-3">
+            <label for="editInputPhone" class="form-label">شماره تلفن</label>
+            <input type="text" id="editInputPhone" name="phone" class="form-control input-shadow" placeholder="شماره تلفن">
+          </div>
+          <div class="mb-3">
+            <label for="editInputRole" class="form-label">گروه کاری</label>
+            <select id="editInputRole" name="role" class="form-control input-shadow">
+              <option value="">انتخاب گروه کاری</option>
+              <option value="admin">ادمین</option>
+              <option value="seller">فروشنده</option>
+              <option value="accountant">حسابدار</option>
+            </select>
+          </div>
+          <div class="form-check text-white mb-3">
+            <input type="checkbox" id="editActive" name="is_active" class="form-check-input"> 
+            <label for="editActive" class="form-check-label mr-4">فعال</label>
+          </div>
+        </div>
+
+        <!-- فوتر مدال -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">بستن</button>
+          <button type="submit" class="btn btn-gradient-success mr-3">ذخیره اطلاعات</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+
+
+
+function openEditUserModal(userId) {
+    const row = document.getElementById(`user-row-${userId}`);
+    document.getElementById('editUserId').value = userId;
+    
+    document.getElementById('editInputName').value = row.children[1].innerText;
+    document.getElementById('editInputLastname').value = row.children[2].innerText;
+    document.getElementById('editInputPhone').value = row.children[3].innerText;
+    document.getElementById('editInputRole').value = row.children[4].innerText.trim();
+    const roleMapping = {
+        "ادمین": "admin",
+        "فروشنده": "seller",
+        "حسابدار": "accountant"
+    };
+    const roleText = row.children[4].innerText.trim();
+    document.getElementById('editInputRole').value = roleMapping[roleText] || "";
+    document.getElementById('editActive').checked = row.children[5].querySelector('.badge.bg-success') != null;
+
+    const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+    modal.show();
+}
+
+// تبدیل فارسی به انگلیسی
+function persianToEnglish(str) {
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    return String(str).replace(/[۰-۹]/g, d => persianDigits.indexOf(d));
+}
+
+document.getElementById('productSearchInput').addEventListener('input', function() {
+    const filter = persianToEnglish(this.value.toLowerCase());
+    const rows = document.querySelectorAll('#userTable tbody tr');
+
+    rows.forEach(row => {
+        // گرفتن متن تمام ستون‌های هر ردیف
+        const username = row.children[0].innerText.toLowerCase();
+        const firstName = row.children[1].innerText.toLowerCase();
+        const lastName = row.children[2].innerText.toLowerCase();
+        const phone = persianToEnglish(row.children[3].innerText.toLowerCase());
+        const role = row.children[4].innerText.toLowerCase();
+        const status = row.children[5].innerText.toLowerCase();
+
+        // بررسی شامل بودن متن جستجو در هر ستون
+        if (username.includes(filter) || firstName.includes(filter) || lastName.includes(filter) ||
+            phone.includes(filter) || role.includes(filter) || status.includes(filter)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+});
+
+
+const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+function toPersianDigits(str) {
+    return str.replace(/\d/g, d => persianDigits[d]);
+}
+
+document.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
+    input.addEventListener('input', function() {
+        const cursorPos = this.selectionStart; // نگه داشتن مکان کرسر
+        this.value = toPersianDigits(this.value);
+        this.setSelectionRange(cursorPos, cursorPos);
+    });
+});
+</script>
+
+
+{% endblock %}

@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+  {% load static %}
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <meta name="description" content=""/>
+  <meta name="author" content=""/>
+  <title>{% block title %}{% endblock %}</title>
+
+  <!-- loader-->
+    <!--font-->
+  <link rel="stylesheet" href="{% static 'assets/css/fonts.css' %}"/>
+  <link href="{% static 'assets/css/pace.min.css' %}" rel="stylesheet"/>
+  <script src="{% static 'assets/js/pace.min.js' %}"></script>
+  <!--favicon-->
+  <link rel="icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
+  <!-- Vector CSS -->
+  <link href="{% static 'assets/plugins/vectormap/jquery-jvectormap-2.0.2.css' %}" rel="stylesheet"/>
+  <!-- simplebar CSS-->
+  <link href="{% static 'assets/plugins/simplebar/css/simplebar.css' %}" rel="stylesheet"/>
+  <!-- Bootstrap core CSS-->
+  <link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet"/>
+  <!-- animate CSS-->
+  <link href="{% static 'assets/css/animate.css' %}" rel="stylesheet" type="text/css"/>
+  <!-- Icons CSS-->
+  <link href="{% static 'assets/css/icons.css' %}" rel="stylesheet" type="text/css"/>
+  <!-- Sidebar CSS-->
+  <link href="{% static 'assets/css/sidebar-menu.css' %}" rel="stylesheet"/>
+  <!-- Custom Style-->
+  <link href="{% static 'assets/css/app-style.css' %}" rel="stylesheet"/>
+ 
+
+  <style>
+
+    /* فقط روی سایدبار */
+#sidebar-wrapper-rtl {
+    font-family: 'IRYekan', Tahoma, Arial, sans-serif;
+    font-weight: 400; /* معمولی */
+}
+
+/* اگر بخوای عناوین بولد باشه */
+#sidebar-wrapper-rtl h1,
+#sidebar-wrapper-rtl h2,
+#sidebar-wrapper-rtl h3,
+#sidebar-wrapper-rtl .sidebar-header {
+    font-weight: 700; /* بولد */
+}
+
+/* متن‌های کم‌وزن */
+#sidebar-wrapper-rtl .light-text {
+    font-weight: 300; /* لایت */
+}
+
+
+      .rtl { direction: rtl; text-align: right; }
+      .rtl * { direction: rtl; text-align: right; }
+
+      /* rtl-fix.css */
+
+/* همیشه RTL بمونه */
+html, body {
+  direction: rtl !important;
+  text-align: right !important;
+}
+
+/* سایدبار سمت راست */
+#sidebar-wrapper {
+  right: 0 !important;
+  left: auto !important;
+}
+
+/* محتوای صفحه نباید زیر سایدبار بره */
+.content-wrapper {
+  margin-right: 260px !important;
+  margin-left: 0 !important;
+}
+
+/* topbar بخش‌ها */
+.topbar-left-rtl {
+  margin-right: auto !important;
+  margin-left: 0 !important;
+}
+.topbar-right-rtl {
+  margin-left: auto !important;
+  margin-right: 0 !important;
+}
+
+/* dropdown ها در RTL */
+.dropdown-menu {
+  text-align: right !important;
+}
+
+
+      /* سایدبار سمت راست اصلی */
+      #sidebar-wrapper { right: 0; left: auto; position: fixed; top: 0; }
+
+      #wrapper.toggled #sidebar-wrapper { right: -260px; left: auto; }
+      .content-wrapper { margin-right: 260px; margin-left: 0; }
+      #wrapper.toggled .content-wrapper { margin-right: 0; margin-left: 0; }
+
+      /* سایدبار چپ (color switcher) پیش‌فرض بسته */
+      .left-sidebar {
+          width: 260px;
+          height: 100%;
+          max-height: 100%;
+          position: fixed;
+          overflow: scroll;
+	        overflow-x: hidden;
+          top: 0;
+          left: -300px; /* پیش‌فرض بسته */
+          z-index: 999;
+          text-align: center;
+          padding: 10px;
+          background: #000;
+          box-shadow: 0 16px 38px -12px rgba(0,0,0,.56), 
+                      0 4px 25px 0 rgba(0,0,0,.12), 
+                      0 8px 10px -5px rgba(0,0,0,.2);
+          transition: all .3s ease;
+      }
+
+      /* آیکون سوئیچر همیشه روی صفحه سمت چپ */
+      .left-switcher-icon {
+          width: 40px;
+          height: 40px;
+          line-height: 40px;
+          background: #000;
+          text-align: center;
+          font-size: 22px;
+          color: #fff;
+          cursor: pointer;
+          display: inline-block;
+          box-shadow: 0 16px 38px -12px rgba(0,0,0,.56), 
+                      0 4px 25px 0 rgba(0,0,0,.12), 
+                      0 8px 10px -5px rgba(0,0,0,.2);
+          position: fixed;
+          left: 0; /* کنار چپ صفحه */
+          top: 15rem;
+          border-top-right-radius: .25rem;
+          border-bottom-right-radius: .25rem;
+          transition: all .3s ease;
+      }
+
+      .left-sidebar.left-toggled{
+	left: 0px;
+}
+.left-sidebar.left-toggled .switcher-icon{
+	left: 260px;
+}
+.left-sidebar.open {
+    left: 0;
+    z-index: 1000; /* بالاتر از بقیه محتوا */
+}
+
+.left-sidebar.open + .left-switcher-icon {
+    left: 260px; /* کنار عرض سایدبار */
+}
+
+/* کل تاپ‌بار راست‌چین */
+.topbar-nav-rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+/* گروه سمت راست (Toggle + Search) */
+.topbar-right-rtl {
+  flex-direction: row-reverse; /* آیتم‌ها از راست شروع بشن */
+}
+
+/* گروه سمت چپ (پیام، اعلان، زبان، پروفایل) */
+.topbar-left-rtl {
+  flex-direction: row-reverse;
+}
+
+/* پروفایل کاربر */
+.user-profile-rtl .dropdown-menu {
+  text-align: right; /* متن‌های داخل منو راست‌چین */
+}
+
+.user-profile-rtl .media-body {
+  text-align: right;
+}
+
+/* فلگ‌ها در منو */
+.dropdown-menu-left {
+  right: auto;
+  left: 0;
+}
+
+/* فقط وقتی صفحه RTL هست */
+html[dir="rtl"] .topbar-nav-rtl .topbar-left-rtl {
+  margin-right: auto !important;  /* کاربر و آیکون‌ها سمت چپ */
+  margin-left: 0 !important;
+}
+
+html[dir="rtl"] .topbar-nav-rtl .topbar-right-rtl {
+  margin-left: auto !important;   /* toggle و جستجو سمت راست */
+  margin-right: 0 !important;
+}
+
+/* برای اینکه dropdownها هم درست باز شن */
+html[dir="rtl"] .dropdown-menu-left {
+  right: auto !important;
+  left: 0 !important;
+  text-align: right;
+}
+/* Topbar Header */   
+.topbar-nav .navbar{
+   padding: 0px 15px;
+   z-index: 999;
+   height: 60px;
+   background-color: rgba(0,0,0,.2);
+   -webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-menu i {
+   right: 0;         /* چسبیده به راست */
+   font-size: 14px;         /* بزرگ‌تر بشه واضح‌تره */
+   font-weight: 600;
+   color: #ffffff;
+   cursor: pointer;
+   transition: all 0.3s ease; 
+}
+
+
+.right-nav-link a.nav-link {
+    padding-left: .8rem !important; /* برعکس شد */
+    padding-right: .8rem !important;
+    font-size: 20px;
+    color: #ffffff;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+	border: 0px solid rgba(0,0,0,.15);
+	-webkit-box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08)!important;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08)!important;
+    font-size:15px;
+	background-color: #000;
+    color: #ffffff;
+    text-align: right; /* راست‌چین */
+}
+
+.dropdown-menu ul{
+  margin-top: 0px;
+}
+
+.dropdown-divider{
+    margin: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.dropdown-item{
+	padding: .70rem 1.5rem;
+	color: #ffffff;
+    text-align: right;
+}
+
+.dropdown-item:hover{
+	padding: .70rem 1.5rem;
+	background-color: #000;
+	color: #ffffff;
+}
+
+.dropdown-item.active, .dropdown-item:active {
+    color: #fff;
+    text-decoration: none;
+    background-color: #000000;
+}
+.dropdown-toggle-nocaret:after {
+  display: none
+}
+
+/* User Details */
+.user-profile img {
+	width:35px;
+	height:35px;
+	border-radius: 50%;
+	box-shadow: 0 16px 38px -12px rgba(0,0,0,.56), 0 4px 25px 0 rgba(0,0,0,.12), 0 8px 10px -5px rgba(0,0,0,.2);
+}
+
+.user-details .media .avatar img {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+}
+
+.user-details .media .media-body .user-title {
+  font-size: 14px;
+  color: #fff;
+  font-weight: 600;
+  margin-bottom: 2px;
+  text-align: right;
+}
+
+.user-details .media .media-body .user-subtitle {
+  font-size: 13px;
+  color: #ffffff;
+  margin-bottom: 0;
+  text-align: right;
+}
+
+/* Logo */
+.brand-logo{
+  width: 100%;
+  height: 60px;
+  line-height: 60px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2)
+}
+
+.logo-text{
+	color: #ffffff;
+	font-size: 15px;
+	display: inline-block;
+	text-transform: uppercase;
+	position: relative;
+    top: 3px;
+	font-weight: 400;
+	text-align: center;
+	line-height:50px;
+}
+
+.logo-icon{
+    width: 35px;
+    margin-left: 5px; /* از right به left تغییر کرد */
+}
+
+/* SearachBar */
+.search-bar{
+	margin-right: 20px; /* برعکس شد */
+	position: relative;
+}
+
+.search-bar input{
+ border: 0;
+     font-size: 15px;
+     width: 530px;
+     border-radius: 0.25rem;
+     height: 34px;
+     padding: .375rem 2rem .375rem .75rem; /* کمی فاصله بیشتر سمت چپ برای آیکون */
+     background-color: rgba(255, 255, 255, 0.2);
+}
+
+
+.search-bar input::placeholder {
+    color: #fff !important;
+    font-size: 13px;
+    opacity: .5 !important; /* Firefox */
+}
+
+
+.search-bar input:focus{ 
+   background-color: rgba(0,0,0,.2);
+   border: 0px solid #f1f1f1;
+   box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.45)
+}
+
+.search-bar i {
+    position: absolute;
+    left: 18px;   /* فاصله آیکون از چپ */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #fff;
+    font-size: 16px;
+    pointer-events: none;
+}
+
+.search-bar a i{
+	position: absolute;
+    top: 8px;
+    left: 10px; /* از right به left تغییر کرد */
+    color: #fff;
+	font-size: 16px;
+}
+
+.product-img {
+    height: 32px;
+}
+ 
+.skill-img{
+  height: 35px;
+ }
+
+.page-title{
+   font-size: 20px;
+   line-height: 20px;
+}
+
+.breadcrumb{
+   padding: 0;
+   background-color: transparent;
+}
+
+.sidebar-menu li a i:first-child {
+    margin-left: 10px; /* از right به left تغییر کرد */
+    font-size: 18px;
+}
+
+.sidebar-menu li a i:last-child {
+    margin-left: 10px; /* از right به left تغییر کرد */
+    font-size: 12px;
+}
+
+.row.row-group>div {
+    border-left: 1px solid rgba(255, 255, 255, 0.12) /* برعکس شد */
+}
+
+.row.row-group>div:last-child{
+    border-left: none;
+}
+
+/* --- Topbar Header --- */   
+.topbar-nav-rtl .navbar{
+   padding: 0px 15px;
+   z-index: 999;
+   height: 60px;
+   background-color: rgba(0,0,0,.2);
+   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+   display: flex;
+   justify-content: space-between;
+   align-items: center;
+}
+
+/* Toggle Menu */
+.toggle-menu-rtl i {
+   margin-right: 0; /* کنار گوشه راست */
+  
+   font-size: 14px;
+   font-weight: 600;
+   color: #ffffff;
+   cursor: pointer;
+   transition: all 0.3s ease; 
+}
+
+/* گروه راست (Toggle + Search) */
+.topbar-right-rtl {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+}
+
+/* گروه چپ (User + Notification) */
+.topbar-left-rtl {
+  display: flex;
+  align-items: center;
+  flex-direction: row-reverse;
+}
+
+/* User Profile */
+.user-profile-rtl img {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+}
+
+/* Dropdown راست چین */
+.dropdown-menu-left-rtl {
+  left: 0;
+  right: auto;
+  text-align: right;
+}
+
+/* Sidebar سمت راست */
+#sidebar-wrapper-rtl {
+  width: 260px;
+  right: 0;
+  left: auto;
+  top: 0;
+  bottom: 0;
+  position: fixed;
+  background: rgba(52, 58, 64, 0.6); /* شفافیت */
+  color: #fff;
+  transition: right 0.3s ease;
+  overflow-y: auto;
+  z-index: 1000;
+  backdrop-filter: blur(10px); /* افکت شیشه‌ای */
+  -webkit-backdrop-filter: blur(10px); /* برای مرورگرهای وب‌کیت */
+}
+
+/* وقتی سایدبار بسته است */
+#wrapper-rtl.toggled #sidebar-wrapper-rtl {
+  right: -260px;
+}
+
+/* محتوای اصلی */
+.content-wrapper-rtl {
+  margin-right: 260px;
+  transition: margin-right 0.3s ease;
+  padding: 20px;
+}
+
+/* وقتی سایدبار بسته است */
+#wrapper-rtl.toggled .content-wrapper-rtl {
+  margin-right: 0;
+}
+
+
+
+  </style>
+</head>
+
+<body class="bg-theme bg-theme1 rtl">
+  <!-- Start wrapper-->
+  <div id="wrapper-rtl">
+
+    <!--Start sidebar-wrapper اصلی-->
+    <div id="sidebar-wrapper-rtl" data-simplebar="" data-simplebar-auto-hide="true">
+      <div class="brand-logo">
+        <a href="index.html">
+          <img src="{% static 'images/logo-icon.png' %}" class="logo-icon" alt="logo icon">
+          <h5 class="logo-text">گالری مارتیا</h5>
+        </a>
+      </div>
+      <ul class="sidebar-menu do-nicescrol">
+        <li class="sidebar-header">منو اصلی</li>
+        <li><a href="{% url 'Home' %}"><i class="zmdi zmdi-view-dashboard"></i> <span>داشبورد</span></a></li>
+        <li><a href="{% url 'invoice' %}"><i class="fa fa-shopping-cart"></i> <span>فاکتور</span></a></li>
+        <li><a href="{% url 'reports' %}"><i class="zmdi zmdi-file-text"></i> <span>گزارشات</span></a></li>
+        {% if user.userprofile.role == 'admin' %}
+        <li><a href="{% url 'product' %}"><i class="zmdi zmdi-archive"></i> <span>محصولات</span></a></li>
+        <li><a href="{% url 'crm' %}"><i class="zmdi zmdi-face"></i> <span>CRM</span></a></li>
+        <li><a href="{% url 'register' %}"><i class="zmdi zmdi-account-circle"></i> <span>ثبت کاربر</span></a></li>
+        {% endif %}
+        <li><a href="forms.html"><i class="zmdi zmdi-format-list-bulleted"></i> <span>فرم ها</span></a></li>
+        <li><a href="tables.html"><i class="zmdi zmdi-grid"></i> <span>جداول</span></a></li>
+        <li><a href="{% url 'calender' %}"><i class="zmdi zmdi-calendar-check"></i> <span>تقویم</span><small class="badge float-left badge-light">New</small></a></li>
+        
+        {% if user.is_authenticated %}
+        <li><a href="{% url 'logout' %}"><i class="zmdi zmdi-lock"></i> <span>خروج از برنامه</span></a></li>
+        {% endif %}
+      </ul>
+    </div>
+    <!--End sidebar-wrapper-->
+
+    <!--start topbar header-->
+    <!--Start topbar header-->
+<header class="topbar-nav-rtl">
+ <nav class="navbar navbar-expand top-right-rtl">
+  <ul class="navbar-nav mr-auto align-items-center">
+    <li class="nav-item">
+      <a class="nav-link toggle-menu-rtl" href="javascript:void();">
+       <i class="icon-menu menu-icon"></i>
+     </a>
+    </li>
+    <li class="nav-item">
+      <form class="search-bar">
+        <i class="icon-magnifier"></i>
+        <input type="text" class="form-control " placeholder="عبارت جستجو">
+      </form>
+    </li>
+  </ul>
+     
+  <ul class="navbar-nav topbar-left-rtl">
+    <li class="nav-item dropdown-lg">
+      <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown" href="javascript:void();">
+      <i class="fa fa-envelope-open-o"></i></a>
+    </li>
+    <li class="nav-item dropdown-lg">
+      <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown" href="javascript:void();">
+      <i class="fa fa-bell-o"></i></a>
+    </li>
+    <li class="nav-item language">
+      <a class="nav-link dropdown-toggle dropdown-toggle-nocaret waves-effect" data-toggle="dropdown" href="javascript:void();"><i class="fa fa-flag"></i></a>
+      <ul class="dropdown-menu ">
+          <li class="dropdown-item"> <i class="flag-icon flag-icon-gb mr-2"></i> English</li>
+          <li class="dropdown-item"> <i class="flag-icon flag-icon-ir mr-2"></i> فارسی</li>
+
+        </ul>
+    </li>
+    <li class="nav-item user-profile-rtl">
+      <a class="nav-link dropdown-toggle dropdown-toggle-nocaret" data-toggle="dropdown" href="#">
+        <span class="user-profile"><img src="{% static 'images/Avatar.png' %}" class="img-circle" alt="user avatar"></span>
+      </a>
+      <ul class="dropdown-menu dropdown-menu-left">
+       <li class="dropdown-item user-details">
+        <a href="javaScript:void();">
+           <div class="media">
+             <div class="avatar"><img class="align-self-start mr-3" src="{% static 'images/Avatar.png' %}" alt="user avatar"></div>
+            <div class="media-body">
+            <h6 class="mt-2 user-title">{{user.first_name}} {{user.last_name}}</h6>
+            <p class="user-subtitle">{{user.username}}</p>
+            </div>
+           </div>
+          </a>
+        </li>
+<li class="dropdown-divider"></li>
+<li><a href="" class="dropdown-item"><i class="icon-envelope mr-2"></i> صندوق</a></li>
+
+<li class="dropdown-divider"></li>
+<li><a href="" class="dropdown-item"><i class="icon-wallet mr-2"></i> حساب کاربری</a></li>
+
+<li class="dropdown-divider"></li>
+<li><a href="" class="dropdown-item"><i class="icon-settings mr-2"></i> تنظیمات</a></li>
+
+<li class="dropdown-divider"></li>
+<li><a href="{% url 'logout' %}" class="dropdown-item text-danger"><i class="icon-power mr-2"></i> خروج</a></li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+</header>
+<!--End topbar header-->
+
+
+
+
+
+
+    <!--End topbar header-->
+
+    <div class="clearfix"></div>
+    
+    <div class="content-wrapper-rtl">
+      <div class="container-fluid">
+        {% block content %}{% endblock %}
+        <div class="overlay toggle-menu"></div>
+      </div>
+    </div>
+
+    <!-- Back To Top -->
+    <a href="javaScript:void();" class="back-to-top"><i class="fa fa-angle-double-up"></i> </a>
+
+    <!--start color switcher sidebar-->
+    <div class="left-sidebar">
+      <div class="right-sidebar-content">
+        <p class="mb-0">Gaussion Texture</p>
+        <hr>
+        <ul class="switcher">
+          <li id="theme1"></li>
+          <li id="theme2"></li>
+          <li id="theme3"></li>
+          <li id="theme4"></li>
+          <li id="theme5"></li>
+          <li id="theme6"></li>
+        </ul>
+        <p class="mb-0">Gradient Background</p>
+        <hr>
+        <ul class="switcher">
+          <li id="theme7"></li>
+          <li id="theme8"></li>
+          <li id="theme9"></li>
+          <li id="theme10"></li>
+          <li id="theme11"></li>
+          <li id="theme12"></li>
+          <li id="theme13"></li>
+          <li id="theme14"></li>
+          <li id="theme15"></li>
+          
+        </ul>
+      </div>
+    </div>
+    <!--آیکون سوئیچر همیشه روی صفحه-->
+    <div class="left-switcher-icon">
+      <i class="zmdi zmdi-settings zmdi-hc-spin"></i>
+    </div>
+  </div><!--End wrapper-->
+
+  <!-- JS -->
+  <script src="{% static 'assets/js/jquery.min.js' %}"></script>
+  <script src="{% static 'assets/js/popper.min.js' %}"></script>
+  <script src="{% static 'assets/js/bootstrap.min.js' %}"></script>
+  <script src="{% static 'assets/plugins/simplebar/js/simplebar.js' %}"></script>
+  <script src="{% static 'assets/js/sidebar-menu.js' %}"></script>
+  <script src="{% static 'assets/js/app-script.js' %}"></script>
+
+  <script>
+    $(document).ready(function(){
+    $('.left-switcher-icon').click(function(){
+        $('.left-sidebar').toggleClass('open');
+    });
+});
+
+    document.querySelector(".toggle-menu-rtl").addEventListener("click", function() {
+    document.getElementById("wrapper-rtl").classList.toggle("toggled");
+  });
+
+  </script>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,31 @@
+<h2>سند {{ entry.id }} - {{ entry.date }}</h2>
+<p>{{ entry.description }}</p>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>حساب</th>
+            <th>کد حساب</th>
+            <th>بدهکار پول</th>
+            <th>بستانکار پول</th>
+            <th>بدهکار طلا</th>
+            <th>بستانکار طلا</th>
+            <th>توضیحات</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for item in items %}
+        <tr>
+            <td>{{ item.account.name }}</td>
+            <td>{{ item.account.code }}</td>
+            <td>{{ item.debit_money }}</td>
+            <td>{{ item.credit_money }}</td>
+            <td>{{ item.debit_gold }}</td>
+            <td>{{ item.credit_gold }}</td>
+            <td>{{ item.description }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p><a href="{% url 'journal_entries_list' %}">بازگشت به لیست سندها</a></p>

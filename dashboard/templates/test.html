@@ -1,0 +1,301 @@
+    attachPurityToWeight("purity", "mesghal" ,"totalWeight", "laborPrice", "pricePerGram", "totalPrice");
+    attachPurityToWeight("purity2","mesghal2" , "totalWeight2", "laborPrice2", "pricePerGram2", "totalPrice2");
+    attachPurityToWeight("purity3", "mesghal3" , "totalWeight3", "laborPrice3", "pricePerGram3", "totalPrice3");
+
+
+
+   document.addEventListener("DOMContentLoaded", () => {
+
+  // --- دریافت CSRF Token ---
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      document.cookie.split(';').forEach(cookie => {
+        const c = cookie.trim();
+        if (c.startsWith(name + '=')) {
+          cookieValue = decodeURIComponent(c.substring(name.length + 1));
+        }
+      });
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  const form = document.getElementById("purchaseForm");
+  const receivePaymentForm = document.getElementById("receivePaymentForm");
+  const recievePaymentModal = document.getElementById("recievepayment-modal");
+  const alertBox = document.getElementById("alertBox");
+
+
+  // ====== مرحله ۱: وقتی دکمه ثبت فاکتور کلیک شد ======
+  document.getElementById("invoiceSave").addEventListener("click", function () {
+      let formData = new FormData(form);
+      sessionStorage.setItem("invoiceData", JSON.stringify(Object.fromEntries(formData)));
+
+      console.log("🟢 کلیک روی ثبت فاکتور - مدال پرداخت باز می‌شود...");
+      let modal = new bootstrap.Modal(recievePaymentModal);
+      modal.show();
+  });
+
+
+  // ====== مرحله ۲: نمایش مبلغ در مدال پرداخت ======
+  recievePaymentModal.addEventListener('show.bs.modal', function () {
+      const totalGrandInput = document.getElementById('totalPrice');
+      const amount = totalGrandInput ? totalGrandInput.value || '0' : '0';
+      console.log("💰 مبلغ قابل پرداخت:", amount);
+
+      const receivable = document.getElementById('receivableAmount');
+      if (receivable) {
+          receivable.innerText = "مبلغ قابل پرداخت: " + amount + " تومان";
+      }
+  });
+
+
+  // ====== مرحله ۳: ارسال فاکتور + پرداخت ======
+  if (receivePaymentForm) {
+    receivePaymentForm.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const invoiceData = sessionStorage.getItem("invoiceData");
+      if (!invoiceData) {
+        Swal.fire("خطا", "اطلاعات فاکتور یافت نشد!", "error");
+        return;
+      }
+
+      const invoiceObj = JSON.parse(invoiceData);
+      const fullData = new FormData();
+
+      // افزودن داده‌های فاکتور
+      for (let key in invoiceObj) fullData.append(key, invoiceObj[key]);
+
+      // افزودن داده‌های پرداخت از مدال
+      const paymentFormData = new FormData(receivePaymentForm);
+      for (let [key, value] of paymentFormData.entries()) fullData.append(key, value);
+
+      fetch("{% url 'add_purchase_invoice' %}", {
+        method: "POST",
+        headers: { 'X-CSRFToken': csrftoken },
+        body: fullData
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          // بستن مدال پرداخت
+          bootstrap.Modal.getInstance(recievePaymentModal).hide();
+
+          // نمایش پیام موفقیت
+          alertBox.classList.remove("d-none", "alert-danger");
+          alertBox.classList.add("alert-success");
+          alertBox.textContent = "✅ فاکتور با موفقیت ثبت شد.";
+
+          Swal.fire("موفق!", "فاکتور ثبت شد", "success");
+
+          // ذخیره شناسه فاکتور
+          currentInvoiceId = data.id;
+
+          // قفل کردن فیلدها
+          [
+            'invoiceNumber','invoiceDate','invoiceSeller','invoiceImage',
+            'pricePerGram','mesghal','labor','laborPrice','totalWeight',
+            'invoiceNote','invoiceSave','totalPrice','numberStore','purity'
+          ].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+          });
+
+          // فعال‌سازی جدول آیتم‌ها
+          document.querySelectorAll('#purchaseItemsTable button, #purchaseItemsTable select, #purchaseItemsTable input')
+              .forEach(el => el.removeAttribute('disabled'));
+            document.getElementById('saveItem').disabled = false;
+    
+            // وزن کل خرید را ذخیره کن برای محدودیت بعدی
+            window.maxWeight = parseFloat(toEnglishDigits(document.getElementById('totalWeight').value)) || 0;
+            // ذخیره invoiceId سراسری
+            currentInvoiceId = data.id;
+
+        } else {
+          Swal.fire("خطا", data.message || "ذخیره با خطا مواجه شد", "error");
+        }
+      })
+      .catch(err => {
+        console.error(err);
+        Swal.fire("خطا", "ارتباط با سرور برقرار نشد", "error");
+      });
+    });
+  }
+
+
+  // ====== مرحله ۴: ثبت آیتم‌ها و نمایش مدال موفقیت ======
+  const form2 = document.getElementById('purchaseFormItem');
+  if (form2) {
+    form2.addEventListener('submit', function(e){
+      e.preventDefault();
+
+      const formData = new FormData(this);
+      formData.append('invoice_id', currentInvoiceId);
+
+      fetch("{% url 'save_purchase_items' %}", {
+        method: "POST",
+        headers: { 'X-CSRFToken': csrftoken },
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        alertBox.classList.remove('d-none', 'alert-danger', 'alert-success');
+
+        if(data.status === 'success'){
+          alertBox.classList.add('alert-success');
+          alertBox.textContent = data.message;
+
+          label = true;
+          showSuccessModal(currentInvoiceId, label);
+          form2.reset();
+
+          if(data.new_invoice_number)
+            form2.querySelector('[name="number"]').value = data.new_invoice_number;
+
+          if(data.new_date)
+            form2.querySelector('[name="date"]').value = englishToPersianDigits(data.new_date);
+
+          const sellerSelect = form2.querySelector('[name="seller"]');
+          if(sellerSelect){
+            sellerSelect.selectedIndex = 0;
+            if(typeof $(sellerSelect).trigger === "function") $(sellerSelect).trigger('change');
+          }
+
+        } else {
+          alertBox.classList.add('alert-danger');
+          alertBox.textContent = data.message;
+        }
+      })
+      .catch(error => {
+        console.error(error);
+        Swal.fire("خطا", "مشکل در ذخیره آیتم‌ها", "error");
+      });
+    });
+  }
+
+});
+ 
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    // --- گرفتن CSRF Token ---
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            document.cookie.split(';').forEach(cookie => {
+                const c = cookie.trim();
+                if (c.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(c.substring(name.length + 1));
+                }
+            });
+        }
+        return cookieValue;
+    }
+    const csrftoken = getCookie('csrftoken');
+
+
+    // ====== مرحله ۱: وقتی دکمه ذخیره فاکتور زده می‌شود ======
+    document.getElementById("invoiceSave2").addEventListener("click", function () {
+        let form = document.getElementById("purchaseForm2");
+        let formData = new FormData(form);
+
+        // ذخیره داده‌ها در sessionStorage
+        sessionStorage.setItem("invoiceData", JSON.stringify(Object.fromEntries(formData)));
+
+        // نمایش مدال پرداخت
+        let modal = new bootstrap.Modal(document.getElementById("recievepayment-modal"));
+        modal.show();
+    });
+
+
+    // ====== مرحله ۲: وقتی مدال پرداخت باز می‌شود ======
+    const recievePaymentModal = document.getElementById('recievepayment-modal');
+    recievePaymentModal.addEventListener('show.bs.modal', function () {
+        const totalGrandInput = document.getElementById('totalPrice2');
+        const amount = totalGrandInput ? totalGrandInput.value || '0' : '0';
+
+        const receivable = document.getElementById('receivableAmount');
+        if (receivable) {
+            receivable.innerText = "مبلغ قابل پرداخت: " + amount + " تومان";
+        }
+    });
+
+
+    // ====== مرحله ۳: وقتی در مدال روی "ثبت دریافت و سند" کلیک می‌شود ======
+    const receivePaymentForm = document.getElementById('receivePaymentForm');
+
+    if (receivePaymentForm) {
+        receivePaymentForm.addEventListener("submit", function (e) {
+            e.preventDefault();
+
+            // ۱. خواندن داده فاکتور از sessionStorage
+            const invoiceData = sessionStorage.getItem("invoiceData");
+            if (!invoiceData) {
+                Swal.fire("خطا", "اطلاعات فاکتور یافت نشد!", "error");
+                return;
+            }
+
+            const invoiceObj = JSON.parse(invoiceData);
+
+            // ۲. ساخت FormData برای ارسال
+            const fullData = new FormData();
+
+            // افزودن داده‌های فاکتور
+            for (let key in invoiceObj) {
+                fullData.append(key, invoiceObj[key]);
+            }
+
+            // افزودن داده‌های پرداخت از مدال
+            const paymentFormData = new FormData(receivePaymentForm);
+            for (let [key, value] of paymentFormData.entries()) {
+                fullData.append(key, value);
+            }
+            console.log(fullData);
+
+            // ۳. ارسال به بک‌اند
+            fetch("{% url 'save_purchase2' %}", {
+                method: "POST",
+                headers: { 'X-CSRFToken': csrftoken },
+                body: fullData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+
+                    // بستن مدال پرداخت
+                    const modalInstance = bootstrap.Modal.getInstance(recievePaymentModal);
+                    modalInstance.hide();
+
+                    // نمایش مدال موفقیت
+                    currentInvoiceId = data.id;
+                    label = false;
+                    showSuccessModal(currentInvoiceId, label);
+
+                    // پاک کردن فرم‌ها و داده‌ها
+                    document.getElementById('purchaseForm2').reset();
+                    receivePaymentForm.reset();
+                    sessionStorage.removeItem("invoiceData");
+
+                    // ریست سلکت فروشنده
+                    const sellerSelect = document.querySelector('[name="seller2"]');
+                    if (sellerSelect) {
+                        sellerSelect.selectedIndex = 0;
+                        if (typeof $(sellerSelect).trigger === "function") $(sellerSelect).trigger('change');
+                    }
+
+                } else {
+                    Swal.fire("خطا", data.message || "ذخیره با خطا مواجه شد", "error");
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                Swal.fire("خطا", "ارتباط با سرور برقرار نشد", "error");
+            });
+        });
+    }
+
+});

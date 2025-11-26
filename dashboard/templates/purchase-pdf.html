@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+{% load static %}
+{% load jalali_tags %}
+<meta charset="UTF-8">
+<title>فاکتور خرید {{ purchase.number }}</title>
+
+<style>
+
+@page {
+    size: A5 portrait;
+    margin: 10mm;
+    @bottom-center {
+        content: "صفحه " counter(page) " از " counter(pages);
+        font-size: 9px;
+    }
+    @bottom-right {
+        content: "چاپ شده توسط سیستم گلد پنل";
+        font-size: 9px;
+    }
+}
+
+body {
+    font-family: IranYekan, sans-serif;
+    direction: rtl;
+    font-size: 13px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
+}
+
+.header img {
+    height: 60px;
+}
+
+h2, h3 {
+    text-align: center;
+    margin: 5px 0;
+}
+
+.info-box {
+    margin-top: 10px;
+    font-size: 12px;
+    border: 1px solid #888;
+    padding: 7px;
+    border-radius: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    text-align: center;
+    font-size: 12px;
+}
+
+th, td {
+    border: 1px solid #333;
+    padding: 5px;
+}
+
+th {
+    background-color: #eee;
+    font-weight: bold;
+}
+
+tfoot td {
+    background: #ddd;
+    font-weight: bold;
+}
+
+.signature {
+    margin-top: 35px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.signature div {
+    width: 30%;
+    text-align: center;
+    border-top: 1px solid #000;
+    padding-top: 5px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- سربرگ -->
+<div class="header">
+    <div><h2>گالری اوین شاه</h2></div>
+    <div><img src="{% static 'assets/images/logo-evin.jpeg' %}"></div>
+</div>
+
+<h3>فاکتور خرید طلا</h3>
+
+<!-- اطلاعات اصلی -->
+<div class="info-box">
+    شماره فاکتور: <b>{{ purchase.number|persian_digits }}</b> |
+    تاریخ: <b>{{ purchase.date|to_jalali }}</b><br>
+    فروشنده: <b>{{ purchase.seller.name }}</b> |
+    {% if purchase.number_store %}
+    شماره فاکتور فروشنده: <b>{{ purchase.number_store |persian_digits}} </b> |
+    {% endif %}
+    کد حساب: <b>{{ purchase.seller.account.id|persian_digits }}</b>
+</div>
+
+<!-- جدول اصلی فاکتور -->
+<table>
+<thead>
+<tr>
+    <th>شرح</th>
+    <th>عیار</th>
+    <th>اجرت</th>
+    <th>فی (تومان)</th>
+    
+    <th>وزن (گرم)</th>
+    <th>مبلغ کل (تومان)</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+      {% if purchase.type == 'gold'%}
+        <td>{{ 'خرید طلا'}}</td>
+      {% endif %}
+      {% if purchase.type == 'ab' %}
+        <td>{{'خرید ابشده '}}</td>
+      {% endif %}
+      {% if purchase.type == 'mot' %}
+        <td>{{'خرید متفرقه'}}</td>
+      {% endif %}
+    <td>{{ purchase.purity|persian_digits }}</td>
+    <td>
+        {% if purchase.labor > 0%}
+            {{ purchase.labor|persian_intcomma }} درصد
+        {% endif %}
+        {% if purchase.laborprice > 0 %}
+            {{ purchase.laborprice|persian_intcomma }} تومان
+        {% endif %}
+    </td>
+    <td>
+        {% if purchase.pricemesghal > 0 %}
+            {{purchase.pricemesghal|persian_intcomma}} مثقال
+        {% endif %}
+        {% if purchase.price > 0 %}
+            {{ purchase.price|persian_intcomma }} گرم
+        {% endif %}
+    </td>
+    <td>{{ purchase.weight|persian_digits }}</td>
+    <td>{{ purchase.total_price|persian_intcomma }}</td>
+</tr>
+</tbody>
+ 
+</table>
+</br>
+{% if purchase.type != 'mot' %}
+<!-- جدول اقلام خریداری شده -->
+<h4 style="text-align:center; margin-top:10px;">اقلام خریداری شده</h4>
+
+<table>
+<thead>
+<tr>
+    <th>ردیف</th>
+    {% if purchase.type == 'gold'%}
+        <th>کد کالا</th>
+      {% endif %}
+      {% if purchase.type == 'ab' %}
+        <th>انگ</th>
+      {% endif %}
+      {% if purchase.type == 'mot' %}
+        <td>{{'خرید متفرقه'}}</td>
+      {% endif %}
+    <th>شرح کالا</th>
+    <th>تعداد</th>
+    <th>عیار</th>
+    <th>اجرت </th>
+    <th>وزن (گرم)</th>
+    <th>مجموع (گرم)</th>
+</tr>
+</thead>
+
+<tbody>
+    
+{% for item in purchase.items.all %}
+
+<tr>
+    <td>{{ forloop.counter|persian_digits }}</td>
+    <td>{{item.product.code|persian_digits}}</td>
+    <td>{{item.product.category|cat_fa}} {{ item.product.name }}</td>
+    <td>{{ item.quantity|persian_digits }}</td>
+    <td>{{ item.product.purity|persian_intcomma }}</td>
+    <td>
+        {% if item.product.labor > 0%}
+            {{ item.product.labor|persian_intcomma }} درصد
+        {% endif %}
+        {% if item.product.laborprice > 0 %}
+            {{ item.product.laborprice|persian_intcomma }} تومان
+        {% endif %}
+        
+    </td>
+    <td>{{ item.product.weight|floatformat:2|persian_digits }}</td>
+    <td>{{ item.product.weight|multiply:item.quantity|floatformat:2|persian_digits }}</td>
+    
+</tr>
+
+{% endfor %}
+</tbody>
+<tfoot>
+        <tr>
+            <td colspan="7">جمع کل</td>
+            <td>{{ purchase.items.all|sum_weights|floatformat:2|persian_digits }}</td>
+
+        </tr>
+    </tfoot>
+
+</table>
+{% endif %}
+
+<!-- امضا -->
+<div class="signature">
+    <div>تایید حسابدار</div>
+    <div>امضای فروشنده</div>
+    <div>مهر فروشگاه</div>
+</div>
+
+</body>
+</html>

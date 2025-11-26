@@ -1,0 +1,108 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: MyProject 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-09-15 00:00+0000\n"
+"PO-Revision-Date: 2025-09-15 00:00+0000\n"
+"Last-Translator: Your Name <you@example.com>\n"
+"Language-Team: Persian\n"
+"Language: fa\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: templates/base.html:45
+msgid "MAIN NAVIGATION"
+msgstr "ناوبری اصلی"
+
+#: templates/base.html:47
+msgid "Dashboard"
+msgstr "داشبورد"
+
+#: templates/base.html:48
+msgid "Invoice"
+msgstr "فاکتورها"
+
+#: templates/base.html:49
+msgid "Reports"
+msgstr "گزارش‌ها"
+
+#: templates/base.html:50
+msgid "Forms"
+msgstr "فرم‌ها"
+
+#: templates/base.html:51
+msgid "Tables"
+msgstr "جداول"
+
+#: templates/base.html:52
+msgid "Calendar"
+msgstr "تقویم"
+
+#: templates/base.html:53
+msgid "Profile"
+msgstr "پروفایل"
+
+#: templates/base.html:56
+msgid "Logout"
+msgstr "خروج"
+
+#: templates/base.html:61
+msgid "Product"
+msgstr "محصولات"
+
+#: templates/base.html:62
+msgid "Registration"
+msgstr "ثبت‌نام"
+
+#: templates/base.html:100
+msgid "Dashtreme Admin"
+msgstr "داشترم ادمین"
+
+#: templates/base.html:120
+msgid "Enter keywords"
+msgstr "کلمات کلیدی را وارد کنید"
+
+#: templates/base.html:125
+msgid "Inbox"
+msgstr "صندوق ورودی"
+
+#: templates/base.html:127
+msgid "Account"
+msgstr "حساب کاربری"
+
+#: templates/base.html:129
+msgid "Setting"
+msgstr "تنظیمات"
+
+#: templates/base.html:131
+msgid "Back To Top"
+msgstr "بازگشت به بالا"
+
+#: templates/base.html:135
+msgid "Important"
+msgstr "مهم"
+
+#: templates/base.html:136
+msgid "Warning"
+msgstr "هشدار"
+
+#: templates/base.html:137
+msgid "Information"
+msgstr "اطلاعات"
+
+#: templates/base.html:140
+msgid "English"
+msgstr "انگلیسی"
+
+#: templates/base.html:141
+msgid "French"
+msgstr "فرانسوی"
+
+#: templates/base.html:142
+msgid "Chinese"
+msgstr "چینی"
+
+#: templates/base.html:143
+msgid "German"
+msgstr "آلمانی"

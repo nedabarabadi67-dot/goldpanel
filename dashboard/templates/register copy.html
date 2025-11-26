@@ -1,0 +1,939 @@
+{% extends "_sidebar.html" %}
+{% load static %}
+
+{% block title %}Reports{% endblock %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
+
+
+{% block content %}
+<style>
+  .flatpickr-calendar {
+  z-index: 2000; /* روی همه المان‌ها */
+}
+/* کارت شیشه‌ای تقویم */
+.calendar-card {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 20px;
+    padding: 20px;
+    max-width: 400px;
+    margin: 20px auto;
+    color: #fff;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+}
+
+/* لیست فاکتورها */
+.invoice-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    margin-top: 10px;
+    padding: 15px;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+}
+
+/* استایل Flatpickr */
+.flatpickr-calendar {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.2);
+}
+.flatpickr-day.selected {
+    background: #4CAF50;
+    color: #fff;
+}
+
+/* Glass Effect برای جدول‌ها */
+.table-glass {
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+}
+
+.table-glass th, .table-glass td {
+    padding: 10px;
+    vertical-align: middle;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+.search-bar {
+    display: flex;
+    margin-bottom: 10px;
+}
+.search-bar input {
+    flex: 1;
+    margin-right: 5px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 10px;
+}
+.search-bar i {
+    color: #fff;
+}
+
+/* جدول با متن شکسته */
+table {
+  table-layout: fixed;
+  width: 100%;
+  word-wrap: break-word;
+}
+
+/* Tabs */
+.nav-tabs .nav-link {
+    color: #fff;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px 8px 0 0;
+    margin-right: 5px;
+}
+.nav-tabs .nav-link.active {
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+}
+.tab-content {
+    margin-top: 10px;
+}
+
+
+/* Search Bar بزرگ‌تر */
+.search-bar input {
+    flex: 1;
+    margin-right: 5px;
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 14px;      /* بزرگ‌تر کردن ارتفاع */
+    font-size: 16px;          /* بزرگ‌تر کردن فونت */
+}
+
+.search-bar a i {
+    font-size: 20px;          /* بزرگ‌تر کردن آیکون */
+    color: #fff;
+}
+
+/* کلاس مشترک برای همه inputهای فیلتر Invoices */
+.invoice-filters input {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+}
+
+.invoice-filters input::placeholder {
+    color: #ddd;
+}
+
+.invoice-filters input:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #4CAF50;
+    color: #fff;
+}
+
+/* سطر فیلترها */
+.invoice-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+/* کانتینر اسلایدر */
+.price-slider-container {
+  width: 100%;
+  margin: 15px 0;
+  color: #fff;
+}
+
+
+
+/* بخش پرشده */
+#price-slider .noUi-connect {
+  background: linear-gradient(90deg, #4CAF50, #81C784);
+  border-radius: 10px;
+  box-shadow: 0 0 12px rgba(76, 175, 80, 0.8);
+}
+
+/* نوار خام */
+#price-slider.noUi-horizontal {
+  width: 100% !important;
+  height: 16px; /* کمی ضخیم‌تر از قبل */
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 10px;
+  box-shadow: inset 0 2px 6px rgba(0,0,0,0.3);
+  margin-top: 10px; /* کمی فاصله برای بهتر دیده شدن */
+}
+
+/* دسته‌ها */
+#price-slider .noUi-handle {
+  width: 28px;
+  height: 28px;
+  top: -7px; /* دقیقاً مرکز ریل */
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #4CAF50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+  cursor: grab;
+  transition: all 0.2s ease;
+}
+
+
+#price-slider .noUi-handle:focus,
+#price-slider .noUi-handle:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 15px rgba(76, 175, 80, 1);
+}
+
+/* متن نمایش رنج */
+#price-range {
+  font-weight: bold;
+  margin-left: 10px;
+  font-size: 15px;
+  color: #fff;
+}
+
+/* دکمه Apply */
+.price-slider-container button {
+  margin-top: 10px;
+  padding: 8px 25px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(90deg, #fbc02d, #fdd835);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.price-slider-container button:hover {
+  background: linear-gradient(90deg, #fdd835, #fbc02d);
+  box-shadow: 0 3px 8px rgba(251,192,2,0.6);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+  
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.3); /* تاریکی پشت modal */
+    backdrop-filter: blur(8px);
+}
+
+/* Modal content */
+.modal-content {
+    background: rgba(255, 255, 255, 0.08); /* شفاف و شیشه‌ای */
+    border-radius: 20px;
+    padding: 40px 30px;
+    text-align: center;
+    width: 380px;
+    max-width: 90%;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.2);
+    transform: scale(0);
+    animation: zoomIn 0.35s forwards;
+    backdrop-filter: blur(10px);
+    color: #fff; /* متن سفید روی شیشه */
+}
+
+.modal-content.exit {
+    animation: zoomOut 0.35s forwards;
+}
+
+.modal-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.check-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 10px;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: drawCheck 0.5s forwards;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 25px;
+    cursor: pointer;
+    color: #fff;
+    transition: color 0.2s;
+}
+.close:hover { color: #4CAF50; }
+
+.btn-download {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-download:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.report-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* فاصله بین المان‌ها */
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    flex: 0 0 180px; /* عرض ثابت برای همه دکمه‌ها */
+    height: 45px;    /* ارتفاع ثابت */
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4CAF50, #81C784);
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    background: linear-gradient(135deg, #81C784, #4CAF50);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+.search-bar {
+    display: flex;
+    align-items: center;
+}
+
+.search-bar input {
+    padding: 10px 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+    outline: none;
+    min-width: 250px;
+}
+
+.search-bar input::placeholder {
+    color: #ddd;
+}
+
+.search-bar a {
+    margin-left: 8px;
+    color: #fff;
+    font-size: 20px;
+}
+
+.table-responsive {
+  max-height: 400px; /* ارتفاع ثابت برای اسکرول */
+  overflow-y: auto;
+}
+
+.table-responsive table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.table-container {
+  max-height: 400px;       /* ارتفاع ثابت برای اسکرول */
+  overflow-y: auto;
+  position: relative;      /* مهم برای sticky */
+}
+
+.table-container thead th {
+  position: sticky;
+  top: 0;
+  background: rgba(255, 255, 255, 0.08); /* رنگ هدر شیشه‌ای */
+  color: #fff;
+  z-index: 5;               /* بالا قرار گیرد */
+  text-align: left;
+}
+
+
+</style>
+
+
+
+<h2> گزارشات </h2>
+
+<!-- Nav Tabs -->
+<ul class="nav nav-tabs mt-3" id="reportTabs" role="tablist" >
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">محصولات پرفروش </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">مشتریان پرخرید </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab">فاکتورها </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="daily-sales-tab" data-bs-toggle="tab" data-bs-target="#daily-sales" type="button" role="tab">فروش روزانه</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="monthly-sales-tab" data-bs-toggle="tab" data-bs-target="#monthly-sales" type="button" role="tab">فروش ماهانه</button>
+  </li>
+
+</ul>
+
+<div class="tab-content" id="reportTabsContent">
+
+  <!-- Top Products -->
+  <div class="tab-pane fade show active" id="products" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+    <div class="report-actions d-flex align-items-center mb-3 mt-4 ml-3">
+      <button id="exportProducts" class="btn-action">اکسل </button>
+      <button id="printProducts" class="btn-action">چاپ </button>
+      <form class="search-bar ms-auto">
+        <input type="text" id="topproductInput" class="form-control" placeholder="عبارت جستجو ">
+        <a href="javascript:void();"><i class="icon-magnifier"></i></a>
+      </form>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-glass" id="topSellingProductsTable">
+        <thead>
+          <tr>
+            <th>ردیف </th>
+            <th>تصویر </th>
+            <th>نام کالا</th>
+            <th>کد کالا</th>
+            <th>گروه کالا</th>
+            <th>تعداد فروش </th>
+            <th>مبلغ فروش </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in top_products %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>
+              {% if product.product__image %}
+                <img src="/media/{{ product.product__image }}" width="50" alt="{{ product.product__name }}">
+              {% else %}
+                <span>بدون تصویر </span>
+              {% endif %}
+            </td>
+            <td>{{ product.product__name }}</td>
+            <td>{{ product.product__code }}</td>
+            <td>{{ product.product__category }}</td>
+            <td>{{ product.total_sold }}</td>
+            <td>${{ product.total_revenue }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div><!-- card-->
+  </div>
+
+  <!-- Top Customers -->
+  <div class="tab-pane fade" id="customers" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      <div class="report-actions d-flex align-items-center mb-3 mt-4 ml-3">
+        <button id="exportCustomers" class="btn-action">اکسل </button>
+        <button id="printCustomers" class="btn-action">چاپ </button>
+        <form class="search-bar ms-auto">
+          <input type="text" id="topcustomerInput" class="form-control" placeholder="Search by name, phone or orders">
+          <a href="javascript:void();"><i class="icon-magnifier"></i></a>
+        </form>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-glass" id="topCustomersTable">
+          <thead>
+            <tr>
+              <th>ردیف </th>
+              <th>نام مشتری </th>
+              <th>تلفن </th>
+              <th>مبلغ خرید </th>
+              <th>تعداد خرید</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for customer in top_customers %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ customer.customer__name }}</td>
+              <td>{{ customer.customer__phone }}</td>
+              <td>${{ customer.total_spent }}</td>
+              <td>{{ customer.invoice_count }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoices -->
+  <div class="tab-pane fade" id="invoices" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      <form id="invoiceForm" method="post">
+        {% csrf_token %}
+        <div class="row g-2">
+          <div class="col-12 mb-3">
+            <div class="d-flex justify-content-between align-items-center text-white mb-2">
+              <label for="price-slider" class="mb-0">رنج قیمت :</label>
+              <span>انتخاب : <span id="price-range"></span></span>
+            </div>
+            <div id="price-slider"></div>
+          </div>
+        </div>
+        <input type="hidden" name="minprice" id="minprice" value="{{ min_price|default:0 }}">
+        <input type="hidden" name="maxprice" id="maxprice" value="{{ max_price|default:100000 }}">
+        <div class="row g-4">
+          <div class="col-md-3">
+            <input type="text" id="invoiceNumber" name="invoicenumber" class="form-control" placeholder="شماره فاکتور ">
+          </div>
+          <div class="col-md-3">
+            <input type="text" id="startDate" name="startdate" placeholder="تاریخ شروع" class="form-control invoice-filters">
+          </div>
+          <div class="col-md-3">
+            <input type="text" id="endDate" name="enddate" placeholder="تاریخ پایان" class="form-control invoice-filters">
+          </div>
+          <div class="col-md-3">
+            <button type="submit" class="btn" style="background: linear-gradient(90deg, #4CAF50, #81C784); color: #fff; font-weight:bold;">
+              جستجو 
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+    <div class="table-responsive mt-2">
+      <table class="table table-glass mt-3" id="invoicesTable">
+        <thead>
+          <tr>
+            <th>ردیف</th>
+            <th>شماره فاکتور</th>
+            <th>نام مشتری</th>
+            <th>تاریخ</th>
+            <th>مبلغ خرید </th>
+            <th>کاربر صادر کننده</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for invoice in invoices %}
+          <tr>
+            <td>{{ forloop.counter }}</td>
+            <td>{{ invoice.number }}</td>
+            <td>{{ invoice.customer.name }}</td>
+            <td>{{ invoice.date }}</td>
+            <td>${{ invoice.total_price }}</td>
+            <td>{{ invoice.user.username }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-white">هیچ فاکتوری پیدا نشد .</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Daily Sales -->
+  <div class="tab-pane fade" id="daily-sales" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      <h5>فروش روزانه</h5>
+      <div class="report-actions d-flex align-items-center mb-3 mt-3">
+        <button id="exportDailySales" class="btn-action">اکسل</button>
+        <button id="printDailySales" class="btn-action">چاپ</button>
+        <form class="search-bar ms-auto">
+          <input type="text" id="dailySalesInput" class="form-control" placeholder="عبارت جستجو ">
+          <a href="javascript:void();"><i class="icon-magnifier"></i></a>
+        </form>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-glass" id="dailySalesTable">
+          <thead>
+            <tr>
+              <th>ردیف</th>
+              <th>تاریخ</th>
+              <th>تعداد مشتریان</th>
+              <th>تعداد فاکتور</th>
+              <th>مبلغ خرید </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale in daily_sales %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ sale.date }}</td>
+              <td>{{ sale.total_customers }}</td>
+              <td>{{ sale.total_invoices }}</td>
+              <td>${{ sale.total_amount }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Sales -->
+  <div class="tab-pane fade" id="monthly-sales" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      <h5>فروش ماهانه</h5>
+      <div class="report-actions d-flex align-items-center mb-3 mt-3">
+        <button id="exportMonthly" class="btn-action">اکسل </button>
+        <button id="printMonthly" class="btn-action">چاپ </button>
+        <form class="search-bar ms-auto">
+          <input type="text" id="monthlyInput" class="form-control" placeholder="Search by month or customer">
+          <a href="javascript:void();"><i class="icon-magnifier"></i></a>
+        </form>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-glass" id="monthlyTable">
+          <thead>
+            <tr>
+              <th>ردیف </th>
+              <th>ماه </th>
+              <th>تعداد مشتریان</th>
+              <th>تعداد فاکتور</th>
+              <th>مبلغ فروش</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale in monthly_sales %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{{ sale.month }}</td>
+              <td>{{ sale.total_customers }}</td>
+              <td>{{ sale.total_invoices }}</td>
+              <td>${{ sale.total_amount }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- پایان tab-content -->
+
+
+
+
+{% endblock %}
+
+{% block scripts %}
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/fa.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr-jdate/dist/flatpickr-jdate.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.4/build/moment-jalaali.js"></script>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+	<script>
+    function toJalali(dateStr) {
+      console.log(dataStr)
+    if (!dateStr) return "";
+    // اگر فقط تاریخ ساده باشه
+    if (dateStr.length === 10) {
+        return moment(dateStr, "YYYY-MM-DD").format("jYYYY/jMM/jDD");
+    }
+    // اگر تاریخ کامل با زمان باشه
+    return moment(dateStr).format("jYYYY/jMM/jDD");
+}
+
+
+
+    flatpickr("#startDate", {
+    dateFormat: "Y-m-d",
+    locale: "fa",
+    calendar: "jalali",   // استفاده از تقویم جلالی
+    onChange: fetchInvoices
+});
+
+flatpickr("#endDate", {
+    dateFormat: "Y-m-d",
+    locale: "fa",
+    calendar: "jalali",
+    onChange: fetchInvoices
+});
+
+    document.addEventListener("DOMContentLoaded", function() {
+
+    const startInput = document.getElementById("startDate");
+    const endInput = document.getElementById("endDate");
+    const container = document.getElementById("invoicesContainer");
+    const list = document.getElementById("invoiceList");
+
+    function fetchInvoices() {
+        const startDate = startInput.value;
+        const endDate = endInput.value;
+
+        // فقط وقتی هر دو تاریخ مقدار دارند
+        if (!startDate || !endDate) return;
+
+        fetch(`/invoices/by_date/?start_date=${startDate}&end_date=${endDate}`)
+            .then(res => res.json())
+            .then(data => {
+                if(!list || !container) return;
+
+                list.innerHTML = "";
+
+                if(data.invoices.length > 0){
+                    data.invoices.forEach(inv => {
+                        const div = document.createElement("div");
+                        div.classList.add("invoice-card");
+                        div.innerHTML = `
+                            <strong>Invoice #${inv.number}</strong><br>
+                            Customer: ${inv.customer_name}<br>
+                            Total: ${inv.total}
+                        `;
+                        list.appendChild(div);
+                    });
+                } else {
+                    const div = document.createElement("div");
+                    div.classList.add("invoice-card");
+                    div.textContent = "No invoices in this date range.";
+                    list.appendChild(div);
+                }
+
+                container.style.display = "block";
+            })
+            .catch(err => console.error(err));
+    }
+
+    // مقداردهی Flatpickr برای هر دو input
+    flatpickr(startInput, {
+        dateFormat: "Y-m-d",
+        onChange: fetchInvoices
+    });
+
+    flatpickr(endInput, {
+        dateFormat: "Y-m-d",
+        onChange: fetchInvoices
+    });
+
+});
+
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  var slider = document.getElementById('price-slider');
+  var minInput = document.getElementById('minprice');
+  var maxInput = document.getElementById('maxprice');
+  var display = document.getElementById('price-range');
+
+  function initSlider() {
+    if (!slider.noUiSlider) { // فقط یکبار مقداردهی شود
+      noUiSlider.create(slider, {
+        start: [parseInt(minInput.value), parseInt(maxInput.value)],
+        connect: true,
+        range: { 'min': 0, 'max': 100000 },
+        step: 100
+      });
+
+      slider.noUiSlider.on('update', function(values){
+        var min = Math.round(values[0]);
+        var max = Math.round(values[1]);
+        display.innerHTML = min + ' - ' + max;
+        minInput.value = min;
+        maxInput.value = max;
+      });
+    } else {
+      slider.noUiSlider.updateOptions({
+        start: [parseInt(minInput.value), parseInt(maxInput.value)]
+      });
+    }
+  }
+
+  // اگر اسلایدر داخل tab است، وقتی tab فعال شد، اسلایدر را مقداردهی کن
+  var invoicesTab = document.querySelector('#invoices-tab');
+  invoicesTab.addEventListener('shown.bs.tab', initSlider);
+
+  // اگر tab پیش‌فرض فعال است
+  if (document.querySelector('#invoices').classList.contains('show')) {
+    initSlider();
+  }
+});
+
+
+
+document.addEventListener("DOMContentLoaded", function() {
+    const input = document.getElementById("topproductInput");
+    const table = document.getElementById("topSellingProductsTable");
+    const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+    input.addEventListener("keyup", function() {
+        const filter = input.value.toLowerCase();
+
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName("td");
+            const nameCell = cells[2];      // ستون Name
+            const codeCell = cells[3];      // ستون Code
+            const categoryCell = cells[4];  // ستون Category
+            const unitsSoldCell = cells[5]; // ستون Units Sold
+
+            let match = false;
+
+            if (
+                nameCell.textContent.toLowerCase().indexOf(filter) > -1 ||
+                codeCell.textContent.toLowerCase().indexOf(filter) > -1 ||
+                categoryCell.textContent.toLowerCase().indexOf(filter) > -1 ||
+                unitsSoldCell.textContent.toLowerCase().indexOf(filter) > -1
+            ) {
+                match = true;
+            }
+
+            rows[i].style.display = match ? "" : "none";
+        }
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function() {
+    const input = document.getElementById("topcustomerInput");
+    const table = document.getElementById("topCustomersTable");
+    const rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+    input.addEventListener("keyup", function() {
+        const filter = input.value.toLowerCase();
+
+        for (let i = 0; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName("td");
+            const nameCell = cells[1];   // ستون Name
+            const phoneCell = cells[2];  // ستون Phone
+            const ordersCell = cells[4]; // ستون Orders
+
+            let match = false;
+
+            if (
+                nameCell.textContent.toLowerCase().indexOf(filter) > -1 ||
+                phoneCell.textContent.toLowerCase().indexOf(filter) > -1 ||
+                ordersCell.textContent.toLowerCase().indexOf(filter) > -1
+            ) {
+                match = true;
+            }
+
+            rows[i].style.display = match ? "" : "none";
+        }
+    });
+});
+
+
+// تابع گرفتن تاریخ شمسی به فرمت YYYY-MM-DD
+function getTodayDateShamsi() {
+    const d = new Date();
+    // تاریخ شمسی کامل
+    let shamsi = d.toLocaleDateString("fa-IR"); // مثل ۱۴۰۴/۶/۲۸
+    // تبدیل به فرمت استاندارد YYYY-MM-DD
+    shamsi = shamsi.replace(/\//g, "-"); // ۱۴۰۴-۶-۲۸
+    return shamsi;
+}
+
+// تابع کمکی برای حذف ستون "تصویر"
+function cleanTableForExport(tableId) {
+    var table = document.getElementById(tableId);
+    var clone = table.cloneNode(true);
+
+    var headers = clone.querySelectorAll("thead th");
+    var imageIndex = -1;
+
+    headers.forEach((th, i) => {
+        if(th.textContent.trim() === "تصویر") imageIndex = i;
+    });
+
+    if(imageIndex > -1) {
+        headers[imageIndex].remove();
+        clone.querySelectorAll("tbody tr").forEach(tr => {
+            if(tr.children[imageIndex]) tr.children[imageIndex].remove();
+        });
+    }
+
+    return clone;
+}
+
+// محصولات پرفروش
+document.getElementById("exportProducts").addEventListener("click", function() {
+    var clone = cleanTableForExport("topSellingProductsTable");
+    var wb = XLSX.utils.table_to_book(clone, {sheet: "محصولات پرفروش"});
+    XLSX.writeFile(wb, `TopProducts-${getTodayDateShamsi()}.xlsx`);
+});
+
+// مشتریان
+document.getElementById("exportCustomers").addEventListener("click", function() {
+    var clone = cleanTableForExport("customersTable");
+    var wb = XLSX.utils.table_to_book(clone, {sheet: "مشتریان"});
+    XLSX.writeFile(wb, `Customers-${getTodayDateShamsi()}.xlsx`);
+});
+
+// فاکتورها
+document.getElementById("exportInvoices").addEventListener("click", function() {
+    var clone = cleanTableForExport("invoicesTable");
+    var wb = XLSX.utils.table_to_book(clone, {sheet: "فاکتورها"});
+    XLSX.writeFile(wb, `Invoices-${getTodayDateShamsi()}.xlsx`);
+});
+
+// فروش روزانه
+document.getElementById("exportDailySales").addEventListener("click", function() {
+    var clone = cleanTableForExport("dailySalesTable");
+    var wb = XLSX.utils.table_to_book(clone, {sheet: "فروش روزانه"});
+    XLSX.writeFile(wb, `DailySales-${getTodayDateShamsi()}.xlsx`);
+});
+
+// فروش ماهانه
+document.getElementById("exportMonthlySales").addEventListener("click", function() {
+    var clone = cleanTableForExport("monthlySalesTable");
+    var wb = XLSX.utils.table_to_book(clone, {sheet: "فروش ماهانه"});
+    XLSX.writeFile(wb, `MonthlySales-${getTodayDateShamsi()}.xlsx`);
+});
+
+// Print Top Products
+document.getElementById("printProducts").addEventListener("click", function() {
+    var divToPrint = document.getElementById("topSellingProductsTable");
+    var newWin = window.open("");
+    newWin.document.write('<html><head><title>Top Products</title></head><body>');
+    newWin.document.write(divToPrint.outerHTML);
+    newWin.document.write('</body></html>');
+    newWin.print();
+});
+
+
+// Print Top Customers
+document.getElementById("printCustomers").addEventListener("click", function() {
+    var divToPrint = document.getElementById("topCustomersTable");
+    var newWin = window.open("");
+    newWin.document.write('<html><head><title>Top Customers</title></head><body>');
+    newWin.document.write(divToPrint.outerHTML);
+    newWin.document.write('</body></html>');
+    newWin.print();
+});
+
+</script>
+{% endblock %}

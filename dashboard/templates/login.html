@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  {% load static %}
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <title>Login</title>
+
+  <!-- loader-->
+  <link href="{% static 'assets/css/pace.min.css' %}" rel="stylesheet"/>
+  <script src="{% static 'assets/js/pace.min.js' %}"></script>
+
+  <!-- favicon -->
+  <link rel="icon" href="{% static 'assets/images/favicon.ico' %}" type="image/x-icon">
+
+  <!-- Bootstrap core CSS-->
+  <link href="{% static 'assets/css/bootstrap.min.css' %}" rel="stylesheet"/>
+  <link href="{% static 'assets/css/animate.css' %}" rel="stylesheet"/>
+  <link href="{% static 'assets/css/icons.css' %}" rel="stylesheet"/>
+  <link href="{% static 'assets/css/rtl-app-style.css' %}" rel="stylesheet"/>
+
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      background: #1e1e2f; /* رنگ بک‌گراند دلخواه */
+    }
+
+    /* کانتینر وسط چین */
+    #wrapper {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* کارت لاگین */
+    .card-authentication1 {
+      max-width: 400px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+    }
+
+    /* فوتر */
+footer {
+  background: rgba(0, 0, 0, 0.4); /* نیمه شفاف */
+  backdrop-filter: blur(6px);     /* بلور پس‌زمینه */
+  -webkit-backdrop-filter: blur(6px); /* برای Safari */
+  color: #fff;
+  text-align: center;
+  padding: 12px 0;
+  font-size: 14px;
+  position: relative; /* ثابت نیست */
+}
+
+
+    footer a {
+      color: #f0f0f0;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 576px) {
+      .card-authentication1 {
+        margin: 0 15px;
+      }
+    }
+    .modal {
+  display: none; /* پیش‌فرض مخفی */
+  position: fixed;
+  z-index: 1000;
+  padding-top: 100px;
+  left: 0; top: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0,0,0,0.6);
+}
+
+/* --- Modal Content --- */
+.modal-content {
+  background: #fff;
+  margin: auto;
+  padding: 20px 30px;
+  border-radius: 12px;
+  width: 400px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+  position: relative;
+  animation: slideDown 0.4s ease;
+}
+
+/* --- Header --- */
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #f44336;
+}
+
+/* --- Close Button --- */
+.close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  font-size: 28px;
+  font-weight: bold;
+  color: #888;
+  cursor: pointer;
+}
+
+.close:hover {
+  color: #000;
+}
+
+/* --- Error Icon --- */
+.error-icon {
+  width: 32px;
+  height: 32px;
+  stroke: #f44336;
+  stroke-width: 3;
+}
+
+/* --- Download/Error Button --- */
+.btn-close {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 15px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.btn-close:hover {
+  background: #d32f2f;
+}
+
+/* --- Animation --- */
+@keyframes slideDown {
+  from { transform: translateY(-30px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+  </style>
+</head>
+<body class="bg-theme bg-theme1">
+
+  <div id="wrapper">
+    <div class="card card-authentication1">
+      <div class="card-body">
+        <div class="card-content p-2 text-center">
+          <img src="{% static 'images/logo-icon.png' %}" alt="logo icon">
+          <h5 class="card-title text-uppercase py-3">ورود به برنامه </h5>
+
+          <form id="login-form">
+            {% csrf_token %}
+            <div class="form-group">
+              <div class="position-relative has-icon-left mb-3">
+                <input type="text" name='username' id="username" class="form-control input-shadow" placeholder="نام کاربری ">
+                <div class="form-control-position"><i class="icon-user"></i></div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <div class="position-relative has-icon-left mb-3">
+                <input type="password" name='password' id="password" class="form-control input-shadow" placeholder="رمز عبور ">
+                <div class="form-control-position">
+                  <i class="icon-eye" id="togglePassword" style="cursor:pointer;"></i>
+                </div>
+              </div>
+            </div>
+          </br>
+            <button type="submit" class="btn btn-light btn-block">ورود </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- فوتر -->
+
+<footer class="footer-transparent">
+  <p>
+    این برنامه توسط <strong>ندا برابادی</strong> تهیه و توسعه داده شده است.  
+    📞 <a href="tel:09120194413" style="color: inherit; text-decoration: none;">۰۹۱۲۰۱۹۴۴۱۳</a>
+  </p>
+</footer>
+
+
+
+
+    <!--New Modals-->
+<!-- Modal: Frosted Glass -->
+ <!-- Error Modal -->
+<div id="error-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <div class="modal-header">
+      <svg xmlns="http://www.w3.org/2000/svg" class="error-icon" viewBox="0 0 24 24" fill="none">
+        <path d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+      </svg>
+      <h2>خطا در ورود به برنامه </h2>
+    </div>
+    <p id="error-msg"></p>  <!-- اینجا متن خطا قرار می‌گیرد -->
+      {% if errormodal %}
+
+            <p>Invalid username or password.<br>Please try again.</p>
+        {% elif activemodal %}
+            <p>Your account is inactive.<br> Please contact admin.</p>
+        {% endif %}
+    
+    <button class="btn-close" id="error-btn">بستن </button>
+  </div>
+</div>
+
+
+
+
+
+<!-- Scripts -->
+<!-- Bootstrap JS (bundle شامل Popper هم هست) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const body = document.body;
+    const modals = document.querySelectorAll('.modal-content'); // همه مدال‌ها
+    
+    if (!modals.length) return;
+
+    // گرفتن رنگ واقعی از computedStyle
+    const computedStyle = window.getComputedStyle(body);
+    const bgColor = computedStyle.backgroundColor;
+    const bgImage = computedStyle.backgroundImage;
+
+    modals.forEach(modal => {
+        console.log("Computed background color:", bgColor);
+        console.log("Computed background image:", bgImage);
+
+        // اگر gradient یا image است، مدال را شفاف و با blur کنیم
+        if (bgImage !== 'none') {
+            modal.style.backgroundColor = 'rgba(255,255,255,0.2)';
+            modal.style.backdropFilter = 'blur(8px)';
+        } else {
+            // اگر solid color است، همان رنگ را روی مدال اعمال کنیم
+            modal.style.backgroundColor = bgColor;
+            modal.style.backdropFilter = 'none';
+        }
+
+        // گوشه‌های مدال و استایل دلخواه
+        modal.style.borderRadius = '10px';
+    });
+});
+
+document.getElementById("login-form").addEventListener("submit", function(e){
+    e.preventDefault();
+    let formData = new FormData(this);
+
+    fetch("{% url 'login' %}", {
+        method: "POST",
+        body: formData,
+        credentials: "same-origin",
+        headers: {
+            "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log("Response:", data);
+
+        if (data.status === "success") {
+            window.location.href = "{% url 'Home' %}";
+        } else {
+            const errorModal = document.getElementById("error-modal");
+            document.getElementById("error-msg").textContent = data.message;
+            errorModal.style.display = "block";
+        }
+    })
+    .catch(error => console.error("Error:", error));
+});
+
+// بستن مدال‌ها
+document.querySelectorAll(".modal .close, .btn-close").forEach(btn => {
+    btn.onclick = () => btn.closest(".modal").style.display = "none";
+});
+
+window.onclick = (e) => {
+    if (e.target.classList.contains("modal")) e.target.style.display = "none";
+};
+
+
+
+const errorModal = document.getElementById("error-modal");
+const closeBtn   = document.querySelector(".close");
+const closeBtn2  = document.getElementById("error-btn");
+
+
+
+
+
+    const togglePassword = document.querySelector('#togglePassword');
+    const password = document.querySelector('#password');
+
+    togglePassword.addEventListener('click', function() {
+        const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+        password.setAttribute('type', type);
+
+        // تغییر کلاس آیکون برای نمایش/مخفی کردن
+        this.classList.toggle('icon-eye');
+        this.classList.toggle('icon-lock');
+    });
+</script>
+
+</body>
+</html>

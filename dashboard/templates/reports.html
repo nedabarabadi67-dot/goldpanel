@@ -1,0 +1,1436 @@
+{% extends "_newsidebar.html" %}
+{% load static %}
+{% load jalali_tags %}
+{% block title %}Reports{% endblock %}
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nouislider@15.7.0/dist/nouislider.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<!-- Persian Datepicker -->
+
+{% block content %}
+<style>
+
+  
+/* Glass Effect برای جدول‌ها */
+
+/* تب‌ها */
+.nav-tabs .nav-link {
+    color: #fff; /* رنگ متن سفید */
+    background: rgba(255, 255, 255, 0.1); /* شفاف */
+    border-radius: 8px 8px 0 0;
+    margin-right: 5px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* سایه متن برای خوانایی */
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    background: rgba(255, 255, 255, 0.25); /* کمی روشن‌تر برای تب فعال */
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+    font-weight: 600;
+}
+
+.nav-tabs .nav-link:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+}
+
+/* اگر میخوای لبه‌ها هم کمی واضح بشه */
+.nav-tabs {
+    border-bottom: 2px solid rgba(255,255,255,0.2);
+}
+
+
+
+/* کلاس مشترک برای همه inputهای فیلتر Invoices */
+.invoice-filters input {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
+    backdrop-filter: blur(8px);
+    transition: all 0.2s;
+}
+
+.invoice-filters input::placeholder {
+    color: #ddd;
+}
+
+.invoice-filters input:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: #4CAF50;
+    color: #fff;
+}
+
+/* سطر فیلترها */
+.invoice-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+}
+
+.check-icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 10px;
+    stroke-dasharray: 100;
+    stroke-dashoffset: 100;
+    animation: drawCheck 0.5s forwards;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 25px;
+    cursor: pointer;
+    color: #fff;
+    transition: color 0.2s;
+}
+.close:hover { color: #4CAF50; }
+
+.btn-download {
+    background: linear-gradient(135deg, #4CAF50, #45a049);
+    color: white;
+    border: none;
+    padding: 14px 25px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 17px;
+    font-weight: bold;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-download:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+}
+
+.report-actions {
+    display: flex;
+    align-items: center;
+    gap: 15px; /* فاصله بین المان‌ها */
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    flex: 0 0 180px; /* عرض ثابت برای همه دکمه‌ها */
+    height: 45px;    /* ارتفاع ثابت */
+    border-radius: 12px;
+    border: none;
+    background: linear-gradient(135deg, #4CAF50, #81C784);
+    color: #fff;
+    font-weight: 600;
+    font-size: 15px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-action:hover {
+    background: linear-gradient(135deg, #81C784, #4CAF50);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+}
+
+
+
+
+
+
+.table-responsive {
+  max-height: 400px; /* ارتفاع ثابت برای اسکرول */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* اسکرول نرم در موبایل */
+}
+
+.table-responsive table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+}
+
+.table-container {
+  max-height: 400px;       /* ارتفاع ثابت برای اسکرول */
+  overflow-y: auto;
+  position: relative;      /* مهم برای sticky */
+}
+
+.table-container tbody tr:hover {
+    background: rgba(255, 255, 255, 0.15); /* هاور برای تمرکز روی سطر */
+}
+/* سطرهای جدول */
+.table-container tbody tr {
+    background: rgba(255, 255, 255, 0.05); /* پس‌زمینه شفاف کم‌رنگ */
+    transition: background 0.2s;
+}
+
+.table-container tbody tr:hover {
+    background: rgba(255, 255, 255, 0.15); /* هاور برای تمرکز روی سطر */
+}
+
+/* متن جدول واضح‌تر */
+.table-container th, .table-container td {
+    color: #ffffff;           /* متن سفید */
+    font-weight: 600;         /* کمی ضخیم‌تر */
+    font-size: 15px;          /* کمی بزرگتر */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7); /* سایه متن برای خوانایی */
+}
+.table-container thead th {
+  position: sticky;
+  top: 0;
+
+  color: #fff;
+  z-index: 5;               /* بالا قرار گیرد */
+  text-align: left;
+      background: rgba(0,0,0,0.35); /* پس‌زمینه کمی تیره‌تر برای هدر */
+    color: #fff;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+
+
+}
+
+
+
+/* دکمه‌های اکسل و چاپ حرفه‌ای */
+.btn-action {
+    flex: 0 0 160px;
+    height: 50px;
+    border-radius: 12px;
+    border: none;
+    color: #fff;
+    font-weight: 600;
+    font-size: 16px;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-action i {
+    margin-left: 8px; /* فاصله آیکون از متن */
+    font-size: 18px;
+}
+
+/* رنگ گرادینت برای اکسل و چاپ */
+#exportProducts, #exportCustomers, #exportDailySales, #exportMonthly,#exportUserMonthly {
+    background: linear-gradient(135deg, #1976d2, #42a5f5);
+}
+#exportProducts:hover, #exportCustomers:hover, #exportDailySales:hover, #exportMonthly:hover ,#exportUserMonthly:hover{
+    background: linear-gradient(135deg, #42a5f5, #1976d2);
+}
+
+#printProducts, #printCustomers, #printDailySales, #printMonthly ,#printUserMonthly,#printInvoices,#printPurchase{
+    background: linear-gradient(135deg, #f57c00, #ffb74d);
+}
+#printProducts:hover, #printCustomers:hover, #printDailySales:hover,#printInvoices:hover, #printMonthly:hover,#printUserMonthly:hover,#printPurchase:hover {
+    background: linear-gradient(135deg, #ffb74d, #f57c00);
+}
+
+/* متن و آیکون وسط‌چین */
+.btn-action span, .btn-action i {
+    display: inline-flex;
+    align-items: center;
+}
+
+
+/* واکنش‌گرایی بیشتر برای موبایل */
+@media (max-width: 576px) {
+    .search-bar {
+        flex-grow: 1;   /* فرم جستجو کل عرض باقی‌مانده را می‌گیرد */
+    }
+
+    .search-bar input {
+        font-size: 0.9rem; /* کوچک‌تر کردن فونت برای موبایل */
+    }
+
+    .btn.btn-success {
+        flex-shrink: 0;  /* دکمه اندازه خودش را حفظ کند */
+    }
+}
+
+
+#topSellingProductsTable th, #topSellingProductsTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#topCustomersTable th, #topCustomersTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#dailySalesTable th, #dailySalesTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#monthlyTable th, #monthlyTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+#monthlyUserTable th, #monthlyUserTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+#invoicesTable th, #invoicesTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+#purchaseTable th, #purchaseTable td {
+    padding: 12px 10px !important; /* override padding Bootstrap */
+    
+    vertical-align: middle;
+    text-align: center;
+}
+
+/* دکمه‌های اکسل و پرینت */
+#exportProducts, #printProducts,#printInvoices {
+    font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+    padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+    margin-right: 5px;       /* فاصله بین دکمه‌ها */
+    margin-top:1px;
+    height: auto;            /* ارتفاع متناسب با محتوا */
+}
+
+/* دکمه‌های اکسل و پرینت */
+#exportCustomers, #printCustomers,#printPurchase {
+    font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+    padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+    margin-right: 5px;       /* فاصله بین دکمه‌ها */
+    margin-top:1px;
+    height: auto;            /* ارتفاع متناسب با محتوا */
+}
+
+/* دکمه‌های اکسل و پرینت */
+#exportDailySales, #printDailySales {
+    font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+    padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+    margin-right: 5px;       /* فاصله بین دکمه‌ها */
+    margin-top:1px;
+    height: auto;            /* ارتفاع متناسب با محتوا */
+}
+
+/* دکمه‌های اکسل و پرینت */
+#exportMonthly, #printMonthly,#exportUserMonthly,#printUserMonthly {
+    font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+    padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+    margin-right: 5px;       /* فاصله بین دکمه‌ها */
+    margin-top:1px;
+    height: auto;            /* ارتفاع متناسب با محتوا */
+}
+
+/* دکمه‌های اکسل و پرینت */
+#searchButton,#searchButton2 {
+    font-size: 0.85rem;      /* کوچک‌تر کردن فونت */
+    padding: 4px 10px;       /* کوچک‌تر کردن پدینگ */
+    margin-right: 5px;       /* فاصله بین دکمه‌ها */
+    margin-top:1px;
+    height: auto;            /* ارتفاع متناسب با محتوا */
+}
+</style>
+
+
+
+<h2> </h2>
+
+
+<!-- Nav Tabs -->
+<ul class="nav nav-tabs mt-3" id="reportTabs" role="tablist" >
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active" id="products-tab" data-bs-toggle="tab" data-bs-target="#products" type="button" role="tab">محصولات پرفروش </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="customers-tab" data-bs-toggle="tab" data-bs-target="#customers" type="button" role="tab">مشتریان پرخرید </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="invoices-tab" data-bs-toggle="tab" data-bs-target="#invoices" type="button" role="tab">فاکتورهای فروش </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="purchase-tab" data-bs-toggle="tab" data-bs-target="#purchase" type="button" role="tab">فاکتورهای خرید </button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="daily-sales-tab" data-bs-toggle="tab" data-bs-target="#daily-sales" type="button" role="tab">فروش روزانه</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="monthly-sales-tab" data-bs-toggle="tab" data-bs-target="#monthly-sales" type="button" role="tab">فروش ماهانه</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link" id="monthly-user-tab" data-bs-toggle="tab" data-bs-target="#monthly-user-sales" type="button" role="tab">عملکرد فروشنده</button>
+  </li> 
+
+</ul>
+
+<div class="tab-content" id="reportTabsContent">
+
+  <!-- Top Products -->
+  <div class="tab-pane fade show active" id="products" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+    <div class="report-actions d-flex align-items-center mb-3  ml-3">
+      
+      <button id="printProducts" class="btn-action">چاپ </button>
+      <form class="search-bar">
+        <input type="text" id="topproductInput" class="form-control " placeholder="کد - گروه - نام - وزن">
+        <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+      </form>
+
+    </div>
+    <div class="table-container table-responsive">
+      <table class="table table-hover table-glass " id="topSellingProductsTable">
+        <thead>
+          <tr>
+            <th>ردیف </th>
+            <th>تصویر </th>
+            <th>کد کالا</th>
+            <th>نام کالا</th>
+            <th>گروه کالا</th>
+            <th>وزن (گرم)</th>
+            <th>تعداد فروش </th>
+            <th>مبلغ فروش (تومان) </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in top_products %}
+          <tr>
+            <td>{{ forloop.counter|persian_digits }}</td>
+            <td>
+              {% if product.product__image %}
+                <img src="/media/{{ product.product__image }}" width="50" alt="{{ product.product__name }}">
+              {% else %}
+                <span>بدون تصویر </span>
+              {% endif %}
+            </td>
+            <td>{{ product.product__code|persian_digits }}</td>
+            <td>{{ product.product__name }}</td>
+            
+            <td>{{ product.product__category|cat_fa }}</td>
+            <td>{{ product.product__weight|persian_digits }}</td>
+            <td>{{ product.total_sold |persian_digits}}</td>
+            <td> {{ product.total_revenue|persian_intcomma }} </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div><!-- card-->
+  </div>
+
+  <!-- Top Customers -->
+  <div class="tab-pane fade" id="customers" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      <div class="report-actions d-flex align-items-center mb-3  ml-3">
+        
+        <button id="printCustomers" class="btn-action">چاپ </button>
+          <form class="search-bar">
+            <input type="text" id="topcustomerInput" class="form-control " placeholder="نام - تعداد خرید">
+            <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+          </form>
+
+      </div>
+      <div class=" table-container table-responsive">
+        <table class="table table-glass table-hover " id="topCustomersTable">
+          <thead>
+            <tr>
+              <th>ردیف </th>
+              <th>نام مشتری </th>
+              <th>تلفن </th>
+              <th>مبلغ خرید (تومان) </th>
+              <th>تعداد خرید</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for customer in top_customers %}
+            <tr>
+              <td>{{ forloop.counter|persian_digits }}</td>
+              <td>{{ customer.customer__name }}</td>
+              <td>{{ customer.customer__phone|persian_digits }}</td>
+              <td> {{ customer.total_spent|persian_intcomma }}  </td>
+              <td>{{ customer.invoice_count|persian_digits }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<!-- Invoices -->
+<div class="tab-pane fade" id="invoices" role="tabpanel">
+  <div class="card table-glass p-3 mt-3">
+    <form id="invoiceForm" method="post" class="invoice-filters">
+      {% csrf_token %}
+      
+      <input type="hidden" name="minprice" id="minprice" value="{{ min_price|default:0 }}">
+      <input type="hidden" name="maxprice" id="maxprice" value="{{ max_price|default:100000 }}">
+      <button id="printInvoices" class="btn-action me-3 mb-2">چاپ</button>
+      <div class="row g-2 mr-3">
+        
+
+        <div class="col-12 col-md-3 mb-2">
+          <input type="text" id="invoiceNumber" name="invoicenumber" class="form-control" placeholder="شماره فاکتور ">
+        </div>
+        <div class="col-12 col-md-3 mb-2">
+          <input type="text" id="startDate" name="startdate" class="form-control" placeholder="تاریخ شروع">
+          <input type="hidden" id="startDateHidden" name="start_date">
+        </div>
+        <div class="col-12 col-md-3 mb-2">
+          <input type="text" id="endDate" name="enddate" class="form-control" placeholder="تاریخ پایان">
+          <input type="hidden" id="endDateHidden" name="end_date">
+        </div>
+        <div class="col-12 col-md-3 mb-2 d-flex align-items-center">
+          <button type="submit" id="searchButton" class="btn btn-action btn-search">جستجو</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-container table-responsive mt-2">
+    <table class="table table-glass table-hover mt-3" id="invoicesTable">
+      <thead>
+        <tr>
+          
+          <th>شماره فاکتور</th>
+          <th>نام مشتری</th>
+          <th>تاریخ</th>
+          <th>مبلغ فروش (تومان)</th>
+          <th>سود دریافتی (تومان) </th>
+          <th>کاربر صادر کننده</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for invoice in invoices %}
+        <tr class="invoice-row" data-id="{{ invoice.id }}" style="cursor: pointer;">
+          
+          <td>{{ invoice.number|persian_digits }}</td>
+          <td>{{ invoice.customer.name }}</td>
+          <td>{{ invoice.date|to_jalali}}</td>
+          <td>{{ invoice.total_price|persian_intcomma }}</td>
+          <td>{{invoice.profit_total|persian_intcomma}}</td>
+          <td>{{ invoice.user.first_name }} {{invoice.user.last_name}}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Invoices -->
+<div class="tab-pane fade" id="purchase" role="tabpanel">
+  <div class="card table-glass p-3 mt-3">
+    <form id="purchaseForm" method="post" class="invoice-filters">
+      {% csrf_token %}
+      
+      <input type="hidden" name="minprice" id="minprice" value="{{ min_price|default:0 }}">
+      <input type="hidden" name="maxprice" id="maxprice" value="{{ max_price|default:100000 }}">
+      <button id="printPurchase" class="btn-action me-3 mb-2">چاپ</button>
+      <div class="row g-2 mr-3">
+        
+
+        <div class="col-12 col-md-3 mb-2">
+          <input type="text" id="purchaseNumber" name="purchasenumber" class="form-control" placeholder="شماره فاکتور ">
+        </div>
+        <div class="col-12 col-md-3 mb-2">
+          <input type="text" id="startDate2" name="startdate2" class="form-control" placeholder="تاریخ شروع">
+          <input type="hidden" id="startDateHidden2" name="start_date2">
+        </div>
+        <div class="col-12 col-md-3 mb-2">
+          <input type="text" id="endDate2" name="enddate2" class="form-control" placeholder="تاریخ پایان">
+          <input type="hidden" id="endDateHidden2" name="end_date2">
+        </div>
+        <div class="col-12 col-md-3 mb-2 d-flex align-items-center">
+          <button type="submit" id="searchButton2" class="btn btn-action btn-search">جستجو</button>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="table-container table-responsive mt-2">
+    <table class="table table-glass table-hover mt-3" id="purchaseTable">
+      <thead>
+        <tr>
+          <th>شماره فاکتور</th>
+          <th>نام فروشنده</th>
+          <th>نوع خرید</th>
+          <th>تاریخ</th>
+          <th>وزن خرید (گرم)</th>
+          <th>عیار</th>
+          <!--<th>فی (گرم)</th>
+          <th>فی (مثقال)</th>
+          <th>اجرت (درصد) </th>
+          <th>اجرت (تومان)</th>-->
+          <th>مبلغ کل (تومان)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in purchase %}
+        <tr class="purchase-row" data-id="{{ p.id }}" style="cursor: pointer;">
+          
+          <td>{{ p.number|persian_digits }}</td>
+          <td>{{ p.seller.name }}</td>
+          <td>{{p.type|type_purchase}}</td>
+          <td>{{ p.date|to_jalali}}</td>
+          <td>{{p.weight|persian_digits}}</td>
+          <td>{{p.purity|persian_digits}}</td>
+          <!--<td>{{ p.price|persian_intcomma }}</td>
+          <td>{{ p.pricemesghal|persian_intcomma }}</td>
+          <td>{{p.labor|persian_digits}}</td>
+          <td>{{ p.laborprice|persian_intcomma }}</td>-->
+          <td>{{ p.total_price|persian_intcomma }} </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="6" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+  <!-- Daily Sales -->
+  <div class="tab-pane fade" id="daily-sales" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      
+      <div class="report-actions d-flex align-items-center mb-3 ">
+        
+        <button id="printDailySales" class="btn-action">چاپ</button>
+        <form class="search-bar">
+          <input type="text" id="dailySalesInput" class="form-control " placeholder="تاریخ - تعداد مشتریان - تعداد فاکتور">
+          <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+        </form>
+      </div>
+      <div class="table-container table-responsive">
+        <table class="table table-glass table-hover" id="dailySalesTable">
+          <thead>
+            <tr>
+              <th>ردیف</th>
+              <th>تاریخ</th>
+              <th>تعداد مشتریان</th>
+              <th>تعداد فاکتور</th>
+              <th>مبلغ فروش (تومان) </th>
+              <th>سود دریافتی (تومان) </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale in daily_sales %}
+            <tr>
+              <td>{{ forloop.counter|persian_digits }}</td>
+              <td>{{ sale.date|to_jalali}}</td>
+              <td>{{ sale.total_customers|persian_digits }}</td>
+              <td>{{ sale.total_invoices|persian_digits }}</td>
+              <td> {{ sale.total_amount|persian_intcomma }} </td>
+              <td>{{sale.profit_total|persian_intcomma}} </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Monthly Sales -->
+  <div class="tab-pane fade" id="monthly-sales" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      
+      <div class="report-actions d-flex align-items-center mb-3 ">
+        
+        <button id="printMonthly" class="btn-action">چاپ </button>
+        <form class="search-bar">
+          <input type="text" id="monthlyInput" class="form-control " placeholder="ماه - تعداد مشتریان - تعداد فاکتور">
+          <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+        </form>
+
+      </div>
+      <div class="table-container table-responsive">
+        <table class="table table-glass table-hover" id="monthlyTable">
+          <thead>
+            <tr>
+              <th>ردیف </th>
+              <th>ماه </th>
+              <th>تعداد مشتریان</th>
+              <th>تعداد فاکتور</th>
+              <th>مبلغ فروش (تومان)</th>
+              <th>سود دریافتی (تومان) </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale in monthly_sales %}
+            <tr>
+              <td>{{ forloop.counter|persian_digits }}</td>
+              <td>{{ sale.month|persian_digits }}</td>
+              <td>{{ sale.total_customers|persian_digits }}</td>
+              <td>{{ sale.total_invoices|persian_digits }}</td>
+              <td>{{ sale.total_amount |persian_intcomma}} </td>
+              <td>{{sale.profit_total|persian_intcomma}} </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+    <!-- Monthly User Sales -->
+  <div class="tab-pane fade" id="monthly-user-sales" role="tabpanel">
+    <div class="card table-glass p-3 mt-3">
+      
+      <div class="report-actions d-flex align-items-center mb-3 ">
+        
+        <button id="printUserMonthly" class="btn-action">چاپ </button>
+      
+        <form class="search-bar">
+          <input type="text" id="monthlyUserInput" class="form-control " placeholder="ماه - فروشنده - تعداد فاکتور">
+          <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
+        </form>
+
+      </div>
+      <div class="table-container table-responsive">
+        <table class="table table-glass table-hover" id="monthlyUserTable">
+          <thead>
+            <tr>
+              <th>ردیف </th>
+              <th>ماه </th>
+              <th>فروشنده</th>
+              <th>تعداد فاکتور</th>
+              <th>مبلغ فروش (تومان)</th>
+              <th>سود دریافتی (تومان) </th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for sale in monthly_user_sales %}
+            <tr>
+              <td>{{ forloop.counter|persian_digits }}</td>
+              <td>{{ sale.month|persian_digits }}</td>
+              <td>{{ sale.user}}</td>
+              <td>{{ sale.total_invoices|persian_digits }}</td>
+              <td>{{ sale.total_amount |persian_intcomma}} </td>
+              <td>{{sale.profit_total|persian_intcomma}}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div> <!-- پایان tab-content -->
+
+
+
+
+{% endblock %}
+
+{% block scripts %}
+      <!-- Bootstrap -->
+<!-- Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+
+<!-- Moment.js -->
+<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/min/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/moment-jalaali@0.9.4/build/moment-jalaali.js"></script>
+
+<!-- KamaDatepicker CSS & JS -->
+<link rel="stylesheet" href="{% static 'assets/css/kamadatepicker.min.css' %}">
+<script src="{% static 'assets/js/kamadatepicker.min.js' %}"></script>
+
+<!-- CDN XLSX -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+	<script>
+
+    // --- تبدیل اعداد فارسی به انگلیسی ---
+function persianToEnglishDigits(str) {
+    const persian = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    const english = ['0','1','2','3','4','5','6','7','8','9'];
+    let result = '';
+    for(let i=0;i<str.length;i++){
+        const idx = persian.indexOf(str[i]);
+        result += (idx >= 0) ? english[idx] : str[i];
+    }
+    return result;
+}
+    
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+
+function toPersianDigits(str) {
+    if (!str) return '';
+    return String(str).replace(/\d/g, d => persianDigits[d]);
+}
+
+
+
+
+function enforcePersianDigits(input) {
+    input.addEventListener("input", function() {
+        let value = this.value;
+
+        // تبدیل اعداد انگلیسی به فارسی
+        value = value.replace(/\d/g, d => persianDigits[d]);
+
+        // فقط اعداد فارسی و اسلش مجاز باشند
+        value = value.replace(/[^۰-۹/]/g, '');
+
+        this.value = value;
+    });
+}
+
+// اعمال روی فیلدها
+enforcePersianDigits(document.getElementById("invoiceNumber"));
+enforcePersianDigits(document.getElementById("startDate"));
+enforcePersianDigits(document.getElementById("endDate"));
+
+
+function toEnglishDigits(str) {
+    return str.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+}
+
+  
+//print  
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل (حذف تصاویر)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+        table.querySelectorAll('img').forEach(img => img.remove());
+        
+    // راست‌چین کردن متن‌ها
+    Array.from(table.rows).forEach(row => {
+        Array.from(row.cells).forEach(cell => {
+            cell.style.textAlign = "right"; // محتوا راست‌چین
+            cell.style.direction = "rtl";   // جهت RTL
+        });
+    });
+        return table;
+    }
+
+    // تعریف همه جدول‌ها و دکمه‌ها
+    const tables = [
+        {tableId: 'topSellingProductsTable', exportId: 'exportProducts', printId: 'printProducts', sheetName: 'محصولات پرفروش'},
+        {tableId: 'topCustomersTable', exportId: 'exportCustomers', printId: 'printCustomers', sheetName: 'مشتریان'},
+        {tableId: 'invoicesTable', exportId: 'exportInvoices', printId: 'printInvoices', sheetName: 'فاکتورهای فروش'},
+        {tableId: 'purchaseTable', printId: 'printPurchase', sheetName: 'فاکتورهای خرید'},
+        {tableId: 'dailySalesTable', exportId: 'exportDailySales', printId: 'printDailySales', sheetName: 'فروش روزانه'},
+        {tableId: 'monthlyTable', exportId: 'exportMonthly', printId: 'printMonthly', sheetName: 'فروش ماهانه'},
+        {tableId: 'monthlyUserTable', exportId: 'exportUserMonthly', printId: 'printUserMonthly', sheetName: ' عملکرد فروشنده'},
+    ];
+
+    tables.forEach(item => {
+        // اکسل
+        const exportBtn = document.getElementById(item.exportId);
+        if (exportBtn) {
+            exportBtn.addEventListener('click', function() {
+                const clone = cleanTableForExport(item.tableId);
+                
+                const wb = XLSX.utils.table_to_book(clone, {sheet: item.sheetName});
+
+                wb.Sheets[item.sheetName]['!cols'] = Array.from({length: clone.rows[0].cells.length}, () => ({wch:20}));
+                XLSX.writeFile(wb, `${item.sheetName}-${getTodayDateShamsi()}.xlsx`);
+            });
+        }
+
+        // چاپ
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const divToPrint = document.getElementById(item.tableId);
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title></head><body>');
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: center; }
+                        th, td { border: 1px solid #ccc; padding: 10px; }
+                        th { background-color: #f0f0f0; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                        footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(divToPrint.outerHTML);
+                 newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
+
+
+// تابع سورت جدول بر اساس ستون مشخص (همان تابع قبلی)
+// تابع سورت جدول بر اساس ستون مشخص
+// تابع سورت عمومی
+// جایگزین کامل تابع سورت و activation
+function parseNumberFromCellText(text) {
+    if (!text && text !== 0) return null;
+    let s = String(text).trim();
+
+    // تبدیل ارقام فارسی به انگلیسی
+    const persianMap = { '۰':'0','۱':'1','۲':'2','۳':'3','۴':'4','۵':'5','۶':'6','۷':'7','۸':'8','۹':'9' };
+    s = s.replace(/[۰-۹]/g, ch => persianMap[ch] || ch);
+
+    // حذف متن‌های غیر عددی متداول مانند "ریال" یا "%" و فاصله و علامت هزارگان
+    s = s.replace(/ریال/g, '');
+    s = s.replace(/٪|%/g, '');
+    s = s.replace(/[,٬\s\u00A0]/g, ''); // کاما انگلیسی، کاما فارسی، فاصله معمولی و nbsp
+
+    // حالا فقط کاراکترهای عدد و نقطه و منفی را نگه دار
+    s = s.replace(/[^\d\.\-]/g, '');
+
+    // اگر خالی شد، عدد نیست
+    if (s === '' || s === '.' || s === '-' || s === '-.') return null;
+
+    // parseFloat با fallback
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : null;
+}
+
+function sortTableByColumn(table, columnIndex, asc = true) {
+    const tbody = table.tBodies[0];
+    const rowsArray = Array.from(tbody.querySelectorAll("tr"));
+
+    rowsArray.sort((a, b) => {
+        const aText = a.children[columnIndex].textContent.trim();
+        const bText = b.children[columnIndex].textContent.trim();
+
+        const aNum = parseNumberFromCellText(aText);
+        const bNum = parseNumberFromCellText(bText);
+
+        // هر دو عدد بودند => مقایسه عددی
+        if (aNum !== null && bNum !== null) {
+            return asc ? aNum - bNum : bNum - aNum;
+        }
+
+        // اگر فقط یکی عدد بود، عدد را بالاتر/پایین‌تر قرار بده (می‌تونی معکوس کنی)
+        if (aNum !== null && bNum === null) return asc ? -1 : 1;
+        if (aNum === null && bNum !== null) return asc ? 1 : -1;
+
+        // هر دو عدد نبودند => مقایسه رشته‌ای فارسی-محلی
+        return asc 
+            ? aText.localeCompare(bText, 'fa', { sensitivity: 'base' })
+            : bText.localeCompare(aText, 'fa', { sensitivity: 'base' });
+    });
+
+    // جایگذاری دوباره سطرها و بازشماری ردیف اول ستون (در صورت نیاز)
+    rowsArray.forEach((row, index) => {
+        tbody.appendChild(row);
+        // اگر ستون اول حاوی شماره ردیف هست و می‌خوای آپدیت بشه:
+        if (row.children[0]) row.children[0].textContent = toPersianDigits(index + 1);
+    });
+}
+
+// activation — مطمئن شو ایندکس‌ها صفر‌بیس هستند
+document.addEventListener("DOMContentLoaded", function() {
+    const sortableTables = [
+        { id: "topSellingProductsTable", columns: [5, 6] }, // ستون‌ها صفر‌بیس
+        { id: "topCustomersTable", columns: [3, 4] },
+        { id: "invoicesTable", columns: [4,5] },
+        { id: "dailySalesTable", columns: [3,4,5] },
+        { id: "monthlyTable", columns: [3,4,5] },
+        { id: "monthlyUserTable", columns: [3,4,5] },
+    ];
+
+    sortableTables.forEach(item => {
+        const table = document.getElementById(item.id);
+        if (!table) return;
+
+        item.columns.forEach(colIndex => {
+            // th:nth-child expects 1-based index
+            const header = table.querySelector(`th:nth-child(${colIndex + 1})`);
+            if (!header) return;
+
+            let asc = true;
+            header.style.cursor = "pointer";
+            header.title = "برای سورت کلیک کنید";
+
+            header.addEventListener("click", function() {
+                sortTableByColumn(table, colIndex, asc);
+                asc = !asc;
+            });
+        });
+    });
+});
+
+
+//تقویم شمسی
+document.addEventListener("DOMContentLoaded", function() {
+    //kamaDatepicker('startDate', { closeAfterSelect: true,forceFarsiDigits: true,appendTo: document.body });
+    //kamaDatepicker('endDate', { closeAfterSelect: true,appendTo: document.body });
+
+});
+
+// invoice pdf 
+document.addEventListener("DOMContentLoaded", function() {
+
+    // تبدیل عدد انگلیسی → فارسی
+    function toPersianDigits(str) {
+        const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+        return String(str).replace(/\d/g, d => persianDigits[d]);
+    }
+
+    const tbody = document.querySelector("#invoicesTable tbody");
+
+    // ------------------ باز کردن PDF با کلیک --------------------
+    tbody.addEventListener("click", function(e) {
+        const row = e.target.closest(".invoice-row");
+        if (!row) return;
+
+        const invoiceId = row.dataset.id;
+        if (invoiceId) {
+            window.open(`/invoice/${invoiceId}/pdf2/`, "_blank");
+        }
+    });
+
+    // ------------------ تابع debounce --------------------
+    function debounce(func, delay) {
+        let timer;
+        return function() {
+            clearTimeout(timer);
+            timer = setTimeout(() => func.apply(this, arguments), delay);
+        };
+    }
+
+    // ------------------ تابع انجام جستجو --------------------
+    const doSearch = debounce(function() {
+        const form = document.getElementById("invoiceForm");
+        const params = new URLSearchParams(new FormData(form));
+
+        fetch(`/invoices/search/?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+
+                if (!data.results || data.results.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-white">
+                                هیچ فاکتوری پیدا نشد.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                // ساخت ردیف‌ها
+                data.results.forEach(inv => {
+                    const tr = document.createElement("tr");
+                    tr.classList.add("invoice-row");
+                    tr.dataset.id = inv.id;
+                    tr.style.cursor = "pointer";
+
+                    tr.innerHTML = `
+                        <td>${toPersianDigits(inv.number)}</td>
+                        <td>${inv.customer}</td>
+                        <td>${toPersianDigits(inv.date)}</td>
+                        <td>${toPersianDigits(inv.total_price)}</td>
+                        <td>${toPersianDigits(inv.profit_total)}</td>
+                        <td>${inv.user}</td>
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => console.error(err));
+    }, 400);  // ← تأخیر ۴۰۰ میلی‌ثانیه برای جلوگیری از اسپم
+
+    // ------------------ فعال‌سازی سرچ لایو روی تمام ورودی‌ها --------------------
+    document.querySelectorAll("#invoiceForm input").forEach(input => {
+        input.addEventListener("input", doSearch);
+    });
+
+});
+
+//purchase pdf
+document.addEventListener("DOMContentLoaded", function() {
+
+    // تبدیل عدد انگلیسی → فارسی
+    function toPersianDigits(str) {
+        const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+        return String(str).replace(/\d/g, d => persianDigits[d]);
+    }
+
+    const tbody = document.querySelector("#purchaseTable tbody");
+
+    // ------------------ باز کردن PDF با کلیک --------------------
+    tbody.addEventListener("click", function(e) {
+        const row = e.target.closest(".purchase-row");
+        if (!row) return;
+
+        const invoiceId = row.dataset.id;
+        if (invoiceId) {
+            window.open(`/invoice/${invoiceId}/download-pdf/`, "_blank");
+        }
+    });
+
+    // ------------------ تابع debounce --------------------
+    function debounce(func, delay) {
+        let timer;
+        return function() {
+            clearTimeout(timer);
+            timer = setTimeout(() => func.apply(this, arguments), delay);
+        };
+    }
+
+    // ------------------ تابع انجام جستجو --------------------
+    const doSearch2 = debounce(function() {
+        const form = document.getElementById("purchaseForm");
+        const params = new URLSearchParams(new FormData(form));
+
+        fetch(`/purchase/search/?${params.toString()}`)
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = "";
+
+                if (!data.results || data.results.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="10" class="text-center text-white">
+                                هیچ فاکتوری پیدا نشد.
+                            </td>
+                        </tr>`;
+                    return;
+                }
+
+                // ساخت ردیف‌ها
+                data.results.forEach(inv => {
+                    const tr = document.createElement("tr");
+                    tr.classList.add("purchase-row");
+                    tr.dataset.id = inv.id;
+                    tr.style.cursor = "pointer";
+
+                    tr.innerHTML = `
+                        <td>${toPersianDigits(inv.number)}</td>
+                        <td>${inv.seller}</td>
+                        <td>${inv.type}</td>
+                        <td>${toPersianDigits(inv.date)}</td>
+                        <td>${toPersianDigits(inv.weight)}</td>
+                        <td>${toPersianDigits(inv.purity)}</td>
+                        
+                        <td>${toPersianDigits(inv.total_price)}</td>
+                        
+                    `;
+
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(err => console.error(err));
+    }, 400);  // ← تأخیر ۴۰۰ میلی‌ثانیه برای جلوگیری از اسپم
+
+    // ------------------ فعال‌سازی سرچ لایو روی تمام ورودی‌ها --------------------
+    document.querySelectorAll("#purchaseForm input").forEach(input => {
+        input.addEventListener("input", doSearch2);
+    });
+
+});
+
+// تابع عمومی برای جستجو
+function setupTableSearch(inputId, tableId, columnsToSearch = []) {
+    const input = document.getElementById(inputId);
+    const table = document.getElementById(tableId);
+    if (!input || !table) return;
+
+    input.addEventListener("keyup", function () {
+        const filter = this.value.trim();
+        const normalizedFilter = filter
+            .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+            .toLowerCase();
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            let match = false;
+
+            columnsToSearch.forEach(colIndex => {
+                const cell = row.cells[colIndex];
+                if (!cell) return;
+
+                // متن سلول + تبدیل اعداد فارسی به انگلیسی
+                const cellText = cell.innerText.toLowerCase();
+                const normalizedCell = cellText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+                if (normalizedCell.includes(normalizedFilter)) {
+                    match = true;
+                }
+            });
+
+            row.style.display = match ? "" : "none";
+        });
+    });
+}
+
+function setupTableSearchMulti(inputId, tableId, columnsToSearch = []) {
+    const input = document.getElementById(inputId);
+    const table = document.getElementById(tableId);
+    if (!input || !table) return;
+
+    input.addEventListener("keyup", function () {
+        const filter = this.value.trim().toLowerCase();
+        console.log(input.value);
+
+        // جدا کردن چند کلیدواژه با فاصله
+        const keywords = filter.split(/\s+/).map(k => 
+            k.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+        );
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach(row => {
+            let match = true;
+
+            // بررسی هر کلیدواژه
+            keywords.forEach(kw => {
+                let found = false;
+
+                columnsToSearch.forEach(colIndex => {
+                    const cell = row.cells[colIndex];
+                    if (!cell) return;
+
+                    let cellText = cell.innerText.toLowerCase();
+                    let normalizedCell = cellText.replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+
+                    if (normalizedCell.includes(kw)) {
+                        found = true;
+                    }
+                });
+
+                // اگر یک کلیدواژه پیدا نشد → ردیف نمایش داده نشود
+                if (!found) match = false;
+            });
+
+            row.style.display = match ? "" : "none";
+        });
+    });
+}
+
+// مثال استفاده برای جدول محصولات (نام کالا و گروه کالا)
+setupTableSearchMulti("topproductInput", "topSellingProductsTable", [2,3, 4,5]);
+setupTableSearchMulti("invoiceNumber", "invoicesTable", [0]);
+setupTableSearchMulti("purchaseNumber", "purchaseTable", [0]);
+setupTableSearchMulti("topcustomerInput", "topCustomersTable",[1,4]);
+setupTableSearchMulti("dailySalesInput", "dailySalesTable",[1,2,3]);
+setupTableSearchMulti("monthlyInput", "monthlyTable",[1,2,3]);
+setupTableSearchMulti("monthlyUserInput", "monthlyUserTable ", [1,2,3]);
+
+
+
+
+// فعال‌سازی برای هر دو جدول
+//setupTableSearch("topproductInput", "topSellingProductsTable");
+// ستون 1 = نام محصول، ستون 2 = دسته‌بندی
+//setupTableSearch("topproductInput", "topSellingProductsTable", [2,4]);
+//setupTableSearch("topcustomerInput", "topCustomersTable");
+//setupTableSearch("dailySalesInput", "dailySalesTable");
+//setupTableSearch("monthlyInput", "monthlyTable");
+//setupTableSearch("monthlyUserInput", "monthlyUserTable");
+
+
+// تبدیل اعداد به فارسی در فیلدهای عددی فروش
+function makeInputPersian(inputId) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    input.addEventListener('input', function() {
+        const cursorPos = input.selectionStart;
+        input.value = input.value.replace(/\d/g, d => persianDigits[d]);
+        input.setSelectionRange(cursorPos, cursorPos);
+    });
+}
+
+makeInputPersian('topproductInput');
+makeInputPersian('topcustomerInput');
+makeInputPersian('dailySalesInput');
+makeInputPersian('monthlyInput');
+makeInputPersian('monthlyUserInput');
+makeInputPersian('purchaseNumber');
+
+
+document.addEventListener("DOMContentLoaded", function() {
+
+    function toPersianDigits(str) {
+        const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+        return String(str).replace(/\d/g, d => persianDigits[d]);
+    }
+
+    const tbody = document.querySelector("#purchaseTable tbody");
+
+    // Event delegation برای کلیک روی ردیف‌ها
+    tbody.addEventListener("click", function(e) {
+      console.log("click");
+        const row = e.target.closest(".purchase-row");
+        if (!row) return;
+
+        const purchaseId = row.dataset.id; // همیشه انگلیسی
+        console.log(purchaseId);
+        if (!purchaseId) return;
+
+        const url = `/invoice/${purchaseId}/download-pdf/`; // مسیر PDF خرید
+        window.open(url, "_blank");
+    });
+
+});
+
+// وقتی کاربر تاریخ فاکتور را وارد می‌کند
+const dateInput = document.getElementById('startDate');
+const dateHidden = document.getElementById('startDateHidden');
+// فقط اعداد فارسی و قالب YYYY/MM/DD
+document.getElementById('startDate').addEventListener('input', function(e) {
+    let value = this.value;
+    
+    // تبدیل اعداد انگلیسی به فارسی
+    value = value.replace(/\d/g, d => persianDigits[d]);
+
+    // حذف کاراکترهای غیرمجاز
+    value = value.replace(/[^\u06F0-\u06F90-9]/g, '');
+
+    // اضافه کردن خودکار /
+    if(value.length > 4 && value[4] !== '/'){
+        value = value.slice(0,4) + '/' + value.slice(4);
+    }
+    if(value.length > 7 && value[7] !== '/'){
+        value = value.slice(0,7) + '/' + value.slice(7);
+    }
+
+    // کوتاه کردن بیش از 10 کاراکتر
+    if(value.length > 10) value = value.slice(0,10);
+
+    this.value = value;
+        // تبدیل اعداد فارسی به انگلیسی قبل از ارسال به hidden
+    const englishValue = persianToEnglishDigits(value);
+    dateHidden.value = englishValue;
+
+});
+const dateInput2 = document.getElementById('endDate');
+const dateHidden2 = document.getElementById('endDateHidden');
+// فقط اعداد فارسی و قالب YYYY/MM/DD
+document.getElementById('endDate').addEventListener('input', function(e) {
+    let value = this.value;
+    
+    // تبدیل اعداد انگلیسی به فارسی
+    value = value.replace(/\d/g, d => persianDigits[d]);
+
+    // حذف کاراکترهای غیرمجاز
+    value = value.replace(/[^\u06F0-\u06F90-9]/g, '');
+
+    // اضافه کردن خودکار /
+    if(value.length > 4 && value[4] !== '/'){
+        value = value.slice(0,4) + '/' + value.slice(4);
+    }
+    if(value.length > 7 && value[7] !== '/'){
+        value = value.slice(0,7) + '/' + value.slice(7);
+    }
+
+    // کوتاه کردن بیش از 10 کاراکتر
+    if(value.length > 10) value = value.slice(0,10);
+
+    this.value = value;
+        // تبدیل اعداد فارسی به انگلیسی قبل از ارسال به hidden
+    const englishValue = persianToEnglishDigits(value);
+    dateHidden2.value = englishValue;
+
+});
+const dateInput3 = document.getElementById('startDate2');
+const dateHidden3 = document.getElementById('startDateHidden2');
+// فقط اعداد فارسی و قالب YYYY/MM/DD
+document.getElementById('startDate2').addEventListener('input', function(e) {
+    let value = this.value;
+    
+    // تبدیل اعداد انگلیسی به فارسی
+    value = value.replace(/\d/g, d => persianDigits[d]);
+
+    // حذف کاراکترهای غیرمجاز
+    value = value.replace(/[^\u06F0-\u06F90-9]/g, '');
+
+    // اضافه کردن خودکار /
+    if(value.length > 4 && value[4] !== '/'){
+        value = value.slice(0,4) + '/' + value.slice(4);
+    }
+    if(value.length > 7 && value[7] !== '/'){
+        value = value.slice(0,7) + '/' + value.slice(7);
+    }
+
+    // کوتاه کردن بیش از 10 کاراکتر
+    if(value.length > 10) value = value.slice(0,10);
+
+    this.value = value;
+        // تبدیل اعداد فارسی به انگلیسی قبل از ارسال به hidden
+    const englishValue = persianToEnglishDigits(value);
+    dateHidden3.value = englishValue;
+
+});
+const dateInput4 = document.getElementById('endDate2');
+const dateHidden4 = document.getElementById('endDateHidden2');
+// فقط اعداد فارسی و قالب YYYY/MM/DD
+document.getElementById('endDate2').addEventListener('input', function(e) {
+    let value = this.value;
+    
+    // تبدیل اعداد انگلیسی به فارسی
+    value = value.replace(/\d/g, d => persianDigits[d]);
+
+    // حذف کاراکترهای غیرمجاز
+    value = value.replace(/[^\u06F0-\u06F90-9]/g, '');
+
+    // اضافه کردن خودکار /
+    if(value.length > 4 && value[4] !== '/'){
+        value = value.slice(0,4) + '/' + value.slice(4);
+    }
+    if(value.length > 7 && value[7] !== '/'){
+        value = value.slice(0,7) + '/' + value.slice(7);
+    }
+
+    // کوتاه کردن بیش از 10 کاراکتر
+    if(value.length > 10) value = value.slice(0,10);
+
+    this.value = value;
+        // تبدیل اعداد فارسی به انگلیسی قبل از ارسال به hidden
+    const englishValue = persianToEnglishDigits(value);
+    dateHidden4.value = englishValue;
+
+});
+
+</script>
+
+
+{% endblock %}

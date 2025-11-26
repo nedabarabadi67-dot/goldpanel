@@ -1,0 +1,29 @@
+<h2>لیست سندهای حسابداری</h2>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>ID سند</th>
+            <th>تاریخ</th>
+            <th>توضیحات</th>
+            <th>نوع</th>
+            <th>مشاهده جزئیات</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for entry in entries %}
+        <tr>
+            <td>{{ entry.id }}</td>
+            <td>{{ entry.date }}</td>
+            <td>{{ entry.description }}</td>
+            <td>
+                {% if entry.related_purchase %}خرید{% elif entry.related_sale %}فروش{% else %}-{% endif %}
+            </td>
+            <td>
+                <a href="{% url 'journal_entry_detail' entry.id %}">مشاهده</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
