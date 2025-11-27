@@ -393,7 +393,7 @@ def Home(request):
 
 #login page
 def login_view(request):
-    print("login")
+    #print("login")
     # اگر کاربر از قبل لاگین باشد → مستقیم Home
     if request.user.is_authenticated:
         return redirect("Home")
@@ -402,8 +402,8 @@ def login_view(request):
         username = request.POST.get("username")
         password = request.POST.get("password")
         remember_me = request.POST.get("remember_me")  # مقدار "on" اگر تیک خورده باشد
-        print(remember_me)
-        print(username)
+        #print(remember_me)
+        #print(username)
         # authenticate بهتر است از check_password جدا شود
         user = authenticate(request, username=username, password=password)
 
@@ -413,10 +413,10 @@ def login_view(request):
                 login(request, user)
 
                 if remember_me == "on":
-                    print("tik")
+                    #print("tik")
                     request.session.set_expiry(1209600)  # دو هفته
                 else:
-                    print("notik")
+                    #print("notik")
                     request.session.set_expiry(None)  # با بستن مرورگر حذف میشه
                     
 
