@@ -4168,21 +4168,22 @@ def financial_dashboard(request):
     expense_accounts = Account.objects.filter(type='expense')
 
     for acc in income_accounts:
-        items_acc = JournalItem.objects.filter(account=acc)
-        debit = items_acc.aggregate(
-            d=Coalesce(Sum('debit_money'), V(0, output_field=DecimalField()))
-        )['d']
-        credit = items_acc.aggregate(
-            c=Coalesce(Sum('credit_money'), V(0, output_field=DecimalField()))
-        )['c']
-        pl_data.append({
-            "id": acc.id,
-            "category": "درآمد",
-            "description": acc.name,
-            "debit": debit,
-            "credit": credit,
-            "total": credit - debit
-        })
+        if acc.code != '4' :
+            items_acc = JournalItem.objects.filter(account=acc)
+            debit = items_acc.aggregate(
+                d=Coalesce(Sum('debit_money'), V(0, output_field=DecimalField()))
+            )['d']
+            credit = items_acc.aggregate(
+                c=Coalesce(Sum('credit_money'), V(0, output_field=DecimalField()))
+            )['c']
+            pl_data.append({
+                "id": acc.id,
+                "category": "درآمد",
+                "description": acc.name,
+                "debit": debit,
+                "credit": credit,
+                "total": credit - debit
+            })
     
     for acc in expense_accounts:
         items_acc = JournalItem.objects.filter(account=acc)
