@@ -488,7 +488,7 @@
         
 
         <div class="col-12 col-md-3 mb-2">
-          <input type="text" id="invoiceNumber" name="invoicenumber" class="form-control" placeholder="شماره فاکتور ">
+          <input type="text" id="invoiceNumber" name="invoicenumber" class="form-control" placeholder="فاکتور - مشتری ">
         </div>
         <div class="col-12 col-md-3 mb-2">
           <input type="text" id="startDate" name="startdate" class="form-control" placeholder="تاریخ شروع">
@@ -552,7 +552,7 @@
         
 
         <div class="col-12 col-md-3 mb-2">
-          <input type="text" id="purchaseNumber" name="purchasenumber" class="form-control" placeholder="شماره فاکتور ">
+          <input type="text" id="purchaseNumber" name="purchasenumber" class="form-control" placeholder="فاکتور - فروشنده">
         </div>
         <div class="col-12 col-md-3 mb-2">
           <input type="text" id="startDate2" name="startdate2" class="form-control" placeholder="تاریخ شروع">
@@ -604,7 +604,7 @@
         </tr>
         {% empty %}
         <tr>
-          <td colspan="6" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>
+          <td colspan="7" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -801,7 +801,7 @@ function enforcePersianDigits(input) {
 }
 
 // اعمال روی فیلدها
-enforcePersianDigits(document.getElementById("invoiceNumber"));
+
 enforcePersianDigits(document.getElementById("startDate"));
 enforcePersianDigits(document.getElementById("endDate"));
 
@@ -1077,9 +1077,16 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 400);  // ← تأخیر ۴۰۰ میلی‌ثانیه برای جلوگیری از اسپم
 
     // ------------------ فعال‌سازی سرچ لایو روی تمام ورودی‌ها --------------------
-    document.querySelectorAll("#invoiceForm input").forEach(input => {
+    // فقط startDate و endDate
+const startDateInput = document.getElementById("startDate");
+const endDateInput = document.getElementById("endDate");
+
+[startDateInput, endDateInput].forEach(input => {
+    if (input) {
         input.addEventListener("input", doSearch);
-    });
+    }
+});
+
 
 });
 
@@ -1160,9 +1167,16 @@ document.addEventListener("DOMContentLoaded", function() {
     }, 400);  // ← تأخیر ۴۰۰ میلی‌ثانیه برای جلوگیری از اسپم
 
     // ------------------ فعال‌سازی سرچ لایو روی تمام ورودی‌ها --------------------
-    document.querySelectorAll("#purchaseForm input").forEach(input => {
-        input.addEventListener("input", doSearch2);
+    // فقط startDate و endDate
+    const startDateInput = document.getElementById("startDate2");
+    const endDateInput = document.getElementById("endDate2");
+
+    [startDateInput, endDateInput].forEach(input => {
+        if (input) {
+            input.addEventListener("input", doSearch);
+        }
     });
+
 
 });
 
@@ -1246,9 +1260,9 @@ function setupTableSearchMulti(inputId, tableId, columnsToSearch = []) {
 }
 
 // مثال استفاده برای جدول محصولات (نام کالا و گروه کالا)
-setupTableSearchMulti("topproductInput", "topSellingProductsTable", [2,3, 4,5]);
-setupTableSearchMulti("invoiceNumber", "invoicesTable", [0]);
-setupTableSearchMulti("purchaseNumber", "purchaseTable", [0]);
+setupTableSearchMulti("topproductInput", "topSellingProductsTable", [2,3,4,5]);
+setupTableSearchMulti("invoiceNumber", "invoicesTable", [0,1]);
+setupTableSearchMulti("purchaseNumber", "purchaseTable", [0,1]);
 setupTableSearchMulti("topcustomerInput", "topCustomersTable",[1,4]);
 setupTableSearchMulti("dailySalesInput", "dailySalesTable",[1,2,3]);
 setupTableSearchMulti("monthlyInput", "monthlyTable",[1,2,3]);
@@ -1285,6 +1299,7 @@ makeInputPersian('dailySalesInput');
 makeInputPersian('monthlyInput');
 makeInputPersian('monthlyUserInput');
 makeInputPersian('purchaseNumber');
+makeInputPersian('invoiceNumber');
 
 
 document.addEventListener("DOMContentLoaded", function() {
