@@ -177,11 +177,11 @@ td {
 
     <header class="header" style="padding: 20px; border-bottom: 1px solid #ddd;">
       <!-- سمت راست: عنوان -->
-      <div class="invoice-title">فاکتور</div>
+      <div class="invoice-title">فاکتور فروش</div>
 
       <!-- سمت چپ: لوگو -->
       <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center; border-radius:8px; overflow:hidden;">
-        <img class="logo" src="{% static 'assets/images/logo-evin.jpeg' %}" alt="لوگو">
+        <img class="logo" src="{% static 'assets/images/logo-nasiri.jpeg' %}" alt="لوگو">
       </div>
     </header>
 
@@ -243,7 +243,7 @@ td {
           <th>شرح</th>
           <th>عیار</th>
           <th>وزن (گرم)</th>
-          <th>فی (تومان)</th>
+          
           <th>تعداد</th>
          
           <th>مجموع (تومان)</th>
@@ -256,14 +256,7 @@ td {
           <td class="text-right">{{item.product.category|cat_fa}}-{{ item.product.name }} </td>
           <td>{{ item.product.purity|persian_digits }}</td>
           <td>{{ item.weight|persian_digits }}</td>
-          <td>
-            {% if item.gold_price_mesghal > 0 %}
-              {{ item.gold_price_mesghal|default:0|floatformat:0|persian_intcomma }} مثقال
-            {% endif %}
-            {% if item.gold_price_per_gram > 0 %}
-              {{ item.gold_price_per_gram|default:0|floatformat:0|persian_intcomma }} گرم
-            {% endif %}
-          </td>
+          
           <td>{{ item.quantity|persian_digits }}</td>
           <td>{{ item.total|default:0|floatformat:0|persian_intcomma }}</td>
         </tr>
@@ -289,7 +282,7 @@ td {
     <!-- امضا -->
         <div class="signature">
       <div class="sig-left">
-        <div style="font-family: 'Brush Script MT', cursive; font-size:18px; color:#b4a48d">Evin Shah</div>
+        <div style="font-family: 'Brush Script MT', cursive; font-size:18px; color:#b4a48d">Nasiri Gold</div>
         <div style="border-top:1px solid #ddd; width:180px; margin-top:10px"></div>
       </div>
 
@@ -299,9 +292,9 @@ td {
     <div class="footer-bar">
       <div style="display:flex; justify-content:space-between">
         <div>
-          <div>گالری اوین شاه</div>
-          <div>سبزه میدان - بازار طلا و جواهر - الماس {{4|persian_digits}} - پلاک {{12|persian_digits}}/{{3|persian_digits}}</div>
-          <div>{{ "09124833748"|persian_digits }} - {{"55598191"|persian_digits}}</div>
+          <div>پخش طلای نصیری</div>
+          <div>خیابان پانزده خرداد - بازار بزرگ</div>
+          <div>{{ "09124886331 - 56098022"|persian_digits }}</div>
         </div>
         <div style="align-self:center">از خرید شما سپاسگزاریم</div>
       </div>

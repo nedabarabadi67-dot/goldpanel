@@ -192,7 +192,7 @@ td {
 
       <!-- سمت چپ: لوگو -->
       <div style="width:80px; height:80px; display:flex; align-items:center; justify-content:center; border-radius:8px; overflow:hidden;">
-        <img class="logo" src="{% static 'assets/images/logo-evin.jpeg' %}" alt="لوگو">
+        <img class="logo" src="{% static 'assets/images/logo-nasiri.jpeg' %}" alt="لوگو">
       </div>
     </header>
 
@@ -237,11 +237,7 @@ td {
             <td style="font-weight:bold; padding:6px 8px;">تاریخ</td>
             <td style="padding:6px 8px;">{{ invoice.date|to_jalali }}</td>
           </tr>
-          <tr>
-            <td style="font-weight:bold; padding:6px 8px;">ساعت</td>
-             
-            <td style="padding:6px 8px;">{{ invoice.time |time:"H:i"|persian_digits}}</td>
-          </tr>
+
           <tr>
             <td style="font-weight:bold; padding:6px 8px;">صادر کننده</td>
             <td style="padding:6px 8px;">{{ invoice.user.first_name }} {{invoice.user.last_name}}</td>
@@ -315,7 +311,7 @@ td {
     <!-- امضا -->
         <div class="signature">
       <div class="sig-left">
-        <div style="font-family: 'Brush Script MT', cursive; font-size:18px; color:#b4a48d">Evin Shah</div>
+        <div style="font-family: 'Brush Script MT', cursive; font-size:18px; color:#b4a48d">Nasiri Gold</div>
         <div style="border-top:1px solid #ddd; width:180px; margin-top:10px"></div>
       </div>
 
@@ -325,9 +321,9 @@ td {
     <div class="footer-bar">
       <div style="display:flex; justify-content:space-between">
         <div>
-          <div>گالری اوین شاه</div>
-          <div>سبزه میدان - بازار طلا و جواهر - الماس {{4|persian_digits}} - پلاک {{12|persian_digits}}/{{3|persian_digits}}</div>
-          <div>{{ "09124833748"|persian_digits }} - {{"55598191"|persian_digits}}</div>
+          <div>پخش طلای نصیری</div>
+          <div>خیابان پانزده خرداد - بازار بزرگ</div>
+          <div>{{ "09124886331 - 56098022"|persian_digits }}</div>
         </div>
         <div style="align-self:center">از خرید شما سپاسگزاریم</div>
       </div>
