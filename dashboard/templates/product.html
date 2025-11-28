@@ -185,7 +185,7 @@ body {
                         </div>
                         <div class="col-md-6">
                             <input type="text" name="weightpurity" id="addWeightPurity" class="form-control"
-                                        placeholder="وزن معادل {{750|persian_digits}}">
+                                        placeholder="وزن معادل {{750|persian_digits}}" readonly>
                         </div>
                     </div>
                 </div>
@@ -292,7 +292,7 @@ body {
                         </div>
                         <div class="col-md-6">
                             <input type="text" name="weightpurity" id="editWeightPurity" class="form-control"
-                                        placeholder="وزن معادل {{750|persian_digits}}">
+                                        placeholder="وزن معادل {{750|persian_digits}}" readonly>
                         </div>
                     </div>
               </div>
@@ -1068,7 +1068,11 @@ const categoryCodeMap = {
     neckles: "GA",
     ring: "AN",
     set: "ST",
+    nimset : "SN",
+    zanjir : "ZA" , 
+    medal : 'ME',
     coine: "CN",
+    ab: "AB" , 
     other: "OT"
 };
 
@@ -1082,7 +1086,10 @@ document.addEventListener("DOMContentLoaded", function() {
     categorySelect.addEventListener("change", async function() {
         const categoryValue = this.value;
         if (!categoryValue) return;
-
+        if ( categoryValue == "mot"){
+            codeInput.value = `1`;
+            return ; 
+        }
         const prefix = categoryCodeMap[categoryValue] || "XX";
 
         try {
@@ -1141,6 +1148,40 @@ function formatPersianWithComma(input) {
     }
 });
 
+// ghofl labor
+document.addEventListener("DOMContentLoaded", () => {
+
+    function setupLaborFields(percentSelector, priceSelector) {
+        const percentInput = document.querySelector(percentSelector);
+        const priceInput   = document.querySelector(priceSelector);
+
+        if (!percentInput || !priceInput) return;
+
+        // وقتی درصد وارد شد → تومان خالی و غیرفعال شود
+        percentInput.addEventListener("input", () => {
+            if (percentInput.value.trim() !== "") {
+                priceInput.value = "";
+                priceInput.setAttribute("disabled", "disabled");
+            } else {
+                priceInput.removeAttribute("disabled");
+            }
+        });
+
+        // وقتی تومان وارد شد → درصد خالی و غیرفعال شود
+        priceInput.addEventListener("input", () => {
+            if (priceInput.value.trim() !== "") {
+                percentInput.value = "";
+                percentInput.setAttribute("disabled", "disabled");
+            } else {
+                percentInput.removeAttribute("disabled");
+            }
+        });
+    }
+
+    // 🔥 اجرای اسکریپت برای تمام تب‌ها
+    setupLaborFields("#addLabor", "#addLaborPrice");         // تب اول - خرید کالا
+
+});
 
 </script>
 {%endblock%}
