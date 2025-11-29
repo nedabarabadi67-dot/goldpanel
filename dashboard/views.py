@@ -3856,12 +3856,12 @@ def ledger_view(request, account_id):
     css_string = """
     @font-face {
         font-family: 'IRANYekan';
-        src: url('/static/fonts/IRANYekan-Regular.ttf') format('truetype');
+        src: url('/static/assets/fonts/IRANYekan-Regular.ttf') format('truetype');
         font-weight: normal;
     }
     @font-face {
         font-family: 'IRANYekan';
-        src: url('/static/fonts/IRANYekan-Bold.ttf') format('truetype');
+        src: url('/static/assets/fonts/IRANYekan-Bold.ttf') format('truetype');
         font-weight: bold;
     }
 
