@@ -3,6 +3,7 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import io
 import json
+import os
 from pyexpat.errors import messages
 import traceback
 from django.forms import FloatField
@@ -13,7 +14,8 @@ import jdatetime
 import requests
 from weasyprint import CSS, HTML
 
-from gold_project.gold_project import settings
+from django.conf import settings
+
 from .models import  BankAccount, CashAccount, ExpenseAccount, Invoice, InvoiceItem, Payment, Product ,Customer, Receipt
 from .forms import   BankStatementUploadForm, BankTransactionForm, CustomerForm, DateRangeForm
 from django.template.loader import render_to_string
