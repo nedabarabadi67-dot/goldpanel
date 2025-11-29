@@ -21,14 +21,24 @@
 }
     @font-face {
     font-family: 'IRANYekan';
-    src: url('/static/assets/fonts/IRANYekan.ttf') format('truetype');
-}
+    src: url('/static/assets/fonts/iranyekanweblight.ttf') format('truetype');
+    font-weight: normal;
+    }
 
-        body {
-            font-family: IRANYekan, sans-serif;
-            direction: rtl;
-            font-size: 13px;
-        }
+    @font-face {
+        font-family: 'IRANYekan';
+        src: url('/static/assets/fonts/iranyekanwebbold.ttf') format('truetype');
+        font-weight: bold;
+    }
+
+    body {
+        font-family: 'IRANYekan' !important;
+        direction: rtl;
+        font-size: 13px;
+    }
+
+
+
 
         .header {
             display: flex;
