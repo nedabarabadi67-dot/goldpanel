@@ -27,7 +27,9 @@ SECRET_KEY = 'django-insecure-7+n$_06sqf*=svvk549vyi9s3u)!ug!p97^lt%4r3arohtwxib
 DEBUG = True
 
 #ALLOWED_HOSTS = []
-ALLOWED_HOSTS = ['130.185.74.53', 'localhost', '127.0.0.1']
+#ALLOWED_HOSTS = ['130.185.74.53', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'goldpanel-nasiri.ir', 'www.goldpanel-nasiri.ir']
+
 
 
 # Application definition
