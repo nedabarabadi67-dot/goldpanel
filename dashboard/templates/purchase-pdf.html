@@ -20,13 +20,26 @@
         font-size: 9px;
     }
 }
-          @font-face {
+ 
+   @font-face {
     font-family: 'IRANYekan';
-    src: local('iranyekanwebregular'), local('iranyekanweb'), local('IRANYekan');
-}
+    src: url('/static/assets/fonts/iranyekanweblight.ttf') format('truetype');
+    font-weight: normal;
+    }
+
+    @font-face {
+        font-family: 'IRANYekan';
+        src: url('/static/assets/fonts/iranyekanwebbold.ttf') format('truetype');
+        font-weight: bold;
+    }
+     @font-face {
+        font-family: 'IRANYekan';
+        src: url('/static/assets/fonts/iranyekanwebregular.ttf') format('truetype');
+        font-weight: regular;
+    }
 
 body {
-    font-family: IRANYekan, sans-serif;
+    font-family: IRANYekan;
     direction: rtl;
     font-size: 13px;
 }
