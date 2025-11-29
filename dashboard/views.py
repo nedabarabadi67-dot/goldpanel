@@ -3836,7 +3836,6 @@ def ledger_view(request, account_id):
         })
     # مسیر مطلق لوگو روی سرور
     logo_path = os.path.join(settings.BASE_DIR, 'static/assets/images/logo_nasiri.png')
-
     print("path" , logo_path)
     html_string = render_to_string('ledger.html', {
         'account': account,
