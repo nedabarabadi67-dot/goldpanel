@@ -88,7 +88,7 @@ def print_label(request, pk):
     context = {
         "product": product,
         "barcode_data": barcode_data,
-        "store_name": "Evin Shah",  # نام فروشگاه
+        "store_name": "Nasiri Gold",  # نام فروشگاه
     }
     return render(request, "label_template.html", context)
 
@@ -98,7 +98,7 @@ def print_invoice_labels(request, invoice_id):
     items = PurchaseItem.objects.filter(invoice=invoice).select_related('product')
     print(items)
     context = {
-        'store_name': "Evin Shah",
+        'store_name': "Nasiri Gold",
         'purchase_items': items,
     }
     return render(request, 'label-item.html', context)
@@ -2263,7 +2263,7 @@ def reports(request):
         total_revenue=Sum('total')
     )
     .order_by('-total_sold')[:100]
-)
+    )
 
     
 
