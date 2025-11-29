@@ -3852,12 +3852,42 @@ def ledger_view(request, account_id):
         #'company_logo_url': request.build_absolute_uri('/static/images/logo.png'),
     })
     
-    iran_yekan_css = os.path.join(settings.BASE_DIR, 'static/assets/fonts/IRANYekan.css')
+    
+    css_string = """
+    @font-face {
+        font-family: 'IRANYekan';
+        src: url('/static/fonts/IRANYekan-Regular.ttf') format('truetype');
+        font-weight: normal;
+    }
+    @font-face {
+        font-family: 'IRANYekan';
+        src: url('/static/fonts/IRANYekan-Bold.ttf') format('truetype');
+        font-weight: bold;
+    }
 
+    body {
+        font-family: 'IRANYekan';
+        direction: rtl;
+    }
+
+    @page {
+        size: A4;
+        margin: 1cm;
+    }
+    """
+
+    pdf_file = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri('/')
+    ).write_pdf(
+        stylesheets=[CSS(string=css_string)]
+    )
+    
+    """
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf(
         stylesheets=[CSS(string='@page { size: A4; margin: 1cm; font-family:IRANYekan,Tahoma; direction: rtl; }')]
     )
-
+    """
     response = HttpResponse(pdf_file, content_type='application/pdf')
     response['Content-Disposition'] = f'filename=ledger_{account.id}.pdf'
     return response
