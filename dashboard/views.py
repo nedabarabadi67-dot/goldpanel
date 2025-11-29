@@ -3853,35 +3853,27 @@ def ledger_view(request, account_id):
     })
     
     
-    css_string = """
-    @font-face {
-    font-family: 'IRANYekan';
-    src: url('/static/assets/fonts/iranyekanweblight.ttf') format('truetype');
-    font-weight: normal;
-    }
-    @font-face {
-        font-family: 'IRANYekan';
-        src: url('/static/assets/fonts/iranyekanwebbold.ttf') format('truetype');
-        font-weight: bold;
-    }
-    
-     @font-face {
-        font-family: 'IRANYekan';
-        src: url('/static/assets/fonts/iranyekanwebregular.ttf') format('truetype');
-        font-weight: regular;
-    }
-
-    body {
-        font-family: 'IRANYekan' !important;
-        direction: rtl;
-        font-size: 14px;
-    }
-
-    @page {
-        size: A4;
-        margin: 1cm;
-    }
-    """
+    css_string = f"""
+        @font-face {{
+            font-family: 'IRANYekan';
+            src: url('/usr/share/fonts/iranyekan/iranyekanwebregular.ttf') format('truetype');
+            font-weight: normal;
+        }}
+        @font-face {{
+            font-family: 'IRANYekan';
+            src: url('/usr/share/fonts/iranyekan/iranyekanwebbold.ttf') format('truetype');
+            font-weight: bold;
+        }}
+        @font-face {{
+            font-family: 'IRANYekan';
+            src: url('/usr/share/fonts/iranyekan/iranyekanweblight.ttf') format('truetype');
+            font-weight: normal;
+        }}
+        body {{
+            font-family: 'IRANYekan', Tahoma, sans-serif;
+            direction: rtl;
+        }}
+        """
 
     pdf_file = HTML(
         string=html_string,
