@@ -3864,6 +3864,12 @@ def ledger_view(request, account_id):
         src: url('/static/assets/fonts/iranyekanwebbold.ttf') format('truetype');
         font-weight: bold;
     }
+    
+     @font-face {
+        font-family: 'IRANYekan';
+        src: url('/static/assets/fonts/iranyekanwebregular.ttf') format('truetype');
+        font-weight: regular;
+    }
 
     body {
         font-family: 'IRANYekan' !important;
