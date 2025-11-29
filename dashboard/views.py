@@ -3846,7 +3846,7 @@ def ledger_view(request, account_id):
     })
 
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf(
-        stylesheets=[CSS(string='@page { size: A4; margin: 1cm; font-family: Iranyekan; direction: rtl; }')]
+        stylesheets=[CSS(string='@page { size: A4; margin: 1cm; font-family:Tahoma; direction: rtl; }')]
     )
 
     response = HttpResponse(pdf_file, content_type='application/pdf')
