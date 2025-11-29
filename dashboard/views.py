@@ -3855,19 +3855,20 @@ def ledger_view(request, account_id):
     
     css_string = """
     @font-face {
-        font-family: 'IRANYekan';
-        src: url('/static/assets/fonts/IRANYekan-Regular.ttf') format('truetype');
-        font-weight: normal;
+    font-family: 'IRANYekan';
+    src: url('/static/assets/fonts/iranyekanweblight.ttf') format('truetype');
+    font-weight: normal;
     }
     @font-face {
         font-family: 'IRANYekan';
-        src: url('/static/assets/fonts/IRANYekan-Bold.ttf') format('truetype');
+        src: url('/static/assets/fonts/iranyekanwebbold.ttf') format('truetype');
         font-weight: bold;
     }
 
     body {
-        font-family: 'IRANYekan';
+        font-family: 'IRANYekan' !important;
         direction: rtl;
+        font-size: 14px;
     }
 
     @page {
