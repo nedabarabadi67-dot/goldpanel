@@ -4412,7 +4412,12 @@ def financial_dashboard(request):
         total_weight=Sum('weight')           # مجموع وزن
     ).order_by('category')
 
-
+    products = Product.objects.filter(quantity__gt=0).values('category').annotate(
+    total_quantity=Sum('quantity'),
+    total_weight=Sum(
+        ExpressionWrapper(F('weight') * F('quantity'), output_field=FloatField())
+    )
+    ).order_by('category')
 
     context = {
         "gold" : gold,
