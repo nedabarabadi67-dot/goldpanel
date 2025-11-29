@@ -3841,6 +3841,7 @@ def ledger_view(request, account_id):
         "final_balance_money": final_balance_money,
         "final_balance_gold": final_balance_gold,
         "now": date,
+        "company_logo_url": request.build_absolute_uri('/static/images/logo_nasiri.png'),  # لوگو
         #'company_name': 'Mira Jewellery',
         #'company_logo_url': request.build_absolute_uri('/static/images/logo.png'),
     })
