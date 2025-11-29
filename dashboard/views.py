@@ -12,6 +12,8 @@ from django.utils.timezone import now
 import jdatetime
 import requests
 from weasyprint import CSS, HTML
+
+from gold_project.gold_project import settings
 from .models import  BankAccount, CashAccount, ExpenseAccount, Invoice, InvoiceItem, Payment, Product ,Customer, Receipt
 from .forms import   BankStatementUploadForm, BankTransactionForm, CustomerForm, DateRangeForm
 from django.template.loader import render_to_string
@@ -3830,7 +3832,8 @@ def ledger_view(request, account_id):
             "price_value": price_value,
             "mesghal_value": mesghal_value,
         })
-
+    # مسیر مطلق لوگو روی سرور
+    logo_path = os.path.join(settings.BASE_DIR, 'static/assets/images/logo_nasiri.png')
     html_string = render_to_string('ledger.html', {
         'account': account,
         'ledger': ledger,
@@ -3841,7 +3844,7 @@ def ledger_view(request, account_id):
         "final_balance_money": final_balance_money,
         "final_balance_gold": final_balance_gold,
         "now": date,
-        "company_logo_url": request.build_absolute_uri('/static/assets/images/logo_nasiri.png'),  # لوگو
+        "company_logo_url": logo_path,  # لوگو
         #'company_name': 'Mira Jewellery',
         #'company_logo_url': request.build_absolute_uri('/static/images/logo.png'),
     })
