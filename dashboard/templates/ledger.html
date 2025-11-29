@@ -19,7 +19,10 @@
         font-size: 9px;
     }
 }
-
+     @font-face {
+            font-family: 'IRANYekan';
+            src: url("{{ STATIC_ROOT }}/assets/fonts/IRANYekan.ttf") format("truetype");
+        }
 
         body {
             font-family: IranYekan, sans-serif;
@@ -98,8 +101,8 @@
 {{company_logo_path}}
 <!-- سربرگ -->
 <div class="header">
-    <div><h2>گالری نصیnnnnری</h2></div>
-    <div><img src="file://{{ company_logo_path }}"></div>
+    <div><h2>گالری نصیری</h2></div>
+    <div><img src="{{ company_logo_path }}"></div>
 </div>
 
 <h3>دفتر حساب مشتری</h3>

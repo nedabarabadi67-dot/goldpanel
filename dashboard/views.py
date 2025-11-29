@@ -3835,10 +3835,9 @@ def ledger_view(request, account_id):
             "mesghal_value": mesghal_value,
         })
     # مسیر مطلق لوگو روی سرور
-    logo_path = os.path.join(settings.BASE_DIR, 'static/assets/images/logo-nasiri.png')
-    logo_url = request.build_absolute_uri('/static/assets/images/logo-nasiri.png')
+    logo_path = os.path.join(settings.BASE_DIR, 'static/assets/images/logo_nasiri.png')
 
-    print("path" , logo_url)
+    print("path" , logo_path)
     html_string = render_to_string('ledger.html', {
         'account': account,
         'ledger': ledger,
@@ -3849,13 +3848,15 @@ def ledger_view(request, account_id):
         "final_balance_money": final_balance_money,
         "final_balance_gold": final_balance_gold,
         "now": date,
-        "company_logo_url": logo_url,  # لوگو
+        "company_logo_url": logo_path,  # لوگو
         #'company_name': 'Mira Jewellery',
         #'company_logo_url': request.build_absolute_uri('/static/images/logo.png'),
     })
+    
+    iran_yekan_css = os.path.join(settings.BASE_DIR, 'static/assets/fonts/IRANYekan.css')
 
     pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf(
-        stylesheets=[CSS(string='@page { size: A4; margin: 1cm; font-family:Tahoma; direction: rtl; }')]
+        stylesheets=[CSS(string='@page { size: A4; margin: 1cm; font-family:IRANYekan,Tahoma; direction: rtl; }')]
     )
 
     response = HttpResponse(pdf_file, content_type='application/pdf')
