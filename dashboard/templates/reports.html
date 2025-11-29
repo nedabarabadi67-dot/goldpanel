@@ -584,6 +584,7 @@
           <th>اجرت (درصد) </th>
           <th>اجرت (تومان)</th>-->
           <th>مبلغ کل (تومان)</th>
+          <th>تصویر فاکتور</th>
         </tr>
       </thead>
       <tbody>
@@ -601,10 +602,25 @@
           <td>{{p.labor|persian_digits}}</td>
           <td>{{ p.laborprice|persian_intcomma }}</td>-->
           <td>{{ p.total_price|persian_intcomma }} </td>
+          <td class="text-center">
+
+              {% if p.image %}
+              <button class="btn btn-info btn-sm view-image-btn"
+                      data-url="{{ p.image.url }}"
+                      style="border-radius: 6px;">
+                  <i class="bi bi-image"></i>  
+              </button>
+              {% else %}
+                  <span class="text-secondary">—</span>
+              {% endif %}
+
+          </td>
+
+
         </tr>
         {% empty %}
         <tr>
-          <td colspan="7" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>
+          <td colspan="8" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>
         </tr>
         {% endfor %}
       </tbody>
@@ -739,7 +755,19 @@
   </div>
 
 </div> <!-- پایان tab-content -->
+<!--نمایش فاکتور-->
+<div id="imageModal" class="modal-overlay" style="
+    display:none;
+    position:fixed;
+    top:0; left:0; right:0; bottom:0;
+    background:rgba(0,0,0,0.8);
+    justify-content:center;
+    align-items:center;
+    z-index:2000;">
+  
+  <img id="modalImage" src="" style="max-width:90%; max-height:90%; border-radius:8px;">
 
+</div>
 
 
 
@@ -784,6 +812,20 @@ function toPersianDigits(str) {
 }
 
 
+
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // کلیک روی دکمه نمایش تصویر
+    document.querySelectorAll(".view-image-btn").forEach(btn => {
+        btn.addEventListener("click", function (event) {
+            event.stopPropagation(); // جلوگیری از کلیک روی سطر
+            const url = this.dataset.url;
+            window.open(url, "_blank"); // باز کردن عکس در تب جدید
+        });
+    });
+
+});
 
 
 function enforcePersianDigits(input) {
@@ -842,7 +884,7 @@ document.addEventListener('DOMContentLoaded', function() {
         {tableId: 'topSellingProductsTable', exportId: 'exportProducts', printId: 'printProducts', sheetName: 'محصولات پرفروش'},
         {tableId: 'topCustomersTable', exportId: 'exportCustomers', printId: 'printCustomers', sheetName: 'مشتریان'},
         {tableId: 'invoicesTable', exportId: 'exportInvoices', printId: 'printInvoices', sheetName: 'فاکتورهای فروش'},
-        {tableId: 'purchaseTable', printId: 'printPurchase', sheetName: 'فاکتورهای خرید'},
+        
         {tableId: 'dailySalesTable', exportId: 'exportDailySales', printId: 'printDailySales', sheetName: 'فروش روزانه'},
         {tableId: 'monthlyTable', exportId: 'exportMonthly', printId: 'printMonthly', sheetName: 'فروش ماهانه'},
         {tableId: 'monthlyUserTable', exportId: 'exportUserMonthly', printId: 'printUserMonthly', sheetName: ' عملکرد فروشنده'},
@@ -900,6 +942,85 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل/چاپ (حذف تصاویر و راست‌چین کردن)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+
+        // حذف ستون عملیات (فرض می‌کنیم آخرین ستون است)
+        Array.from(table.rows).forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+
+
+        // حذف تصاویر
+        table.querySelectorAll('img').forEach(img => img.remove());
+
+        // راست‌چین کردن متن‌ها
+        Array.from(table.rows).forEach(row => {
+            Array.from(row.cells).forEach(cell => {
+                cell.style.textAlign = "right"; // راست‌چین
+                cell.style.direction = "rtl";   // جهت RTL
+            });
+        });
+        return table;
+    }
+
+    // تنظیم دکمه‌ها و جدول‌ها
+    const tables = [
+        {tableId: 'purchaseTable', printId: 'printPurchase', sheetName: 'فاکتورهای خرید'},
+    ];
+
+    tables.forEach(item => {
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const tableClone = cleanTableForExport(item.tableId);
+
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title>');
+
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: right; }
+                        th, td { border: 1px solid #ccc; padding: 8px; }
+                        th { background-color: #f0f0f0; }
+                        td { font-size: 0.95rem; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                         footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(tableClone.outerHTML);
+                newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
 
 // تابع سورت جدول بر اساس ستون مشخص (همان تابع قبلی)
 // تابع سورت جدول بر اساس ستون مشخص
