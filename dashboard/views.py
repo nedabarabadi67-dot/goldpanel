@@ -4415,7 +4415,7 @@ def financial_dashboard(request):
     products = Product.objects.filter(quantity__gt=0).values('category').annotate(
     total_quantity=Sum('quantity'),
     total_weight=Sum(
-        ExpressionWrapper(F('weight') * F('quantity'), output_field=FloatField())
+        ExpressionWrapper(F('weight') * F('quantity'), output_field=DecimalField(max_digits=10, decimal_places=2))
     )
     ).order_by('category')
 
