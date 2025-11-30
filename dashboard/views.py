@@ -604,7 +604,7 @@ def add_product(request):
                 gold_account=Account.objects.get(code='14')
                 capital_account=Account.objects.get(code='3')
                 labor_account=Account.objects.get(code='51')
-                
+                labor_amount = 0
                 print("labor",labor)
                 print("laborprice" , laborprice)
                 if labor > 0 :
