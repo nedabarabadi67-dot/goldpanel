@@ -10,6 +10,11 @@ from django.dispatch import receiver
 from django.db.models import Sum, F, Max
 from django.utils.functional import cached_property
 
+from io import BytesIO
+import base64
+import barcode
+from barcode.writer import ImageWriter
+
 
 class test(models.Model):
     name=models.CharField(max_length=20)
@@ -31,6 +36,12 @@ class UserProfile(models.Model):
     def __str__(self):
         return f"{self.user.username} ({self.role}) - Active: {self.is_active}"
 
+def generate_barcode_base64(product_code):
+    buffer = BytesIO()
+    barcode_class = barcode.get_barcode_class('code128')
+    code = barcode_class(str(product_code), writer=ImageWriter())
+    code.write(buffer)
+    return base64.b64encode(buffer.getvalue()).decode()
 
 class Product(models.Model):
     CATEGORY_CHOICES = [
@@ -59,8 +70,14 @@ class Product(models.Model):
     labor = models.DecimalField(max_digits=4, decimal_places=1, default=0 , null=True, blank=True)  # اجرت هر گرم طلا
     laborprice = models.DecimalField(max_digits=14, decimal_places=0, default=0 , null=True, blank=True)  # اجرت هر گرم طلا
     price = models.DecimalField(max_digits=14, decimal_places=0, default=0 , null=True, blank=True)
+    barcode_image = models.TextField(blank=True, null=True)  # ذخیره base64
     created = models.DateTimeField(auto_now_add=True)
 
+    def save(self, *args, **kwargs):
+        if not self.barcode_image and self.code:
+            self.barcode_image = generate_barcode_base64(self.code)
+        super().save(*args, **kwargs)
+        
     def __str__(self):
         return self.name
 

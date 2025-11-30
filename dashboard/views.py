@@ -77,9 +77,32 @@ from barcode.writer import ImageWriter
 from io import BytesIO
 import base64
 
-
-
 def print_label(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+
+    # اگر بارکد ندارد → تولید و ذخیره کن
+    if not product.barcode_image:
+        buffer = BytesIO()
+        barcode_class = barcode.get_barcode_class('code128')
+        code = barcode_class(str(product.code), writer=ImageWriter())
+        code.write(buffer)
+        barcode_data = base64.b64encode(buffer.getvalue()).decode()
+
+        # ذخیره‌سازی در دیتابیس
+        product.barcode_image = barcode_data
+        product.save()
+    else:
+        barcode_data = product.barcode_image
+
+    context = {
+        "product": product,
+        "barcode_data": barcode_data,
+        "store_name": "Nasiri Gold",
+    }
+    return render(request, "label_template.html", context)
+
+
+def print_label_old(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
     # ساخت بارکد از کد محصول
@@ -565,6 +588,8 @@ def product_view(request):
 @csrf_exempt
 def add_product(request):
     if request.method == "POST":
+        labor_amount = Decimal("0")
+        labor_total = Decimal("0")
         form = ProductForm(request.POST, request.FILES)
         code=request.POST.get('code') or ""
         name=request.POST.get('name') or ""
@@ -704,6 +729,7 @@ def add_product(request):
 #update product
 @require_POST
 def product_update(request, pk):
+    
     product = get_object_or_404(Product, pk=pk)
     if request.method == "POST":
         form = ProductForm(request.POST, request.FILES, instance=product)
