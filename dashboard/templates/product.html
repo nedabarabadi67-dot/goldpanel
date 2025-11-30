@@ -32,6 +32,28 @@ body {
     z-index: 10;
     text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
 }
+#printProducts {
+        font-size: 0.85rem;      
+        padding: 4px 10px;       
+        margin-right: 5px;       
+        margin-top: 1px;
+        height: auto;            
+        border: none;
+        border-radius: 8px;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    /* رنگ و گرادینت دکمه‌ها */
+    #printProducts {
+        background: linear-gradient(135deg, #f57c00, #ffb74d);  /* نارنجی/زرد */
+    }
+    #printProducts:hover {
+        background: linear-gradient(135deg, #ffb74d, #f57c00);
+    }
 /* واکنش‌گرایی بیشتر برای موبایل */
 @media (max-width: 576px) {
     .search-bar {
@@ -60,7 +82,7 @@ body {
             <div class="card mt-1">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-center mb-3">
-
+                        <button id="printProducts" class="btn-action mr-2" style="width: 150px;">چاپ </button>
                         <form class="search-bar">
                             <input type="text" id="productSearchInput" class="form-control " placeholder="کد نام گروه وزن">
                             <a href="javascript:void();"><i class="icon-magnifier"></i></a>      
@@ -1183,5 +1205,85 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
+//print
+document.addEventListener('DOMContentLoaded', function() {
+
+    // تابع تاریخ شمسی
+    function getTodayDateShamsi() {
+        if (window.moment) {
+            return moment().locale('fa').format('YYYY/MM/DD');
+        }
+        return new Date().toISOString().slice(0,10);
+    }
+
+    // پاکسازی جدول برای اکسل/چاپ (حذف تصاویر و راست‌چین کردن)
+    function cleanTableForExport(tableId) {
+        const table = document.getElementById(tableId).cloneNode(true);
+
+        // حذف ستون عملیات (فرض می‌کنیم آخرین ستون است)
+        Array.from(table.rows).forEach(row => {
+            row.removeChild(row.lastElementChild);
+        });
+
+
+        // حذف تصاویر
+        table.querySelectorAll('img').forEach(img => img.remove());
+
+        // راست‌چین کردن متن‌ها
+        Array.from(table.rows).forEach(row => {
+            Array.from(row.cells).forEach(cell => {
+                cell.style.textAlign = "right"; // راست‌چین
+                cell.style.direction = "rtl";   // جهت RTL
+            });
+        });
+        return table;
+    }
+
+    // تنظیم دکمه‌ها و جدول‌ها
+    const tables = [
+        {tableId: 'productTable', printId: 'printProducts', sheetName: ' لیست کالا '},
+    ];
+
+    tables.forEach(item => {
+        const printBtn = document.getElementById(item.printId);
+        if (printBtn) {
+            printBtn.addEventListener('click', function() {
+                const tableClone = cleanTableForExport(item.tableId);
+
+                const newWin = window.open("");
+                newWin.document.write('<html><head><title>' + item.sheetName + '</title>');
+
+                // استایل پرینت
+                newWin.document.write(`
+                    <style>
+                        body { direction: rtl; font-family: 'IranYekan', 'Vazir', sans-serif; }
+                        table { width: 100%; border-collapse: collapse; text-align: right; }
+                        th, td { border: 1px solid #ccc; padding: 8px; }
+                        th { background-color: #f0f0f0; }
+                        td { font-size: 0.95rem; }
+                        h1 { text-align: center; margin-bottom: 20px; }
+                         footer {
+                                position: fixed;
+                                bottom: 0;
+                                width: 100%;
+                                display: flex;
+                                justify-content: space-between;
+                                font-size: 12px;
+                                padding: 5px 20px;
+                            }
+                    </style>
+                `);
+
+                newWin.document.write('</head><body>');
+                newWin.document.write(`<h1>${item.sheetName} </h1>`);
+                newWin.document.write(tableClone.outerHTML);
+                newWin.document.write(`<footer><span> این گزارش توسط گلد پنل تهیه شده است  </span>   </footer>`);
+                newWin.document.write('</body></html>');
+                newWin.print();
+            });
+        }
+    });
+
+});
 </script>
 {%endblock%}
