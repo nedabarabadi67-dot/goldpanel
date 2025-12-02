@@ -29,12 +29,12 @@ class ProductResource(resources.ModelResource):
     class Meta:
         model = Product
         import_id_fields = ['code']  # تا بر اساس کد، تکراری ثبت نشه
-        fields = ('code', 'name', 'category' ,'weight', 'quantity', 'labor', 'description','purity','initial_weight','price')
+        fields = ('code', 'name', 'category' ,'weight', 'quantity', 'labor', 'description','purity','initial_weight','price','barcode_image')
         
 @admin.register(Product)
 class ProductAdmin(ImportExportModelAdmin):
     resource_class = ProductResource
-    list_display = ('code', 'name', 'category', 'weight', 'quantity', 'labor','description','purity','initial_weight','price')
+    list_display = ('code', 'name', 'category', 'weight', 'quantity', 'labor','description','purity','initial_weight','price','barcode_image')
  
 """  
 class AccountResource(resources.ModelResource):

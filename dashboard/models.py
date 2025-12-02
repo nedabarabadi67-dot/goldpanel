@@ -75,6 +75,7 @@ class Product(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.barcode_image and self.code:
+            print("CODE:", repr(self.code))
             self.barcode_image = generate_barcode_base64(self.code)
         super().save(*args, **kwargs)
         

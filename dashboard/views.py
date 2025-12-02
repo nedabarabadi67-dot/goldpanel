@@ -80,6 +80,19 @@ import base64
 def print_label(request, pk):
     product = get_object_or_404(Product, pk=pk)
 
+    barcode_data = product.barcode_image
+
+    context = {
+        "product": product,
+        "barcode_data": barcode_data,
+        "store_name": "Nasiri Gold",
+    }
+    return render(request, "label_template.html", context)
+
+
+def print_label_2(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+
     # اگر بارکد ندارد → تولید و ذخیره کن
     if not product.barcode_image:
         buffer = BytesIO()

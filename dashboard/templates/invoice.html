@@ -308,6 +308,7 @@
         <!-- اطلاعات فاکتور -->
          <form id="invoiceForm" method="post">
                 {% csrf_token %}
+                
         <div class="card shadow-sm mb-4">
             <div class="card-body">
             <h5 class="card-title mb-3"> اطلاعات فاکتور</h5>
@@ -329,7 +330,6 @@
             </div>
             </div>
         </div>
-
         <!-- فرم مشتری -->
         <div class="card shadow-sm mb-4">
             <div class="card-body">
@@ -366,10 +366,12 @@
         <div class="card shadow-sm">
             <div class="card-body">
             <h6 class="card-title mb-3">محصولات</h6>
+            
             <div class="table-responsive">
                 <table id="productsTable" class="table table-bordered align-middle text-center">
                 <thead class="table-light">
                     <tr>
+                    <th>بارکد</th>
                     <th>کد کالا</th>
                     <th>شرح</th>
                     <th>تصویر</th>
@@ -390,11 +392,15 @@
                 <tbody>
                     <tr class="product-row">
                     <td>
+                        <input type="text" class="form-control barcodeInput" placeholder="بارکد را اسکن کنید" >
+                    </td>
+                    <td>
                         <select name="product[]" class="form-select productSelect"  required>
                         <option value="">انتخاب کالا</option>
                         {% for product in products %}
                             {% if product.quantity > 0 %}
                             <option value="{{ product.id }}"
+                                    data-barcode="{{ product.code }}"
                                     data-code="{{ product.code }}"
                                     data-name="{{ product.name }}"
                                     data-description="{{ product.description }}"
@@ -436,7 +442,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                    <th colspan="13" class="text-end">جمع کل (تومان) :</th>
+                    <th colspan="14" class="text-end">جمع کل (تومان) :</th>
                     <th><input type="text" id="grandTotal" class="form-control text-center" readonly></th>
                     <th><button type="button" id="addRow" class="btn btn-success btn-sm">➕</button></th>
                     </tr>
@@ -1420,6 +1426,52 @@
             
         });
 
+        //اسکنر
+        // برای input بارکد
+        $(document).on("keydown", ".barcodeInput", function (e) {
+    if (e.key === "Enter") { // وقتی اسکنر Enter فرستاد
+        const barcodeInput = this;
+        const barcode = barcodeInput.value.trim().replace(/\r|\n/g, "");
+        if (!barcode) return;
+
+        const row = $(barcodeInput).closest("tr")[0];
+        const productSelect = row.querySelector(".productSelect");
+        if (!productSelect) return;
+
+        const option = Array.from(productSelect.options).find(opt => String(opt.dataset.code).trim() === barcode);
+        if (!option) {
+            Swal.fire("خطا", "کالا با این بارکد پیدا نشد", "error");
+            barcodeInput.value = "";
+            return;
+        }
+
+        productSelect.value = option.value;
+        $(productSelect).trigger('change.select2');
+        barcodeInput.value = barcode;
+        const category = option.dataset.category || "";
+                    const name = option.dataset.name || "";
+
+                    row.querySelector(".descriptionCell").textContent = category + " — " + name ;
+                    const img = row.querySelector(".imagePreview");
+                    if (option.dataset.image && option.dataset.image !== "-") {
+                        img.src = option.dataset.image;
+                        img.classList.remove("d-none");
+                        row.querySelector(".no-image-text").classList.add("d-none");
+                    }
+                    row.querySelector(".weightInput").value = toPersianDigits(option.dataset.weight) || "";
+                    row.querySelector(".weightPurityInput").value = toPersianDigits(option.dataset.weightpurity) || "";
+                    row.querySelector(".purityInput").value = toPersianDigits(option.dataset.purity) || "";
+                    row.querySelector(".priceInput").value = toPersianDigits(option.dataset.price) || "";
+                    row.querySelector(".laborInput").value = toPersianDigits(option.dataset.labor) || "";
+                    row.querySelector(".laborpriceInput").value = toPersianDigits(option.dataset.laborprice) || "";
+                    row.querySelector(".profitInput").value = toPersianDigits(option.dataset.profit) || "";
+                    updateQuantityLimit(row);
+                    updateRow(row);
+    }
+});
+
+
+
         // input listener: بررسی فیلدهایی که باعث تغییر محاسبات می‌شوند
         document.addEventListener("input", function (e) {
             const target = e.target;
@@ -1585,6 +1637,8 @@
             t.dataset.userEdited = "true";
             }
         });
+        //اسکنر
+
 
     });
 
@@ -2791,8 +2845,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // setupPurityGroup({ purityClass: "purityInput3", weightClass: "weightInput3", resultClass: "weightPurityInput3" });
 
 });
-
-
 
 
 
