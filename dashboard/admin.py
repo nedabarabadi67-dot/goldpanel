@@ -35,7 +35,18 @@ class ProductResource(resources.ModelResource):
 class ProductAdmin(ImportExportModelAdmin):
     resource_class = ProductResource
     list_display = ('code', 'name', 'category', 'weight', 'quantity', 'labor','description','purity','initial_weight','price','barcode_image')
- 
+
+class JournalResource(resources.ModelResource):
+    class Meta:
+        model = JournalEntry
+        import_id_fields = ['id']  # تا بر اساس کد، تکراری ثبت نشه
+        fields = ('id', 'date', 'description' ,'related_purchase', 'related_sale')
+        
+@admin.register(JournalEntry)
+class JournalEntryAdmin(ImportExportModelAdmin):
+    resource_class = JournalResource
+    list_display = ('id', 'date', 'description' ,'related_purchase', 'related_sale')
+  
 """  
 class AccountResource(resources.ModelResource):
     class Meta:
