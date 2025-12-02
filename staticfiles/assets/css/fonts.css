@@ -1,0 +1,34 @@
+/* ---------- فونت ایران یکان ---------- */
+
+/* Regular */
+@font-face {
+    font-family: 'IRYekan';
+    src: url('../fonts/iranyekanwebregular.woff2') format('woff2'),
+         url('../fonts/iranyekanwebregular.woff') format('woff');
+    font-weight: 400; /* وزن معمولی */
+    font-style: normal;
+}
+
+/* Light */
+@font-face {
+    font-family: 'IRYekan';
+    src: url('../fonts/iranyekanweblight.woff2') format('woff2'),
+         url('../fonts/iranyekanweblight.woff') format('woff');
+    font-weight: 300; /* وزن لایت */
+    font-style: normal;
+}
+
+/* Bold */
+@font-face {
+    font-family: 'IRYekan';
+    src: url('../fonts/iranyekanwebbold.woff2') format('woff2'),
+         url('../fonts/iranyekanwebbold.woff') format('woff');
+    font-weight: 700; /* وزن بولد */
+    font-style: normal;
+}
+
+/* ---------- استفاده از فونت ---------- */
+body { font-family: 'IRYekan', Tahoma, Arial, sans-serif; font-weight: 400; }
+h1, h2, h3 { font-family: 'IRYekan', Tahoma, Arial, sans-serif; font-weight: 700; }
+.light-text { font-family: 'IRYekan', Tahoma, Arial, sans-serif; font-weight: 300; }
+
