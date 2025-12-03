@@ -858,6 +858,11 @@ function openEditProductModal(productId) {
         "سرویس":"set",
         "نیم ست":"nimset",
         "سکه":"coine",
+        'دستبند النگو' :'brba' ,
+        'مدال' : 'medal' ,
+        'زنجیر' : 'zanjir' ,
+        'النگو' :'bangle' , 
+        'آب شده' : 'ab' ,
         "سایر": "other"
     };
     const catValue = row.querySelector('.td-category').dataset.value;
@@ -1085,13 +1090,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // مپ گروه کالا به کد
 const categoryCodeMap = {
-    bracelet: "DA",
+    bracelet: "DS",
     earing: "GO",
     neckles: "GA",
     ring: "AN",
     set: "ST",
     nimset : "SN",
     zanjir : "ZA" , 
+    brba : 'DA' ,
+    bangle : 'BA',
     medal : 'ME',
     coine: "CN",
     ab: "AB" , 

@@ -96,6 +96,8 @@ def cat_fa(value):
         "nimset":"نیم ست",
         "medal":"مدال",
         "zanjir":"زنجیر",
+        "bangle" : 'النگو' ,
+        "brba" : 'دستبند النگو' ,
         'ab':'آبشده',
         'mot':'متفرقه',
         'other':'سایر',
