@@ -52,6 +52,8 @@ class Product(models.Model):
         ('neckles', 'گردنبند'),
         ('set','سرویس'),
         ('ring', 'انگشتر'),
+        ('bangle','النگو'),
+        ('brba','دستند النگو'),
         ("coine","سکه"),
         ("nimset","نیم ست"),
         ("medal","مدال"),
