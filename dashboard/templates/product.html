@@ -530,15 +530,6 @@ body {
 
 <script>
 
-const addModal = document.getElementById("addModal");
-
-addModal.addEventListener("hidden.bs.modal", function () {
-    document.querySelector("#addProductForm").reset();
-    document.getElementById("addImagePreview").style.display = "none";
-
-    // حذف backdrop اضافی اگر باقی مانده باشد
-    document.querySelectorAll(".modal-backdrop").forEach(b => b.remove());
-});
 
 
 // باز کردن مدال
@@ -646,8 +637,8 @@ document.getElementById("addProductForm").addEventListener("submit", function(e)
 
             // بستن مدال
             //bootstrap.Modal.getInstance(document.getElementById("addModal")).hide();
-            //this.reset();
-            //document.getElementById("addImagePreview").style.display = "none";
+            this.reset();
+            document.getElementById("addImagePreview").style.display = "none";
         } else {
             if (data.errors && data.errors.code) {
                 // اگر خطا مربوط به کد کالا بود → مدال مخصوص باز کن
