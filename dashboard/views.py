@@ -4243,9 +4243,11 @@ def financial_dashboard(request):
     # درآمد و هزینه‌ها (P&L)
     # -------------------------------
     pl_data = []
+    pl_data_labor = []
     income_accounts = Account.objects.filter(type='income')
     expense_accounts = Account.objects.filter(type='expense')
-
+    labor_accounts = Account.objects.get(code="51")     # اجرت طلاهزینه
+    
     for acc in income_accounts:
         if acc.code != '4' :
             items_acc = JournalItem.objects.filter(account=acc)
@@ -4263,6 +4265,31 @@ def financial_dashboard(request):
                 "credit": credit,
                 "total": credit - debit
             })
+    
+    items_acc = JournalItem.objects.filter(account=labor_accounts)
+    debit_money = items_acc.aggregate(
+        d=Coalesce(Sum('debit_money'), V(0, output_field=DecimalField()))
+    )['d']
+    credit_money = items_acc.aggregate(
+        c=Coalesce(Sum('credit_money'), V(0, output_field=DecimalField()))
+    )['c']
+    debit_gold = items_acc.aggregate(
+        d=Coalesce(Sum('debit_gold'), V(0, output_field=DecimalField()))
+    )['d']
+    credit_gold = items_acc.aggregate(
+        c=Coalesce(Sum('credit_gold'), V(0, output_field=DecimalField()))
+    )['c']
+    pl_data_labor.append({
+        "id": acc.id,
+        "category": "هزینه",
+        "description": acc.name,
+        "debit_money": debit_money,
+        "credit_money": credit_money,
+        "total_money": credit_money - debit_money,
+        "debit_gold": debit_gold,
+        "credit_gold": credit_gold,
+        "total_gold": credit_gold - debit_gold
+    })
     
     for acc in expense_accounts:
         items_acc = JournalItem.objects.filter(account=acc)
@@ -4459,7 +4486,7 @@ def financial_dashboard(request):
         ExpressionWrapper(F('weight') * F('quantity'), output_field=DecimalField(max_digits=10, decimal_places=2))
     )
     ).order_by('category')
-
+    print('pl_labor' , pl_data_labor)
     context = {
         "gold" : gold,
         'gold_inventory' : products,
@@ -4468,6 +4495,7 @@ def financial_dashboard(request):
         "summary": summary,
         "accounts": accounts,
         "pl_data": pl_data,
+        "pl_data_labor": pl_data_labor ,
         "cash_data": cash_data,
         "gold_data" : gold_data,
         "partners": partners,
