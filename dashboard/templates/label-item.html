@@ -4,82 +4,98 @@
 <meta charset="UTF-8">
 <title>Jewelry Label</title>
 {% load jalali_tags %}
-
 <style>
-  @page { size: 49mm 10mm; margin: 0; }
+@page {
+  size: 80mm 10mm;
+  margin: 0;
+}
+body {
+  width: 80mm;
+  height: 10mm;
+  margin: 0;
+  padding: 0;
+  direction: rtl;
+  font-family: Tahoma, sans-serif;
+}
+.wrapper {
+  display: flex;
+  width: 80mm;
+  height: 10mm;
+  direction: ltr; /* برای قرار گرفتن دم موشی سمت چپ */
+}
 
-  body {
-    width: 49mm;
-    height: 10mm;
-    margin: 0;
-    padding: 0;
-    direction: rtl;
-    font-family: sans-serif;
-  }
+/* قسمت دم‌موشی (چپ) */
+.empty-area {
+  width: 40mm;
+  height: 10mm;
+}
 
-  .wrapper {
-    display: flex;
-    width: 49mm;
-    height: 10mm;
-  }
+/* قسمت چاپی (راست) */
+.print-area {
+  width: 40mm;
+  height: 10mm;
+  display: flex;
+}
 
-  /* بخش راست – اطلاعات */
-  .right-box {
-    width: 23mm;
-    height: 10mm;
-    padding: 1mm;
-    font-size: 8.5px;
-    line-height: 1.2;
-    box-sizing: border-box;
-    text-align: right;
-  }
+.right-box {
+  width: 17mm;
+  height: 10mm;
+  padding: 1mm;
+  font-size: 8.5px;
+  line-height: 1.2;
+  text-align: right;
+  box-sizing: border-box;
+}
 
-  .right-box .title {
-    font-weight: bold;
-    font-size: 9px;
-  }
+.right-box .title {
+  font-weight: bold;
+  font-size: 9px;
+}
 
-  /* نوار وسط لیبل */
-  .middle {
-    width: 3mm;
-    height: 10mm;
-  }
+.middle {
+  width: 5mm;
+  height: 10mm;
+}
 
-  /* بخش چپ – بارکد */
-  .left-box {
-    width: 23mm;
-    height: 10mm;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+.left-box {
+  width: 15mm;
+  height: 10mm;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-  img.barcode {
-    width: 22mm;
-    height: 9.5mm;
-  }
+img.barcode {
+  width: 15mm;
+  height: 9.5mm;
+}
+
+@media print {
+  body { margin: 0; }
+}
 </style>
-
 </head>
 <body>
 
 <div class="wrapper">
-  {% for item in purchase_items %}
-    <!-- بخش راست -->
+ {% for item in purchase_items %}
+  <!-- دم‌موشی سمت چپ -->
+  <div class="empty-area"></div>
+
+  <!-- قسمت چاپ سمت راست -->
+  <div class="print-area">
     <div class="right-box">
       <div class="title">{{ store_name }}</div>
       وزن: {{ item.product.weight|persian_digits }} گرم<br>
-      کد: {{ item.product.code }}
-    </div>
+       {{ item.product.code }}:کد           </div>
 
-    <!-- نوار وسط (فضای خالی لیبل) -->
     <div class="middle"></div>
 
-    <!-- بخش چپ -->
     <div class="left-box">
-      <img class="barcode" src="data:image/png;base64,{{ item.product.barcode_image }}">
+      <img class="barcode" src="data:image/png;base64,{{ barcode_data }}">
     </div>
-  {% endfor %}
+  </div>
+{% endfor %}
 </div>
 
 <script>
@@ -88,4 +104,5 @@
 
 </body>
 </html>
+
 
