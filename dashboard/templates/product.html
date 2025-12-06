@@ -529,6 +529,11 @@ body {
 
 <script>
 
+    document.getElementById("addModal").addEventListener('hidden.bs.modal', function () {
+    document.querySelector("#addProductForm").reset();
+    document.getElementById("addImagePreview").style.display = "none";
+});
+
 // باز کردن مدال
 function showDuplicateCodeModal() {
     const modal = document.getElementById("duplicate-code-modal");
@@ -647,11 +652,6 @@ document.getElementById("addProductForm").addEventListener("submit", function(e)
         }
     })
     .catch(err => console.error("Fetch error:", err));
-});
-
-document.getElementById("addModal").addEventListener('hidden.bs.modal', function () {
-    document.querySelector("#addProductForm").reset();
-    document.getElementById("addImagePreview").style.display = "none";
 });
 
 
