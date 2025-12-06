@@ -623,12 +623,12 @@ document.getElementById("addProductForm").addEventListener("submit", function(e)
             </tr>
             `);
 
-            const addModalEl = document.getElementById("addModal");
-            const modal = bootstrap.Modal.getOrCreateInstance(addModalEl);
+            //const addModalEl = document.getElementById("addModal");
+            //const modal = bootstrap.Modal.getOrCreateInstance(addModalEl);
+            //modal.hide();
+            const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("addModal"));
             modal.hide();
 
-            //const modalInstance = bootstrap.Modal.getInstance(document.getElementById("addModal"));
-            //modalInstance.hide();
             //document.body.classList.remove("modal-open");
             //document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
 
