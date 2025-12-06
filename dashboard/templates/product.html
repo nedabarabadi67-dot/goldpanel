@@ -622,8 +622,13 @@ document.getElementById("addProductForm").addEventListener("submit", function(e)
                 </td>
             </tr>
             `);
-            const modalInstance = bootstrap.Modal.getInstance(document.getElementById("addModal"));
-            modalInstance.hide();
+
+            const addModalEl = document.getElementById("addModal");
+            const modal = bootstrap.Modal.getOrCreateInstance(addModalEl);
+            modal.hide();
+
+            //const modalInstance = bootstrap.Modal.getInstance(document.getElementById("addModal"));
+            //modalInstance.hide();
             //document.body.classList.remove("modal-open");
             //document.querySelectorAll(".modal-backdrop").forEach(el => el.remove());
 
@@ -644,6 +649,10 @@ document.getElementById("addProductForm").addEventListener("submit", function(e)
     .catch(err => console.error("Fetch error:", err));
 });
 
+document.getElementById("addModal").addEventListener('hidden.bs.modal', function () {
+    document.querySelector("#addProductForm").reset();
+    document.getElementById("addImagePreview").style.display = "none";
+});
 
 
 document.addEventListener("DOMContentLoaded", function() {
