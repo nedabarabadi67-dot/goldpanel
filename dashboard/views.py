@@ -2326,7 +2326,26 @@ def reports(request):
     )
     .order_by('-total_spent')[:100]
 )
-    
+    # تست
+    target = date(2025, 12, 9)  # همان روزِ مورد نظر
+
+    invs = Invoice.objects.filter(date=target).order_by('number').prefetch_related('items')
+    print("Invoices found:", invs.count())
+    for inv in invs:
+        items = list(inv.items.all())
+        total_weight = sum(float(it.weight or 0) for it in items)
+        print(f"INV {inv.number} - customer_id={inv.customer_id} - total_price={inv.total_price} - profit={inv.profit_total} - items={len(items)} - weight_sum={total_weight}")
+        
+    # مجموع‌ها
+    customers = set(inv.customer_id for inv in invs)
+    total_amount = sum(float(inv.total_price or 0) for inv in invs)
+    total_profit = sum(float(inv.profit_total or 0) for inv in invs)
+    total_weight_all = sum(float(it.weight or 0) for inv in invs for it in inv.items.all())
+
+    print("Unique customers:", len(customers))
+    print("Total amount:", total_amount)
+    print("Total profit:", total_profit)
+    print("Total weight (from items):", total_weight_all)
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
     invoices2 = Invoice.objects.prefetch_related('items', 'customer')
