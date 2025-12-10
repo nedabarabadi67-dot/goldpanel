@@ -2327,7 +2327,29 @@ def reports(request):
     .order_by('-total_spent')[:100]
 )
     
-    
+    #فثسفففف
+    target = JalaliDate(1404, 9, 18).to_gregorian()  # تبدیل به میلادی
+
+    invs = Invoice.objects.filter(date__date=target).prefetch_related('items')
+
+    print("Invoices count:", invs.count())
+
+    customers = set()
+    sum_amount = 0
+    sum_profit = 0
+    sum_weight = 0
+
+    for inv in invs:
+        customers.add(inv.customer_id)
+        sum_amount += inv.total_price
+        sum_profit += inv.profit_total
+        for it in inv.items.all():
+            sum_weight += it.weight
+
+    print("Customers:", len(customers))
+    print("Total amount:", sum_amount)
+    print("Total profit:", sum_profit)
+    print("Total weight:", sum_weight)
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
     invoices2 = (
