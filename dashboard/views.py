@@ -2333,7 +2333,7 @@ def reports(request):
         .values('day')  # فقط روز
         .annotate(
             total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
-            total_invoices = Count('id', distinct=True)
+            total_invoices = Count('id', distinct=True) ,
             total_invoice=Count('number'),
             total_weights=Sum('items__weight'),     # ← جمع وزن از آیتم‌ها
             total_amount=Sum('total_price') , # جمع کل مبلغ
