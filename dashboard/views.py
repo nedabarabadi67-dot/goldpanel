@@ -2334,23 +2334,33 @@ def reports(request):
         .annotate(
             total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
             total_invoices = Count('id', distinct=True) ,
-            total_invoice=Count('number'),
-            total_weights=Sum('items__weight'),     # ← جمع وزن از آیتم‌ها
+            #total_invoice=Count('number'),
+            #total_weights=Sum('items__weight'),     # ← جمع وزن از آیتم‌ها
             total_amount=Sum('total_price') , # جمع کل مبلغ
             profit_total=Sum('profit_total'),
         )
         .order_by('-day')
     )
+    # جمع وزن: کوئری جداگانه
+    weight_qs = (
+        InvoiceItem.objects
+            .annotate(day=TruncDay('invoice__date'))
+            .values('day')
+            .annotate(total_weights=Sum('weight'))
+    )
 
+    # تبدیل weight_qs به دیکشنری روز → وزن
+    weights_by_day = {w['day']: w['total_weights'] for w in weight_qs}
     # تبدیل QuerySet به لیست دیکشنری برای قالب
     daily_sales = []
     for sale in daily_sales_qs:
+        
         daily_sales.append({
             'date': sale['day'].strftime('%Y-%m-%d'),
             'total_customers': sale['total_customers'],
-            'total_weights': sale['total_weights'] or 0,
+            #'total_weights': sale['total_weights'] or 0,
+            'total_weights': weights_by_day.get(day, 0),  # ← وزن اضافه شد
             'total_invoices': sale['total_invoices'],
-            'total_invoice': sale['total_invoice'],
             'total_amount': sale['total_amount'],
             'profit_total':sale['profit_total']
         })
