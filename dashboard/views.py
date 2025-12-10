@@ -13,7 +13,7 @@ from django.utils.timezone import now
 import jdatetime
 import requests
 from weasyprint import CSS, HTML
-
+from django.db.models.functions import TruncDate  # امن‌تر از TruncDay
 from django.conf import settings
 
 from .models import  BankAccount, CashAccount, ExpenseAccount, Invoice, InvoiceItem, Payment, Product ,Customer, Receipt
@@ -2329,7 +2329,8 @@ def reports(request):
         # گروه‌بندی بر اساس روز
     daily_sales_qs = (
         Invoice.objects
-        .annotate(day=TruncDay('date'))
+        #.annotate(day=TruncDay('date'))
+        .annotate(day=TruncDate('date'))  # TruncDate امن‌تر است
         .values('day')  # فقط روز
         .annotate(
             total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
@@ -2344,7 +2345,8 @@ def reports(request):
     # جمع وزن: کوئری جداگانه
     weight_qs = (
         InvoiceItem.objects
-            .annotate(day=TruncDay('invoice__date'))
+            #.annotate(day=TruncDay('invoice__date'))
+            .annotate(day=TruncDate('invoice__date'))
             .values('day')
             .annotate(total_weights=Sum('weight'))
     )
