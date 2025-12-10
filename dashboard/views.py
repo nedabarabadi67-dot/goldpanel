@@ -2330,7 +2330,7 @@ def reports(request):
     
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
-    invoices = (
+    invoices2 = (
         Invoice.objects
         .select_related('customer', 'user')   # مشتری و کاربر صادرکننده را با یک JOIN بیاور
         .prefetch_related(
@@ -2349,7 +2349,7 @@ def reports(request):
         'total_weights': 0
     })
 
-    for inv in invoices:
+    for inv in invoices2:
         # اگر فیلد date از نوع DateTimeField است، از date() استفاده کن تا فقط روز بگیریم.
         # اگر DateField است، استفاده از inv.date هم اوکیست.
         try:
