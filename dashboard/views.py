@@ -2329,42 +2329,34 @@ def reports(request):
     
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
-    invoices2 = (
-        Invoice.objects
-        .select_related('customer', 'user')
-        .prefetch_related('items')
-        .all()
-    )
+    invoices2 = Invoice.objects.prefetch_related('items', 'customer')
 
     by_day = defaultdict(lambda: {
         'total_invoices': 0,
         'customers_set': set(),
         'total_amount': 0,
         'profit_total': 0,
-        'total_weights': 0,
+        'total_weights': 0
     })
 
     for inv in invoices2:
-
-        # چون DateField است مستقیم خودش روز است
-        if inv.date is None:
-            continue  # اگر تاریخی ثبت نشده بود رد شو
-
+        # چون DateField است → مستقیم خودش روز است
         day_str = inv.date.isoformat()
-        d = by_day[day_str]
 
+        d = by_day[day_str]
         d['total_invoices'] += 1
+
         if inv.customer_id:
             d['customers_set'].add(inv.customer_id)
 
         d['total_amount'] += inv.total_price or 0
         d['profit_total'] += inv.profit_total or 0
 
-        # جمع وزن از آیتم‌ها
+        # جمع وزن آیتم‌ها
         for it in inv.items.all():
-            d['total_weights'] += (it.weight or 0)
+            d['total_weights'] += float(it.weight or 0)
 
-    # تبدیل به لیست خروجی
+    # خروجی نهایی برای قالب
     daily_sales = []
     for day_str, d in sorted(by_day.items(), reverse=True):
         daily_sales.append({
