@@ -2327,85 +2327,44 @@ def reports(request):
     .order_by('-total_spent')[:100]
 )
     
-    #فثسفففف
-    target = JalaliDate(1404, 9, 18).to_gregorian()  # تبدیل به میلادی
-
-    invs = Invoice.objects.filter(date__date=target).prefetch_related('items')
-
-    print("Invoices count:", invs.count())
-
-    customers = set()
-    sum_amount = 0
-    sum_profit = 0
-    sum_weight = 0
-
-    for inv in invs:
-        customers.add(inv.customer_id)
-        sum_amount += inv.total_price
-        sum_profit += inv.profit_total
-        for it in inv.items.all():
-            sum_weight += it.weight
-
-    print("Customers:", len(customers))
-    print("Total amount:", sum_amount)
-    print("Total profit:", sum_profit)
-    print("Total weight:", sum_weight)
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
     invoices2 = (
         Invoice.objects
-        .select_related('customer', 'user')   # مشتری و کاربر صادرکننده را با یک JOIN بیاور
-        .prefetch_related(
-            Prefetch('items', queryset=InvoiceItem.objects.only('weight'))  # فقط وزن‌ها را prefetch کن
-        )
-        # .filter(date__range=(start_date, end_date))  # در صورت نیاز محدوده بزن
+        .select_related('customer', 'user')
+        .prefetch_related('items')
         .all()
     )
 
-    # ساختار: day_str -> {'invoices': n, 'customers_set': set(), 'total_amount': x, 'profit_total': y, 'total_weights': z}
     by_day = defaultdict(lambda: {
         'total_invoices': 0,
         'customers_set': set(),
         'total_amount': 0,
         'profit_total': 0,
-        'total_weights': 0
+        'total_weights': 0,
     })
 
     for inv in invoices2:
-        # اگر فیلد date از نوع DateTimeField است، از date() استفاده کن تا فقط روز بگیریم.
-        # اگر DateField است، استفاده از inv.date هم اوکیست.
-        try:
-            day = inv.date.date()   # برای DateTimeField -> date()
-        except Exception:
-            day = inv.date         # اگر DateField است
 
-        # تبدیل به رشته YYYY-MM-DD برای کلید نهایی (در صورت نیاز)
-        day_str = day.isoformat()
+        # چون DateField است مستقیم خودش روز است
+        if inv.date is None:
+            continue  # اگر تاریخی ثبت نشده بود رد شو
 
-        data = by_day[day_str]
-        data['total_invoices'] += 1
+        day_str = inv.date.isoformat()
+        d = by_day[day_str]
 
-        # فرض: inv.customer دارای فیلد id یا شماره یکتا است
-        if inv.customer is not None:
-            data['customers_set'].add(inv.customer.pk)
+        d['total_invoices'] += 1
+        if inv.customer_id:
+            d['customers_set'].add(inv.customer_id)
 
-        # جمع مبالغ و سود
-        data['total_amount'] += (inv.total_price or 0)
-        data['profit_total'] += (inv.profit_total or 0)
+        d['total_amount'] += inv.total_price or 0
+        d['profit_total'] += inv.profit_total or 0
 
-        # جمع وزن از آیتم‌ها — اگر related_name شما 'items' نیست، بجای inv.items از inv.invoiceitem_set استفاده کن
-        items_qs = getattr(inv, 'items', None) or getattr(inv, 'invoiceitem_set', None)
-        if items_qs is not None:
-            # items_qs ممکن است یک Manager یا یک QuerySet باشد (از prefetch_related)
-            for it in items_qs.all():
-                data['total_weights'] += (it.weight or 0)
-        else:
-            # اگر پیش‌فچی نشده، می‌توان یک کوئری ساده زد:
-            data['total_weights'] += InvoiceItem.objects.filter(invoice=inv).aggregate(
-                w=Sum('weight')
-            )['w'] or 0
+        # جمع وزن از آیتم‌ها
+        for it in inv.items.all():
+            d['total_weights'] += (it.weight or 0)
 
-    # تبدیل customers_set به تعداد و ساخت لیست نهایی
+    # تبدیل به لیست خروجی
     daily_sales = []
     for day_str, d in sorted(by_day.items(), reverse=True):
         daily_sales.append({
@@ -2414,7 +2373,7 @@ def reports(request):
             'total_customers': len(d['customers_set']),
             'total_weights': d['total_weights'],
             'total_amount': d['total_amount'],
-            'profit_total': d['profit_total']
+            'profit_total': d['profit_total'],
         })
     # --------- فروش ماهانه  ---------
         monthly_data = {}
