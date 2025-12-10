@@ -1353,11 +1353,11 @@ def create_invoice_with_payment(request):
                                 customer.birth_date = birth_date_gregorian
                             customer.save()
                         else:
-                            customer_code=generate_next_person_code()
+                            #customer_code=generate_next_person_code()
                             data = request.POST.copy()
                             data['birth_date'] = birth_date_gregorian  # تاریخ میلادی به فرم بده
                             data['type_partner'] = 'customer'
-                            data['code'] = customer_code  # ← اضافه کردن کد به فرم
+                            #data['code'] = customer_code  # ← اضافه کردن کد به فرم
                             customer_form = PersonForm(data)
                             if customer_form.is_valid():
                                 customer = customer_form.save()
