@@ -2354,7 +2354,7 @@ def reports(request):
     # تبدیل QuerySet به لیست دیکشنری برای قالب
     daily_sales = []
     for sale in daily_sales_qs:
-        
+        day = sale['day']
         daily_sales.append({
             'date': sale['day'].strftime('%Y-%m-%d'),
             'total_customers': sale['total_customers'],
