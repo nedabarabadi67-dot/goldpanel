@@ -659,8 +659,9 @@
               <td>{{ forloop.counter|persian_digits }}</td>
               <td>{{ sale.date|to_jalali}}</td>
               <td>{{ sale.total_customers|persian_digits }}</td>
-              <td>{{ sale.total_weights|persian_digits }}</td>
               <td>{{ sale.total_invoices|persian_digits }}</td>
+              <td>{{ sale.total_weights|floatformat:2|persian_digits }}</td>
+              
               <td> {{ sale.total_amount|persian_intcomma }} </td>
               <td>{{sale.profit_total|persian_intcomma}} </td>
             </tr>
