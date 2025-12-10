@@ -3,7 +3,6 @@ from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 import io
 import json
-from multiprocessing import Value
 import os
 from pyexpat.errors import messages
 import traceback
@@ -14,6 +13,8 @@ from django.utils.timezone import now
 import jdatetime
 import requests
 from weasyprint import CSS, HTML
+from django.db.models import Sum, Count, Value, DecimalField, IntegerField
+from django.db.models.functions import TruncDate, Coalesce
 
 from django.conf import settings
 
@@ -2282,12 +2283,7 @@ def campaign_json(request, pk):
         "message": campaign.message,
         "active": campaign.active,
     })
-
-from django.db.models import Sum, Count, OuterRef, Subquery
-from django.db.models.functions import TruncDate
-from django.db.models import Value
-from django.db.models.functions import Coalesce
- 
+    
 @login_required(login_url='/')  # مسیر صفحه لاگین شما  
 def reports(request):
     monthly_sales = []  # ← این خط اضافه شود قبل از هر عملیاتی روی invoices
@@ -2333,47 +2329,56 @@ def reports(request):
     
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
-    # 1) Subquery که مجموع وزن را برای هر فاکتور برمی‌گرداند
-    invoice_item_weights = (
-        InvoiceItem.objects
-        .filter(invoice=OuterRef('pk'))
-        .values('invoice')  # گروه‌بندی بر اساس invoice
-        .annotate(total_w=Coalesce(Sum('weight'), Value(0)))
-        .values('total_w')  # فقط مقدار مجموع وزن
-    )
-
-    # 2) روی Invoice annotate کن total_weight و day
-    invoices_with_weight = (
-        Invoice.objects
-        .annotate(day=TruncDate('date'))                        # روز (بدون زمان)
-        .annotate(total_weight=Coalesce(Subquery(invoice_item_weights), Value(0)))
-    )
-
-    # 3) حالا گروه‌بندی روزانه روی invoices_with_weight انجام بده (بدون JOIN به آیتم‌ها)
+    # ---------- مجموع‌های روزانه از جدول Invoice (بدون join به آیتم‌ها) ----------
     daily_sales_qs = (
-        invoices_with_weight
+        Invoice.objects
+        .annotate(day=TruncDate('date'))   # فقط روزِ تاریخ به صورت date
         .values('day')
         .annotate(
             total_customers=Count('customer', distinct=True),
             total_invoices=Count('id', distinct=True),
-            total_amount=Coalesce(Sum('total_price'), Value(0)),
-            profit_total=Coalesce(Sum('profit_total'), Value(0)),
-            total_weights=Coalesce(Sum('total_weight'), Value(0)),   # مجموع وزن از فیلدِ annotated
+            # مشخص کردن output_field برای جلوگیری از مشکلات نوع
+            total_amount=Coalesce(Sum('total_price'), Value(0, output_field=DecimalField())),
+            profit_total=Coalesce(Sum('profit_total'), Value(0, output_field=DecimalField())),
         )
         .order_by('-day')
     )
 
-    # 4) آماده‌سازی خروجی برای قالب
+    # ---------- مجموع وزن از جدول InvoiceItem به‌صورت جداگانه ----------
+    weight_qs = (
+        InvoiceItem.objects
+        .annotate(day=TruncDate('invoice__date'))   # نرمال‌سازی روز از invoice__date
+        .values('day')
+        .annotate(total_weights=Coalesce(Sum('weight'), Value(0, output_field=DecimalField())))
+    )
+
+    # ---------- تبدیل weight_qs به دیکشنری با کلیدِ از نوع date ----------
+    weights_by_day = {}
+    for w in weight_qs:
+        key = w['day']
+        # key باید از نوع datetime.date باشه؛ اگر datetime باشه با .date() نرمال کن
+        # ولی TruncDate عموماً date برمی‌گردونه، این فقط محافظته
+        if hasattr(key, 'date'):
+            key = key.date()
+        weights_by_day[key] = w['total_weights']
+
+    # ---------- ساخت لیست خروجی با نرمال‌سازی کلیدِ daily_sales_qs ----------
     daily_sales = []
     for sale in daily_sales_qs:
         day = sale['day']
+        if hasattr(day, 'date'):
+            day_key = day.date()
+        else:
+            day_key = day
+
         daily_sales.append({
-            'date': day.strftime('%Y-%m-%d') if day else None,
-            'total_customers': sale['total_customers'] or 0,
-            'total_invoices': sale['total_invoices'] or 0,
-            'total_amount': int(sale['total_amount'] or 0),
-            'profit_total': int(sale['profit_total'] or 0),
-            'total_weights': float(sale['total_weights'] or 0),   # یا Decimal برگردون اگر لازم داری
+            'date': day_key.strftime('%Y-%m-%d') if day_key else None,
+            'total_customers': int(sale['total_customers'] or 0),
+            'total_invoices': int(sale['total_invoices'] or 0),
+            # تبدیل Decimal به float یا int بسته به نیازت؛ اینجا Decimal را به float می‌کنیم
+            'total_amount': float(sale['total_amount'] or 0),
+            'profit_total': float(sale['profit_total'] or 0),
+            'total_weights': float(weights_by_day.get(day_key, 0) or 0),
         })
     # --------- فروش ماهانه  ---------
         monthly_data = {}
