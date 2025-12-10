@@ -2334,6 +2334,7 @@ def reports(request):
         .annotate(
             total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
             total_invoices=Count('id'),  # تعداد فاکتورها
+            total_invoice=Count('number'),
             total_weights=Sum('items__weight'),     # ← جمع وزن از آیتم‌ها
             total_amount=Sum('total_price') , # جمع کل مبلغ
             profit_total=Sum('profit_total'),
@@ -2349,6 +2350,7 @@ def reports(request):
             'total_customers': sale['total_customers'],
             'total_weights': sale['total_weights'] or 0,
             'total_invoices': sale['total_invoices'],
+            'total_invoice': sale['total_invoice'],
             'total_amount': sale['total_amount'],
             'profit_total':sale['profit_total']
         })
