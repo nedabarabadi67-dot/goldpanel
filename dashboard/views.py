@@ -13,8 +13,6 @@ from django.utils.timezone import now
 import jdatetime
 import requests
 from weasyprint import CSS, HTML
-from django.db.models import Sum, Count, Value, DecimalField, IntegerField
-from django.db.models.functions import TruncDate, Coalesce
 
 from django.conf import settings
 
@@ -2328,55 +2326,45 @@ def reports(request):
     
     
     # --------- فروش روزانه ---------
-    # تمام فاکتورهای دارای تاریخ
-    invoices = Invoice.objects.select_related('customer', 'user').all()
+        # گروه‌بندی بر اساس روز
+    daily_sales_qs = (
+        Invoice.objects
+        .annotate(day=TruncDay('date'))
+        .values('day')  # فقط روز
+        .annotate(
+            total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
+            total_invoices = Count('id', distinct=True) ,
+            #total_invoice=Count('number'),
+            #total_weights=Sum('items__weight'),     # ← جمع وزن از آیتم‌ها
+            total_amount=Sum('total_price') , # جمع کل مبلغ
+            profit_total=Sum('profit_total'),
+        )
+        .order_by('-day')
+    )
+    # جمع وزن: کوئری جداگانه
+    weight_qs = (
+        InvoiceItem.objects
+            .annotate(day=TruncDay('invoice__date'))
+            .values('day')
+            .annotate(total_weights=Sum('weight'))
+    )
 
-    # تمام آیتم‌ها با فاکتورشان
-    items = InvoiceItem.objects.select_related('invoice').all()
-
-    # تبدیل بروز وزن‌ها در یک دیکشنری
-    weights_by_invoice = {}
-
-    for it in items:
-        inv = it.invoice_id
-        if inv not in weights_by_invoice:
-            weights_by_invoice[inv] = 0
-        if it.weight:
-            weights_by_invoice[inv] += float(it.weight)
-
-    # ساختار روزانه
-    daily = {}
-
-    for inv in invoices:
-        day = inv.date  # خودش date هست
-        if day not in daily:
-            daily[day] = {
-                'total_customers': set(),
-                'total_invoices': set(),
-                'total_amount': 0,
-                'profit_total': 0,
-                'total_weights': 0,
-            }
-
-        d = daily[day]
-        d['total_customers'].add(inv.customer_id)
-        d['total_invoices'].add(inv.id)
-        d['total_amount'] += float(inv.total_price)
-        d['profit_total'] += float(inv.profit_total)
-        d['total_weights'] += weights_by_invoice.get(inv.id, 0)
-
-    # تبدیل به لیست خروجی
+    # تبدیل weight_qs به دیکشنری روز → وزن
+    weights_by_day = {w['day']: w['total_weights'] for w in weight_qs}
+    # تبدیل QuerySet به لیست دیکشنری برای قالب
     daily_sales = []
-
-    for day, info in sorted(daily.items(), reverse=True):
+    for sale in daily_sales_qs:
+        day = sale['day']
         daily_sales.append({
-            'date': day.strftime('%Y-%m-%d'),
-            'total_customers': len(info['total_customers']),
-            'total_invoices': len(info['total_invoices']),
-            'total_amount': info['total_amount'],
-            'profit_total': info['profit_total'],
-            'total_weights': info['total_weights'],
+            'date': sale['day'].strftime('%Y-%m-%d'),
+            'total_customers': sale['total_customers'],
+            #'total_weights': sale['total_weights'] or 0,
+            'total_weights': weights_by_day.get(day, 0),  # ← وزن اضافه شد
+            'total_invoices': sale['total_invoices'],
+            'total_amount': sale['total_amount'],
+            'profit_total':sale['profit_total']
         })
+
     # --------- فروش ماهانه  ---------
         monthly_data = {}
         for inv in invoices:
