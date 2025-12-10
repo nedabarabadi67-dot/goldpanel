@@ -72,7 +72,9 @@ from .models import JournalEntry, JournalItem, Account
 from django.db.models import Count, Sum, F, DateField
 from django.db.models import Func
 import requests
-
+from collections import defaultdict
+from django.db.models import Prefetch
+from django.utils.timezone import make_naive
 import barcode
 from barcode.writer import ImageWriter
 from io import BytesIO
@@ -2328,47 +2330,70 @@ def reports(request):
     
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
-    # تابعی برای استخراج تاریخ به صورت YYYY-MM-DD (SQL date(...))
-    date_only = lambda field: Func(F(field), function='date', output_field=DateField())
-
-    # 1) کوئری برای فاکتورها و مشتری‌ها (گروه‌بندی بر اساس date(invoice.date))
-    daily_sales_qs = (
+    invoices = (
         Invoice.objects
-        .annotate(day=date_only('date'))
-        .values('day')
-        .annotate(
-            total_customers=Count('customer', distinct=True),
-            total_invoices=Count('id', distinct=True),
-            total_amount=Sum('total_price'),
-            profit_total=Sum('profit_total')
+        .select_related('customer', 'user')   # مشتری و کاربر صادرکننده را با یک JOIN بیاور
+        .prefetch_related(
+            Prefetch('items', queryset=InvoiceItem.objects.only('weight'))  # فقط وزن‌ها را prefetch کن
         )
-        .order_by('-day')
+        # .filter(date__range=(start_date, end_date))  # در صورت نیاز محدوده بزن
+        .all()
     )
 
-    # 2) کوئری وزن از جدول آیتم‌ها (گروه‌بندی بر اساس date(invoice.date))
-    weight_qs = (
-        InvoiceItem.objects
-        .annotate(day=date_only('invoice__date'))
-        .values('day')
-        .annotate(total_weights=Sum('weight'))
-    )
+    # ساختار: day_str -> {'invoices': n, 'customers_set': set(), 'total_amount': x, 'profit_total': y, 'total_weights': z}
+    by_day = defaultdict(lambda: {
+        'total_invoices': 0,
+        'customers_set': set(),
+        'total_amount': 0,
+        'profit_total': 0,
+        'total_weights': 0
+    })
 
-    # 3) دیکشنری روز -> وزن
-    weights_by_day = {w['day']: w['total_weights'] for w in weight_qs}
+    for inv in invoices:
+        # اگر فیلد date از نوع DateTimeField است، از date() استفاده کن تا فقط روز بگیریم.
+        # اگر DateField است، استفاده از inv.date هم اوکیست.
+        try:
+            day = inv.date.date()   # برای DateTimeField -> date()
+        except Exception:
+            day = inv.date         # اگر DateField است
 
-    # 4) ساخت خروجی نهایی (فرمت تاریخ به رشته YYYY-MM-DD)
+        # تبدیل به رشته YYYY-MM-DD برای کلید نهایی (در صورت نیاز)
+        day_str = day.isoformat()
+
+        data = by_day[day_str]
+        data['total_invoices'] += 1
+
+        # فرض: inv.customer دارای فیلد id یا شماره یکتا است
+        if inv.customer is not None:
+            data['customers_set'].add(inv.customer.pk)
+
+        # جمع مبالغ و سود
+        data['total_amount'] += (inv.total_price or 0)
+        data['profit_total'] += (inv.profit_total or 0)
+
+        # جمع وزن از آیتم‌ها — اگر related_name شما 'items' نیست، بجای inv.items از inv.invoiceitem_set استفاده کن
+        items_qs = getattr(inv, 'items', None) or getattr(inv, 'invoiceitem_set', None)
+        if items_qs is not None:
+            # items_qs ممکن است یک Manager یا یک QuerySet باشد (از prefetch_related)
+            for it in items_qs.all():
+                data['total_weights'] += (it.weight or 0)
+        else:
+            # اگر پیش‌فچی نشده، می‌توان یک کوئری ساده زد:
+            data['total_weights'] += InvoiceItem.objects.filter(invoice=inv).aggregate(
+                w=Sum('weight')
+            )['w'] or 0
+
+    # تبدیل customers_set به تعداد و ساخت لیست نهایی
     daily_sales = []
-    for sale in daily_sales_qs:
-        day = sale['day']  # این الان یک date() از DB است (پایتون date object)
+    for day_str, d in sorted(by_day.items(), reverse=True):
         daily_sales.append({
-            'date': day.isoformat(),   # 'YYYY-MM-DD'
-            'total_customers': sale['total_customers'],
-            'total_invoices': sale['total_invoices'],
-            'total_weights': weights_by_day.get(day, 0),
-            'total_amount': sale['total_amount'] or 0,
-            'profit_total': sale['profit_total'] or 0
+            'date': day_str,
+            'total_invoices': d['total_invoices'],
+            'total_customers': len(d['customers_set']),
+            'total_weights': d['total_weights'],
+            'total_amount': d['total_amount'],
+            'profit_total': d['profit_total']
         })
-
     # --------- فروش ماهانه  ---------
         monthly_data = {}
         for inv in invoices:
