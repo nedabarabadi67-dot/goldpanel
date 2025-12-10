@@ -69,7 +69,8 @@ from django.db.models.functions import Coalesce
 from decimal import Decimal
 from .models import JournalEntry, JournalItem, Account
 # Create your views here.
-
+from django.db.models import Count, Sum, F, DateField
+from django.db.models import Func
 import requests
 
 import barcode
@@ -2327,39 +2328,45 @@ def reports(request):
     
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
+    # تابعی برای استخراج تاریخ به صورت YYYY-MM-DD (SQL date(...))
+    date_only = lambda field: Func(F(field), function='date', output_field=DateField())
+
+    # 1) کوئری برای فاکتورها و مشتری‌ها (گروه‌بندی بر اساس date(invoice.date))
     daily_sales_qs = (
-    Invoice.objects
-    .annotate(day_str=Cast('date', CharField()))  # تبدیل تاریخ برای SQLite
-    .values('day_str')
-    .annotate(
-        total_customers=Count('customer', distinct=True),
-        total_invoices=Count('id', distinct=True),
-        total_amount=Sum('total_price'),
-        profit_total=Sum('profit_total')
+        Invoice.objects
+        .annotate(day=date_only('date'))
+        .values('day')
+        .annotate(
+            total_customers=Count('customer', distinct=True),
+            total_invoices=Count('id', distinct=True),
+            total_amount=Sum('total_price'),
+            profit_total=Sum('profit_total')
+        )
+        .order_by('-day')
     )
-    .order_by('-day_str')
-)
-    # جمع وزن: کوئری جداگانه
+
+    # 2) کوئری وزن از جدول آیتم‌ها (گروه‌بندی بر اساس date(invoice.date))
     weight_qs = (
-    InvoiceItem.objects
-    .annotate(day_str=Cast('invoice__date', CharField()))
-    .values('day_str')
-    .annotate(total_weights=Sum('weight'))
-)
+        InvoiceItem.objects
+        .annotate(day=date_only('invoice__date'))
+        .values('day')
+        .annotate(total_weights=Sum('weight'))
+    )
 
-    # تبدیل weight_qs به دیکشنری روز → وزن
-    weights_by_day = {w['day_str']: w['total_weights'] for w in weight_qs}
+    # 3) دیکشنری روز -> وزن
+    weights_by_day = {w['day']: w['total_weights'] for w in weight_qs}
 
+    # 4) ساخت خروجی نهایی (فرمت تاریخ به رشته YYYY-MM-DD)
     daily_sales = []
     for sale in daily_sales_qs:
-        day = sale['day_str']
+        day = sale['day']  # این الان یک date() از DB است (پایتون date object)
         daily_sales.append({
-            'date': day,
+            'date': day.isoformat(),   # 'YYYY-MM-DD'
             'total_customers': sale['total_customers'],
             'total_invoices': sale['total_invoices'],
             'total_weights': weights_by_day.get(day, 0),
-            'total_amount': sale['total_amount'],
-            'profit_total': sale['profit_total']
+            'total_amount': sale['total_amount'] or 0,
+            'profit_total': sale['profit_total'] or 0
         })
 
     # --------- فروش ماهانه  ---------
