@@ -13,7 +13,7 @@ from django.utils.timezone import now
 import jdatetime
 import requests
 from weasyprint import CSS, HTML
-
+from django.db.models import CharField
 from django.conf import settings
 
 from .models import  BankAccount, CashAccount, ExpenseAccount, Invoice, InvoiceItem, Payment, Product ,Customer, Receipt
@@ -2328,41 +2328,38 @@ def reports(request):
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
     daily_sales_qs = (
-        Invoice.objects
-        .annotate(day=TruncDay('date'))
-        .values('day')  # فقط روز
-        .annotate(
-            total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
-            total_invoices = Count('id', distinct=True) ,
-            #total_invoice=Count('number'),
-            total_weights=Sum('items__weight'),     # ← جمع وزن از آیتم‌ها
-            total_amount=Sum('total_price') , # جمع کل مبلغ
-            profit_total=Sum('profit_total'),
-        )
-        .order_by('-day')
+    Invoice.objects
+    .annotate(day_str=Cast('date', CharField()))  # تبدیل تاریخ برای SQLite
+    .values('day_str')
+    .annotate(
+        total_customers=Count('customer', distinct=True),
+        total_invoices=Count('id', distinct=True),
+        total_amount=Sum('total_price'),
+        profit_total=Sum('profit_total')
     )
+    .order_by('-day_str')
+)
     # جمع وزن: کوئری جداگانه
     weight_qs = (
-        InvoiceItem.objects
-            .annotate(day=TruncDay('invoice__date'))
-            .values('day')
-            .annotate(total_weights=Sum('weight'))
-    )
+    InvoiceItem.objects
+    .annotate(day_str=Cast('invoice__date', CharField()))
+    .values('day_str')
+    .annotate(total_weights=Sum('weight'))
+)
 
     # تبدیل weight_qs به دیکشنری روز → وزن
-    weights_by_day = {w['day']: w['total_weights'] for w in weight_qs}
-    # تبدیل QuerySet به لیست دیکشنری برای قالب
+    weights_by_day = {w['day_str']: w['total_weights'] for w in weight_qs}
+
     daily_sales = []
     for sale in daily_sales_qs:
-        day = sale['day']
+        day = sale['day_str']
         daily_sales.append({
-            'date': sale['day'].strftime('%Y-%m-%d'),
+            'date': day,
             'total_customers': sale['total_customers'],
-            'total_weights': sale['total_weights'] or 0,
-            #'total_weights': weights_by_day.get(day, 0),  # ← وزن اضافه شد
             'total_invoices': sale['total_invoices'],
+            'total_weights': weights_by_day.get(day, 0),
             'total_amount': sale['total_amount'],
-            'profit_total':sale['profit_total']
+            'profit_total': sale['profit_total']
         })
 
     # --------- فروش ماهانه  ---------
