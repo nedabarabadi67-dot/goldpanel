@@ -2326,65 +2326,31 @@ def reports(request):
     )
     .order_by('-total_spent')[:100]
 )
-    # تست
-    target = date(2025, 12, 9)  # همان روزِ مورد نظر
-
-    invs = Invoice.objects.filter(date=target).order_by('number').prefetch_related('items')
-    print("Invoices found:", invs.count())
-    for inv in invs:
-        items = list(inv.items.all())
-        total_weight = sum(float(it.weight or 0) for it in items)
-        print(f"INV {inv.number} - customer_id={inv.customer_id} - total_price={inv.total_price} - profit={inv.profit_total} - items={len(items)} - weight_sum={total_weight}")
-        
-    # مجموع‌ها
-    customers = set(inv.customer_id for inv in invs)
-    total_amount = sum(float(inv.total_price or 0) for inv in invs)
-    total_profit = sum(float(inv.profit_total or 0) for inv in invs)
-    total_weight_all = sum(float(it.weight or 0) for inv in invs for it in inv.items.all())
-
-    print("Unique customers:", len(customers))
-    print("Total amount:", total_amount)
-    print("Total profit:", total_profit)
-    print("Total weight (from items):", total_weight_all)
+    
     # --------- فروش روزانه ---------
         # گروه‌بندی بر اساس روز
-    invoices2 = Invoice.objects.prefetch_related('items', 'customer')
+    daily_sales_qs = (
+        Invoice.objects
+        .annotate(day=TruncDay('date'))
+        .values('day')  # فقط روز
+        .annotate(
+            total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
+            total_invoices=Count('id'),  # تعداد فاکتورها
+            total_amount=Sum('total_price') , # جمع کل مبلغ
+            profit_total=Sum('profit_total'),
+        )
+        .order_by('-day')
+    )
 
-    by_day = defaultdict(lambda: {
-        'total_invoices': 0,
-        'customers_set': set(),
-        'total_amount': 0,
-        'profit_total': 0,
-        'total_weights': 0
-    })
-
-    for inv in invoices2:
-        # چون DateField است → مستقیم خودش روز است
-        day_str = inv.date.isoformat()
-
-        d = by_day[day_str]
-        d['total_invoices'] += 1
-
-        if inv.customer_id:
-            d['customers_set'].add(inv.customer_id)
-
-        d['total_amount'] += inv.total_price or 0
-        d['profit_total'] += inv.profit_total or 0
-
-        # جمع وزن آیتم‌ها
-        for it in inv.items.all():
-            d['total_weights'] += float(it.weight or 0)
-
-    # خروجی نهایی برای قالب
+    # تبدیل QuerySet به لیست دیکشنری برای قالب
     daily_sales = []
-    for day_str, d in sorted(by_day.items(), reverse=True):
+    for sale in daily_sales_qs:
         daily_sales.append({
-            'date': day_str,
-            'total_invoices': d['total_invoices'],
-            'total_customers': len(d['customers_set']),
-            'total_weights': d['total_weights'],
-            'total_amount': d['total_amount'],
-            'profit_total': d['profit_total'],
+            'date': sale['day'].strftime('%Y-%m-%d'),
+            'total_customers': sale['total_customers'],
+            'total_invoices': sale['total_invoices'],
+            'total_amount': sale['total_amount'],
+            'profit_total':sale['profit_total']
         })
     # --------- فروش ماهانه  ---------
         monthly_data = {}
