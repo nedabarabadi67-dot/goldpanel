@@ -356,6 +356,14 @@
                     </div>
 
                     <div class="row mb-3">
+                        <div class="col-md-3">
+                                    <label>شماره تلفن فروشنده</label>
+                                    <input type="text" name="phone1" id="phoneSeller1" class="form-control" >
+                                </div>
+                        <div class="col-md-3">
+                                    <label>نام فروشنده</label>
+                                    <input type="text" name="nameseller1" id="nameSeller1" class="form-control" >
+                        </div>
 
                     <div class="col-md-3">
                         <label>فی  (تومان)</label>
@@ -382,6 +390,8 @@
                             </div>
 
                     </div>
+                </div>
+                <div class="row mb-3">
                     <div class="col-md-3">
                         <label> شماره فاکتور فروشنده </label>
                         <input type="text" name="numberstore" id="numberStore" class="form-control" value={{0|persian_digits}}>
@@ -390,8 +400,7 @@
                         <label>مبلغ کل  (تومان)</label>
                         <input type="text" name="totalprice" id="totalPrice" class="form-control" value={{0|persian_digits}}>
                     </div>
-                </div>
-                <div class="row mb-3">
+                
                     <div class="col-md-3">
                         <label>اجرت</label>
                             <div class="row">
@@ -409,13 +418,16 @@
                         <label>عیار</label>
                         <input type="text"  name="purity" id="purity" class="form-control" value={{750|persian_digits}}>
                     </div>
-
+                </div>
+                <div class="row mb-3">
                     <div class="col-md-6">
                         <label>توضیحات</label>
                         <textarea name="note" class="form-control" id="invoiceNote" rows="2"></textarea>
                     </div>
+                </div>
+                <div class="row mb-3">
                     <div class="col-md-3">
-                        <button type="button" id="invoiceSave" class="btn btn-success  mt-5 px-4">
+                        <button type="button" id="invoiceSave" class="btn btn-success  mt-2 px-4">
                             💾 ثبت فاکتور
                         </button>
                     </div>
@@ -595,79 +607,87 @@
                                     <input type="file" name="image2" id="invoiceImage2" class="form-control">
                                 </div>
                             </div><!--row-->
-                            <div class="row mb-3">
-                                <div class="col-md-3">
+                        <div class="row mb-3">        
+                            <div class="col-md-3">
+                                        <label>شماره تلفن فروشنده</label>
+                                        <input type="text" name="phone2" id="phoneSeller2" class="form-control" >
+                            </div>
+                            <div class="col-md-3">
+                                        <label>نام فروشنده</label>
+                                        <input type="text" name="nameseller2" id="nameSeller2" class="form-control" >
+                            </div>
+                            <div class="col-md-3">
                                     <label>شماره فاکتور فروشنده</label>
                                     <input type="text" name="numberstore2" id="numberstore2" class="form-control" value={{0|persian_digits}}>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>فی (تومان)</label>
-                                        <div class="row">
-                                            <div class="col-md-6 mb-2">
+                            </div>
+                            <div class="col-md-3">
+                                <label>فی (تومان)</label>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-2">
                                                 <input type="text" name="price2" id="pricePerGram2" class="form-control"  placeholder="گرم" >
-                                            </div>
-                                            <div class="col-md-6 mb-2">
+                                        </div>
+                                        <div class="col-md-6 mb-2">
                                                 <input type="text" name="mesghal2" id="mesghal2" class="form-control"
                                                     placeholder="مثقال">
-                                            </div>
-                                        </div>    
-                                </div>
-
-                                <div class="col-md-3">
-                                    <label>وزن کل (گرم)</label>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-2">
+                                        </div>
+                                    </div>    
+                            </div>
+                                
+                            <div class="col-md-3">
+                                <label>وزن کل (گرم)</label>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
                                             <input type="text"  name="weight2" id="totalWeight2" class="form-control" placeholder="{{750|persian_digits}}" required>
-                                        </div>
-                                        <div class="col-md-6 mb-2">
-                                            <input type="text"  name="weightpurity2" id="weightPurity2" class="form-control" placeholder="وزن معادل {{750|persian_digits}}" readonly>
-                                        </div>
                                     </div>
-
+                                    <div class="col-md-6 mb-2">
+                                            <input type="text"  name="weightpurity2" id="weightPurity2" class="form-control" placeholder="وزن معادل {{750|persian_digits}}" readonly>
+                                    </div>
                                 </div>
-                                <div class="col-md-3">
+                            </div>
+                            <div class="col-md-3">
                                     <label>عیار</label>
                                     <input type="text"  name="purity2" id="purity2" class="form-control" value={{750|persian_digits}}>
-                                </div>
                             </div>
-                            <div class="row mb-3">
-                                <div class="col-md-3 ">
-                                    <label>انگ</label>
-                                    <input type="text" step="0.01" name="code2" id="code2" class="form-control"  required>
-                                </div>
-                                <div class="col-md-3">
-                                    <label>نام ری گیری</label>
-                                    <input type="text" name="nameab" id="name" class="form-control" >
-                                </div>
-                                <div class="col-md-3">
-                                    <label>اجرت</label>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-2">
-                                            <input type="text"  name="labor2" id="labor2" class="form-control" placeholder='درصد'>
-                                        </div>
-                                        <div class="col-md-6 mb-2">
-                                            <input type="text" name="laborprice2" id="laborPrice2" class="form-control"
-                                                placeholder="تومان">
-                                        </div>
+                            <div class="col-md-3">
+                                <label>اجرت</label>
+                                <div class="row">
+                                    <div class="col-md-6 mb-2">
+                                        <input type="text"  name="labor2" id="labor2" class="form-control" placeholder='درصد'>
+                                    </div>
+                                    <div class="col-md-6 mb-2">
+                                        <input type="text" name="laborprice2" id="laborPrice2" class="form-control"
+                                            placeholder="تومان">
                                     </div>
                                 </div>
-
-                                <div class="col-md-3">
-                                    <label>مبلغ کل (تومان)</label>
-                                    <input type="text" name="totalprice2" id="totalPrice2" class="form-control" value={{0|persian_digits}} >
-                                </div>
                             </div>
-                            <div class="row mb-3">
-                                <div class="col-md-6">
-                                    <label>توضیحات</label>
-                                    <textarea name="note2" class="form-control" id="invoiceNote2" rows="2"></textarea>
-                                </div>
-                                <div class="col-md-3">
-                                    <button type="button" id="invoiceSave2" class="btn btn-success mt-5 px-4">
-                                        💾 ثبت فاکتور
-                                    </button>
-                                </div>
-                            </div><!--row-->
+                            <div class="col-md-3">
+                                <label>مبلغ کل (تومان)</label>
+                                <input type="text" name="totalprice2" id="totalPrice2" class="form-control" value={{0|persian_digits}} >
+                            </div>            
+                        </div><!--row-->
+                        <div class="row mb-3">
+                            <div class="col-md-3 ">
+                                <label>انگ</label>
+                                <input type="text" step="0.01" name="code2" id="code2" class="form-control"  required>
+                            </div>
+                            <div class="col-md-3">
+                                <label>نام ری گیری</label>
+                                <input type="text" name="nameab" id="name" class="form-control" >
+                            </div>
+                        </div><!--row>-->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label>توضیحات</label>
+                                <textarea name="note2" class="form-control" id="invoiceNote2" rows="2"></textarea>
+                            </div>
+                        </div><!--row-->
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <button type="button" id="invoiceSave2" class="btn btn-success mt-5 px-4">
+                                    💾 ثبت فاکتور
+                                </button>
+                            </div>
+                        </div><!--row-->
                             <div class="modal fade" id="recievepayment-modal2" tabindex="-1">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
@@ -727,6 +747,7 @@
                                     </div>
                                 </div>
                             </div>
+                        
                         </form>
                     </div><!--cardbody-->
                 </div><!--cardshadow-->
@@ -2120,6 +2141,68 @@ $(document).ready(function () {
 document.addEventListener("DOMContentLoaded", function () {
     const phoneInput = document.getElementById("phoneSeller");
     const nameInput = document.getElementById("nameSeller");
+    const PHONE_LENGTH = 11;
+
+    phoneInput.addEventListener("input", function () {
+        const rawPhone = this.value.trim();
+        const phone = persianToEnglishDigits(rawPhone);  // تبدیل به انگلیسی
+        if (phone.length === PHONE_LENGTH) {
+            const url = `/customers/check/?phone=${encodeURIComponent(phone)}`;
+            console.log("Fetching:", url);  // این خط برای دیباگ
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exists) {
+                        nameInput.value = data.name;
+
+                    } else {
+                        nameInput.value = "";
+
+                    }
+                })
+                .catch(err => console.error(err));
+        } else {
+            // اگر شماره کامل نیست، پاک کن
+            nameInput.value = "";
+
+        }
+    });
+});
+// --- پر کردن خودکار نام و آدرس مشتری تب دوم ---
+document.addEventListener("DOMContentLoaded", function () {
+    const phoneInput = document.getElementById("phoneSeller2");
+    const nameInput = document.getElementById("nameSeller2");
+    const PHONE_LENGTH = 11;
+
+    phoneInput.addEventListener("input", function () {
+        const rawPhone = this.value.trim();
+        const phone = persianToEnglishDigits(rawPhone);  // تبدیل به انگلیسی
+        if (phone.length === PHONE_LENGTH) {
+            const url = `/customers/check/?phone=${encodeURIComponent(phone)}`;
+            console.log("Fetching:", url);  // این خط برای دیباگ
+            fetch(url)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exists) {
+                        nameInput.value = data.name;
+
+                    } else {
+                        nameInput.value = "";
+
+                    }
+                })
+                .catch(err => console.error(err));
+        } else {
+            // اگر شماره کامل نیست، پاک کن
+            nameInput.value = "";
+
+        }
+    });
+});
+// --- پر کردن خودکار نام و آدرس مشتری تب اول ---
+document.addEventListener("DOMContentLoaded", function () {
+    const phoneInput = document.getElementById("phoneSeller1");
+    const nameInput = document.getElementById("nameSeller1");
     const PHONE_LENGTH = 11;
 
     phoneInput.addEventListener("input", function () {
