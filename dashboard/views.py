@@ -644,85 +644,86 @@ def add_product(request):
                 )
 
                 # سند حسابداری موجودی اولیه سرمایه بستانکار
-                gold_account=Account.objects.get(code='14')
-                capital_account=Account.objects.get(code='3')
-                labor_account=Account.objects.get(code='51')
-                labor_amount = 0
-                print("labor",labor)
-                print("laborprice" , laborprice)
-                if labor > 0 :
-                    labor_amount=(weight * labor) /100   
-                if laborprice > 0 :
-                    print("if")
-                    if purity != 750 :
-                        weightpurity=(weight * purity )/750
-                        labor_amount= ( weightpurity * laborprice )
-                    else : 
-                        labor_amount= ( weight * laborprice )
-                            
                 if quantity > 0 :
-                    weight_total= weight * quantity
-                    labor_total= labor_amount * quantity
+                    gold_account=Account.objects.get(code='14')
+                    capital_account=Account.objects.get(code='3')
+                    labor_account=Account.objects.get(code='51')
+                    labor_amount = 0
+                    print("labor",labor)
+                    print("laborprice" , laborprice)
+                    if labor > 0 :
+                        labor_amount=(weight * labor) /100   
+                    if laborprice > 0 :
+                        print("if")
+                        if purity != 750 :
+                            weightpurity=(weight * purity )/750
+                            labor_amount= ( weightpurity * laborprice )
+                        else : 
+                            labor_amount= ( weight * laborprice )
+                                
+                    if quantity > 0 :
+                        weight_total= weight * quantity
+                        labor_total= labor_amount * quantity
+                        
+                    else :
+                        weight_total = weight
+                        labor_total= labor_amount
                     
-                else :
-                    weight_total = weight
-                    labor_total= labor_amount
-                
-                print("labor",labor_total)
-                
-                    # 🔸 ایجاد سند حسابداری
-                entry = JournalEntry.objects.create(
-                    date=timezone.now().date(),
-                    description=f"ثبت موجودی اولیه کالا {name}",
-                )
+                    print("labor",labor_total)
+                    
+                        # 🔸 ایجاد سند حسابداری
+                    entry = JournalEntry.objects.create(
+                        date=timezone.now().date(),
+                        description=f"ثبت موجودی اولیه کالا {name}",
+                    )
 
-                    # 🔸 بدهکار: موجودی طلا (با وزن)
-                JournalItem.objects.create(
-                    entry=entry,
-                    account=gold_account,
-                    debit_gold=weight_total,
-                    description=f"ورود اولیه کالای {name}"
-                )
-                
-                if labor== 0 and laborprice==0 :
-                    # 🔸 بستانکار: سرمایه (با وزن)
+                        # 🔸 بدهکار: موجودی طلا (با وزن)
                     JournalItem.objects.create(
                         entry=entry,
-                        account=capital_account,
-                        credit_gold=weight_total,
-                        description="تأمین از سرمایه طلا"
+                        account=gold_account,
+                        debit_gold=weight_total,
+                        description=f"ورود اولیه کالای {name}"
                     )
-                elif labor> 0 : 
-                    JournalItem.objects.create(
-                        entry=entry,
-                        account=labor_account,
-                        debit_gold=labor_total,
-                        description=f"هزینه اجرت {labor}% برای {name}"
-                    )
-                    # 🔸 بستانکار: سرمایه (با درصد اجرت و وزن)
-                    JournalItem.objects.create(
-                        entry=entry,
-                        account=capital_account,
-                        credit_gold=weight_total + labor_total ,
-                        description="تأمین از سرمایه (طلا + اجرت)"
+                    
+                    if labor== 0 and laborprice==0 :
+                        # 🔸 بستانکار: سرمایه (با وزن)
+                        JournalItem.objects.create(
+                            entry=entry,
+                            account=capital_account,
+                            credit_gold=weight_total,
+                            description="تأمین از سرمایه طلا"
                         )
-                elif laborprice > 0 :
-                    JournalItem.objects.create(
-                        entry=entry,
-                        account=labor_account,
-                        debit_money=labor_total,
-                        description=f"هزینه اجرت پولی  {laborprice} برای {name}"
-                    )
-                    # 🔸 بستانکار: سرمایه (با پول اجرت و وزن)
-                    JournalItem.objects.create(
-                        entry=entry,
-                        account=capital_account,
-                        credit_gold=weight_total,
-                        credit_money=labor_total,
-                        description="تأمین از سرمایه (طلا + اجرت پولی)"
+                    elif labor> 0 : 
+                        JournalItem.objects.create(
+                            entry=entry,
+                            account=labor_account,
+                            debit_gold=labor_total,
+                            description=f"هزینه اجرت {labor}% برای {name}"
                         )
+                        # 🔸 بستانکار: سرمایه (با درصد اجرت و وزن)
+                        JournalItem.objects.create(
+                            entry=entry,
+                            account=capital_account,
+                            credit_gold=weight_total + labor_total ,
+                            description="تأمین از سرمایه (طلا + اجرت)"
+                            )
+                    elif laborprice > 0 :
+                        JournalItem.objects.create(
+                            entry=entry,
+                            account=labor_account,
+                            debit_money=labor_total,
+                            description=f"هزینه اجرت پولی  {laborprice} برای {name}"
+                        )
+                        # 🔸 بستانکار: سرمایه (با پول اجرت و وزن)
+                        JournalItem.objects.create(
+                            entry=entry,
+                            account=capital_account,
+                            credit_gold=weight_total,
+                            credit_money=labor_total,
+                            description="تأمین از سرمایه (طلا + اجرت پولی)"
+                            )
 
-                    print(f"✅ سند طلایی برای {name} ثبت شد ")
+                        print(f"✅ سند طلایی برای {name} ثبت شد ")
                 
                 return JsonResponse({
                     "success": True,
@@ -2335,7 +2336,8 @@ def reports(request):
         .values('day')  # فقط روز
         .annotate(
             total_customers=Count('customer', distinct=True),  # تعداد مشتریان متمایز
-            total_invoices=Count('id'),  # تعداد فاکتورها
+            total_invoices=Count('id', distinct=True),  # تعداد فاکتورها
+            total_weights=Sum('items__weight'), # ← جمع وزن از آیتم‌ها
             total_amount=Sum('total_price') , # جمع کل مبلغ
             profit_total=Sum('profit_total'),
         )
@@ -2349,6 +2351,7 @@ def reports(request):
             'date': sale['day'].strftime('%Y-%m-%d'),
             'total_customers': sale['total_customers'],
             'total_invoices': sale['total_invoices'],
+            'total_weights': sale['total_weights'] or 0,
             'total_amount': sale['total_amount'],
             'profit_total':sale['profit_total']
         })
