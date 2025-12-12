@@ -123,7 +123,7 @@ body {
                                     
                                     <td class="td-category" data-value="{{ product.category }}">{{ product.category|cat_fa }}</td>
 
-                                    <td class="td-name">{{ product.name }}</td>
+                                    <td class="td-name">{{ product.name|persian_digits }}</td>
                                     <td class="td-weight">{{ product.weight|persian_digits }}</td>
                                     <td class="td-labor">{{ product.labor|floatformat:1|persian_digits }}</td>
                                     <td class="td-laborprice">{{ product.laborprice|persian_intcomma }}</td>
@@ -600,13 +600,13 @@ document.getElementById("addProductForm").addEventListener("submit", function(e)
             }
             tableBody.insertAdjacentHTML("beforeend", `
             <tr id="product-row-${data.id}">
-                <td class="td-code">${data.code}</td>
+                <td class="td-code">${toPersianDigits(data.code)}</td>
                 <td class="td-image">
                 ${data.image ? `<img src="${data.image}" width="50">` : 'بدون تصویر'}
                 </td>
                 
                 <td class="td-category">${data.category}</td>
-                <td class="td-name">${data.name}</td>
+                <td class="td-name">${toPersianDigits(data.name)}</td>
                 <td class="td-weight">${toPersianDigits(data.weight)}</td>
                 <td class="td-labor">${toPersianDigits(data.labor)}</td>
                 <td class="td-laborprice">${toPersianDigits(data.laborprice)}</td>
@@ -935,7 +935,7 @@ document.getElementById("editProductForm").addEventListener("submit", function(e
             catCell.dataset.value = data.category;           // value واقعی
             catCell.innerText = data.category_fa || catCell.innerText;  // متن فارسی
 
-            row.children[3].innerText = data.name;
+            row.children[3].innerText = toPersianDigits(data.name);
             row.children[4].innerText = toPersianDigits(data.weight);
             row.children[5].innerText = toPersianDigits(data.labor);
             row.children[6].innerText = toPersianDigits(data.laborprice);
@@ -984,8 +984,9 @@ makeInputPersian('editLaborPrice');
 makeInputPersian('addLaborPrice');
 makeInputPersian('editPurity');
 makeInputPersian('addPurity');
-makeInputPersian('productSearchInput')
-
+makeInputPersian('productSearchInput');
+makeInputPersian('addName');
+makeInputPersian('editName');
 
 
 
