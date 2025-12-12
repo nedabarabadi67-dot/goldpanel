@@ -200,7 +200,7 @@
                 <div class="card-body">
                     <h5 class="card-title">خرید (تومان)</h5>
                     <!--<div class="amount">{{ sood.total_buy_fee|persian_intcomma }}</div> -->
-                    <small>وزن خرید: {{ sood.total_buy_weight|persian_digits }} گرم</small>
+                    <small>وزن خرید: {{ sood.total_buy_weight|floatformat:2|persian_digits }} گرم</small>
                 </div>
             </div>
         </div>
