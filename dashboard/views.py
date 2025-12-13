@@ -3482,12 +3482,63 @@ def save_purchase2(request):
                 pricemesghal=request.POST.get('mesghal2') or 0
                 total_price=request.POST.get('totalprice2') or 0
                 #print(number)
+                                # --- مدیریت فروشنده ---
+                seller_id = request.POST.get("seller2")  # از سلکت
+                phone = request.POST.get("phone2")  # از input
+                customer = None
+
+                if seller_id:  
+                    # ✅ اگر از سلکت انتخاب شده
+                    customer = Person.objects.filter(id=seller_id).first()
+                    flag='nocustomer'
+                elif phone:  
+                    flag='customer'
+                    # ✅ اگر شماره تلفن وارد شده
+                    phone = persian_to_english_digits(phone)
+                    existing_person = Person.objects.filter(phone=phone).first()
+                    if existing_person:
+                        print("exist")
+                        # اگر شخص وجود داشت → بروزرسانی نام
+                        existing_person.name = request.POST.get("name2") or existing_person.name
+                        existing_person.save()
+                        customer = existing_person
+                    else:
+                        print("new person")
+                        print(phone)
+                        # اگر شخص جدید بود → بسازش
+                        person_data = {
+                            
+                            "name": request.POST.get("nameseller"),
+                            "phone": phone,
+                            "type_partner":"customer",
+                        }
+                        print(person_data)
+                        customer_form = PersonForm(person_data)
+                        #print(customer_form)
+                        if customer_form.is_valid():
+                            print("yes")
+                            customer = customer_form.save()
+                        else:
+                            print(customer_form.errors)
+                            return JsonResponse({"status": "error", "errors": customer_form.errors})
+
+                    # تعیین جنسیت خودکار
+                    if customer and customer.name:
+                        if 'خانم' in customer.name:
+                            customer.gender = 'female'
+                        else:
+                            customer.gender = 'male'
+                        customer.save()
+
+                if not customer:
+                    return JsonResponse({'status': 'error', 'message': 'فروشنده مشخص نشده است.'})
+
                 invoice = PurchaseInvoice.objects.create(
                     number=number,
                     number_store=request.POST.get('numberstore2'),
                     type='ab',
                     date=date_gregorian or timezone.now().date(),
-                    seller_id=request.POST.get('seller2'),
+                    seller=customer,
                     weight=to_decimal(weight),
                     purity=to_decimal(purity),
                     labor=to_decimal(labor),
