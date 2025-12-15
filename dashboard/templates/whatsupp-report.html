@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    {% load static %}
+    {% load jalali_tags %}
+    <meta charset="UTF-8">
+    <title>گزارش روزانه</title>
+
+    <style>
+        @page {
+            size: A4 portrait;
+            margin: 10mm;
+            @bottom-center {
+                content: "صفحه " counter(page) " از " counter(pages);
+                font-size: 9px;
+            }
+            @bottom-right {
+                content: "چاپ شده توسط سیستم گلد پنل";
+                font-size: 9px;
+            }
+        }
+
+        @font-face {
+            font-family: 'IRANYekan';
+            src: url('/static/assets/fonts/iranyekanweblight.ttf') format('truetype');
+            font-weight: normal;
+        }
+        @font-face {
+            font-family: 'IRANYekan';
+            src: url('/static/assets/fonts/iranyekanwebbold.ttf') format('truetype');
+            font-weight: bold;
+        }
+
+        body {
+            font-family: 'IRANYekan';
+            direction: rtl;
+            font-size: 13px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .header img {
+            height: 60px;
+        }
+
+        h2, h3 {
+            text-align: center;
+            margin: 8px 0;
+        }
+
+        .info-box {
+            margin-top: 10px;
+            font-size: 12px;
+            border: 1px solid #888;
+            padding: 7px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        th, td {
+            border: 1px solid #333;
+            padding: 6px;
+        }
+
+        th {
+            background-color: #eee;
+            font-weight: bold;
+        }
+
+        .section-title {
+            margin-top: 20px;
+            font-weight: bold;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- سربرگ -->
+<div class="header">
+    <div><h2>گالری نصیری</h2></div>
+    <div><img src="{% static 'assets/images/logo-nasiri.jpeg' %}"></div>
+</div>
+
+<h3>گزارش روزانه فروش و موجودی</h3>
+
+<!-- اطلاعات گزارش -->
+<div class="info-box">
+    تاریخ گزارش: <b>{{ report_date|to_jalali }}</b> |
+    ساعت تهیه: <b>۲۲:۰۰</b>
+</div>
+
+<!-- فروش -->
+<div class="section-title">خلاصه فروش</div>
+<table>
+    <thead>
+        <tr>
+            <th>وزن فروش (گرم)</th>
+            <th>مبلغ فروش (ریال)</th>
+            <th>سود فروش (ریال)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ sale_weight|floatformat:2|persian_digits }}</td>
+            <td>{{ sale_amount|persian_intcomma }}</td>
+            <td>{{ sale_profit|persian_intcomma }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- خرید -->
+<div class="section-title">خرید انجام‌شده</div>
+<table>
+    <thead>
+        <tr>
+            <th>وزن خرید (گرم)</th>
+            <th>نوع کالا</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ buy_weight|floatformat:2|persian_digits }}</td>
+            <td>{{ product_type }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- موجودی -->
+<div class="section-title">وضعیت موجودی</div>
+<table>
+    <thead>
+        <tr>
+            <th>موجودی بانک (ریال)</th>
+            <th>موجودی صندوق (ریال)</th>
+            <th>موجودی طلا (گرم)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>{{ bank_balance|persian_intcomma }}</td>
+            <td>{{ cash_balance|persian_intcomma }}</td>
+            <td>{{ gold_balance|floatformat:2|persian_digits }}</td>
+        </tr>
+    </tbody>
+</table>
+
+</body>
+</html>

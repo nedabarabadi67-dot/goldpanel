@@ -149,6 +149,123 @@ def print_invoice_labels(request, invoice_id):
     return render(request, 'label-item.html', context)
 
 
+def daily_report_pdf_view(request):
+    # -------------------------------
+    # تاریخ گزارش (امروز)
+    # -------------------------------
+    report_date = timezone.now().date()
+
+    # -------------------------------
+    # فروش روز
+    # -------------------------------
+    sales = Invoice.objects.filter(
+        type='sale',
+        date__date=report_date
+    )
+
+    sale_data = sales.aggregate(
+        sale_weight=Coalesce(Sum('gold_weight'), Decimal('0')),
+        sale_amount=Coalesce(Sum('total_amount'), Decimal('0')),
+        sale_profit=Coalesce(Sum('profit'), Decimal('0')),
+    )
+
+    # -------------------------------
+    # خرید روز
+    # -------------------------------
+    buys = Invoice.objects.filter(
+        type='buy',
+        date__date=report_date
+    )
+
+    buy_weight = buys.aggregate(
+        w=Coalesce(Sum('gold_weight'), Decimal('0'))
+    )['w']
+
+    product_type = " / ".join(
+        buys.values_list('product_type', flat=True).distinct()
+    ) or "—"
+
+    # -------------------------------
+    # موجودی بانک
+    # -------------------------------
+    bank_accounts = Account.objects.filter(type='bank')
+
+    bank_balance = JournalItem.objects.filter(
+        account__in=bank_accounts
+    ).aggregate(
+        bal=Coalesce(
+            Sum('debit_money') - Sum('credit_money'),
+            Decimal('0')
+        )
+    )['bal']
+
+    # -------------------------------
+    # موجودی صندوق
+    # -------------------------------
+    cash_accounts = Account.objects.filter(type='cash')
+
+    cash_balance = JournalItem.objects.filter(
+        account__in=cash_accounts
+    ).aggregate(
+        bal=Coalesce(
+            Sum('debit_money') - Sum('credit_money'),
+            Decimal('0')
+        )
+    )['bal']
+
+    # -------------------------------
+    # موجودی کل طلا
+    # -------------------------------
+    gold_balance = JournalItem.objects.aggregate(
+        bal=Coalesce(
+            Sum('debit_gold') - Sum('credit_gold'),
+            Decimal('0')
+        )
+    )['bal']
+
+    # -------------------------------
+    # کانتکست قالب PDF
+    # -------------------------------
+    context = {
+        "report_date": report_date,
+
+        "sale_weight": sale_data["sale_weight"],
+        "sale_amount": sale_data["sale_amount"],
+        "sale_profit": sale_data["sale_profit"],
+
+        "buy_weight": buy_weight,
+        "product_type": product_type,
+
+        "bank_balance": bank_balance,
+        "cash_balance": cash_balance,
+        "gold_balance": gold_balance,
+    }
+
+    # -------------------------------
+    # رندر HTML
+    # -------------------------------
+    html_string = render_to_string(
+        "whatsupp-report.html",
+        context
+    )
+
+    # -------------------------------
+    # ساخت PDF
+    # -------------------------------
+    pdf_file = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri('/')
+    ).write_pdf()
+
+    # -------------------------------
+    # پاسخ PDF
+    # -------------------------------
+    response = HttpResponse(pdf_file, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="daily_report.pdf"'
+
+    return response
+
+
 def download_invoice_pdf(request, invoice_id):
     purchase = get_object_or_404(PurchaseInvoice, id=invoice_id)
     total_weight = sum(item.product.weight * item.quantity for item in purchase.items.all())
