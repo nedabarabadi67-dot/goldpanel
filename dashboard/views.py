@@ -2448,6 +2448,26 @@ def reports(request):
             "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
             "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
         ]
+        
+        monthly_user_weights = {}
+
+        items = (
+            InvoiceItem.objects
+            .select_related('invoice', 'invoice__user')
+        )
+
+        for item in items:
+            if not item.invoice or not item.invoice.date or not item.invoice.user:
+                continue
+
+            jdate = JalaliDate.to_jalali(item.invoice.date)
+            key = (jdate.year, jdate.month, item.invoice.user_id)
+
+            if key not in monthly_user_weights:
+                monthly_user_weights[key] = 0
+
+            monthly_user_weights[key] += item.weight or 0
+
 
     # خروجی مرتب
         monthly_user_sales = []
@@ -2458,6 +2478,7 @@ def reports(request):
                 "total_invoices": data["total_invoices"],
                 "total_amount": data["total_amount"],
                 "profit_total":data["profit_total"],
+                "total_weights": monthly_user_weights.get((year, month, user_id), 0),  # ✅ وزن
             })
     
     context = {
