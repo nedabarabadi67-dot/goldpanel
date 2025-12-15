@@ -1465,7 +1465,7 @@ def create_invoice_with_payment(request):
                         mgtransaction = MeltedGoldTransaction.objects.create(
                             melted_gold=product_melted,
                             transaction_type="IN",
-                            source=f"کسری فاکتور {invoice_number}",
+                            source=f"کسری فاکتور {invoice.number}",
                             destination="فروشگاه",
                             weight=weightkasr,
                             price_per_gram=price,  # قیمت هر گرم (می‌توانی انتخابی باشد)
