@@ -513,6 +513,7 @@
           <th>شماره فاکتور</th>
           <th>نام مشتری</th>
           <th>تاریخ</th>
+          <th>وزن فروش (گرم)</th>
           <th>مبلغ فروش (تومان)</th>
           <th>سود دریافتی (تومان) </th>
           <th>کاربر صادر کننده</th>
@@ -525,6 +526,7 @@
           <td>{{ invoice.number|persian_digits }}</td>
           <td>{{ invoice.customer.name }}</td>
           <td>{{ invoice.date|to_jalali}}</td>
+          <td>{{ sale.total_weights|floatformat:2|persian_digits }}</td>
           <td>{{ invoice.total_price|persian_intcomma }}</td>
           <td>{{invoice.profit_total|persian_intcomma}}</td>
           <td>{{ invoice.user.first_name }} {{invoice.user.last_name}}</td>
@@ -693,6 +695,7 @@
               <th>ماه </th>
               <th>تعداد مشتریان</th>
               <th>تعداد فاکتور</th>
+              <th>وزن فروش (گرم)</th>
               <th>مبلغ فروش (تومان)</th>
               <th>سود دریافتی (تومان) </th>
             </tr>
@@ -704,6 +707,7 @@
               <td>{{ sale.month|persian_digits }}</td>
               <td>{{ sale.total_customers|persian_digits }}</td>
               <td>{{ sale.total_invoices|persian_digits }}</td>
+              <td>{{ sale.total_weights|floatformat:2|persian_digits }}</td>
               <td>{{ sale.total_amount |persian_intcomma}} </td>
               <td>{{sale.profit_total|persian_intcomma}} </td>
             </tr>
@@ -736,6 +740,7 @@
               <th>ماه </th>
               <th>فروشنده</th>
               <th>تعداد فاکتور</th>
+              <th>وزن فروش (گرم)</th>
               <th>مبلغ فروش (تومان)</th>
               <th>سود دریافتی (تومان) </th>
             </tr>
@@ -747,6 +752,7 @@
               <td>{{ sale.month|persian_digits }}</td>
               <td>{{ sale.user}}</td>
               <td>{{ sale.total_invoices|persian_digits }}</td>
+              <td>{{ sale.total_weights|floatformat:2|persian_digits }}</td>
               <td>{{ sale.total_amount |persian_intcomma}} </td>
               <td>{{sale.profit_total|persian_intcomma}}</td>
             </tr>

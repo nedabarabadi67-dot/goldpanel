@@ -79,6 +79,7 @@ import barcode
 from barcode.writer import ImageWriter
 from io import BytesIO
 import base64
+from django.db.models.functions import ExtractYear, ExtractMonth
 
 def print_label(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -2391,6 +2392,21 @@ def reports(request):
             "فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور",
             "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
         ]
+        
+        monthly_weight_qs = (
+            InvoiceItem.objects
+            .annotate(
+                year=ExtractYear('invoice__date'),
+                month=ExtractMonth('invoice__date')
+            )
+            .values('year', 'month')
+            .annotate(total_weight=Sum('weight'))
+        )
+        monthly_weights = {
+            (w['year'], w['month']): w['total_weight']
+            for w in monthly_weight_qs
+        }
+
 
         # مرتب‌سازی و آماده برای context
         monthly_sales = []
@@ -2401,6 +2417,7 @@ def reports(request):
                 "total_invoices": data["total_invoices"],
                 "total_amount": data["total_amount"],
                 "profit_total":data["profit_total"],
+                "total_weights": monthly_weights.get((year, month), 0),  # ✅ وزن
             })
             
         #Monthly User Sale
