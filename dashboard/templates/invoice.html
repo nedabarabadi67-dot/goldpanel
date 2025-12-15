@@ -1050,7 +1050,7 @@
             let galleryTotal = 0;
             if (dbLaborMoney && dbLaborMoney > 0) {
             // weightEquivalent * price + (originalWeight * laborMoney)
-            galleryTotal = (equivalentWeight * unitPrice) + (equivalentWeight * unitPrice);
+            galleryTotal = (equivalentWeight * unitPrice) + (equivalentWeight * dbLaborMoney);
             } else if (dbLaborPercent && dbLaborPercent > 0) {
             galleryTotal = (equivalentWeight * unitPrice) + ((dbLaborPercent / 100) * (equivalentWeight * unitPrice));
             } else {
@@ -1094,10 +1094,15 @@
 
             const selected = select.selectedOptions[0] || select.options[select.selectedIndex];
             const dbWeight = parseFloat(selected.dataset.weight) || 0;
+
             const weightInput = row.querySelector(".weightInput");
             const purityInput = row.querySelector(".purityInput");
             const weightpurityInput = row.querySelector(".weightPurityInput");
             const weightkasrInput = row.querySelector(".weightKasrInput");
+            const galleryInput = row.querySelector(".totalGalleryInput");
+            const laborInput = row.querySelector(".laborInput");
+            const laborpriceInput = row.querySelector(".laborpriceInput");
+            const priceInput = row.querySelector(".priceInput");
             console.log('kasr');
             // ✅ وزن کسر شده → کم از وزن اصلی
             let mainWeight = toNum(unformatNumberP(weightInput.value));
@@ -1109,6 +1114,26 @@
             let x = (finalWeight * purity) / 750 ;
             weightpurityInput.value = formatAndPersian(x.toFixed(2));
             weightInput.value = formatAndPersian(finalWeight.toFixed(2));
+
+            const quantityInput = row.querySelector(".quantityInput");
+            const dbLaborPercent = unformatNumberP(laborInput.value) || 0;
+            const dbLaborMoney = unformatNumberP(laborpriceInput.value) || 0;
+            const unitPrice = unformatNumberP(priceInput ? priceInput.value : 0) || dbPrice || 0;
+            const qty = unformatNumberP(quantityInput.value) ; 
+
+            let galleryTotal = 0;
+            if (dbLaborMoney && dbLaborMoney > 0) {
+            // weightEquivalent * price + (originalWeight * laborMoney)
+            galleryTotal = (finalWeight * unitPrice) + (finalWeight * dbLaborMoney) +(weightKasr * dbLaborMoney);
+            } else if (dbLaborPercent && dbLaborPercent > 0) {
+            galleryTotal = (finalWeight * unitPrice) + ((dbLaborPercent / 100) * (finalWeight * unitPrice));
+            galleryTotal += ((weightKasr * dbLaborPercent)/100) * unitPrice ;
+            } else {
+            galleryTotal = equivalentWeight * unitPrice;
+            }
+            galleryTotal = galleryTotal * qty ;
+            console.log(galleryTotal);
+            galleryInput.value = formatAndPersian(Math.round(galleryTotal));
             
 
         }
