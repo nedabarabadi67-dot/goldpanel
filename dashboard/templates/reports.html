@@ -526,9 +526,9 @@
           <td>{{ invoice.number|persian_digits }}</td>
           <td>{{ invoice.customer.name }}</td>
           <td>{{ invoice.date|to_jalali}}</td>
-          <td>{{ sale.total_weights|floatformat:2|persian_digits }}</td>
+          <td>{{ invoice.total_weight|floatformat:2|persian_digits }}</td>
           <td>{{ invoice.total_price|persian_intcomma }}</td>
-          <td>{{invoice.profit_total|persian_intcomma}}</td>
+          <td>{{ invoice.profit_total|persian_intcomma}}</td>
           <td>{{ invoice.user.first_name }} {{invoice.user.last_name}}</td>
         </tr>
         {% empty %}

@@ -80,6 +80,7 @@ from barcode.writer import ImageWriter
 from io import BytesIO
 import base64
 from django.db.models.functions import ExtractYear, ExtractMonth
+from django.db.models import DecimalField, Value
 
 def print_label(request, pk):
     product = get_object_or_404(Product, pk=pk)
@@ -2292,7 +2293,18 @@ def reports(request):
     monthly_sales = []  # ← این خط اضافه شود قبل از هر عملیاتی روی invoices
     monthly_user_sales = []  # ← همین‌طور
 
-    invoices = Invoice.objects.all().order_by('-date')
+    #invoices = Invoice.objects.all().order_by('-date')
+    invoices = (
+        Invoice.objects
+        .annotate(
+            total_weight=Coalesce(
+                Sum('items__weight'),
+                Value(0),
+                output_field=DecimalField()
+            )
+        )
+        .order_by('-date')
+    )
     
     purchase = PurchaseInvoice.objects.all().order_by('-date')
 
