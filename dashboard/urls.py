@@ -65,7 +65,7 @@ urlpatterns = [
     path('invoice/<int:invoice_id>/download-pdf/',views.download_invoice_pdf, name='download_invoice_pdf'),
     path('create_invoice_with_payment',views.create_invoice_with_payment, name='create_invoice_with_payment'),
    
-   path("daily-report/pdf/", daily_report_pdf_view, name="daily_report_pdf"),
+   path("daily-report/pdf/", views.daily_report_pdf_view, name="daily_report_pdf"),
 
     path('invoices/by_date/', views.invoices_by_date, name='invoices_by_date'),
     path('crm',views.crm,name='crm'),
