@@ -2393,21 +2393,20 @@ def reports(request):
             "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند"
         ]
         
-        monthly_weight_qs = (
-            InvoiceItem.objects
-            .annotate(
-                year=ExtractYear('invoice__date'),
-                month=ExtractMonth('invoice__date')
-            )
-            .values('year', 'month')
-            .annotate(total_weight=Sum('weight'))
-        )
-        print(monthly_weight_qs)
-        monthly_weights = {
-            (w['year'], w['month']): w['total_weight']
-            for w in monthly_weight_qs
-        }
-        print(monthly_weights)
+        monthly_weights = {}
+
+        for item in InvoiceItem.objects.select_related('invoice'):
+            if not item.invoice.date:
+                continue
+
+            jdate = JalaliDate.to_jalali(item.invoice.date)
+            key = (jdate.year, jdate.month)
+
+            if key not in monthly_weights:
+                monthly_weights[key] = 0
+
+            monthly_weights[key] += item.weight or 0
+
 
         # مرتب‌سازی و آماده برای context
         monthly_sales = []
@@ -2418,7 +2417,7 @@ def reports(request):
                 "total_invoices": data["total_invoices"],
                 "total_amount": data["total_amount"],
                 "profit_total":data["profit_total"],
-                "total_weights": monthly_weights.get((year, month), 0),  # ✅ وزن
+                "total_weights": monthly_weights.get((year, month), 0),  # ✅ درست
             })
             
         #Monthly User Sale
