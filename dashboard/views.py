@@ -2402,11 +2402,12 @@ def reports(request):
             .values('year', 'month')
             .annotate(total_weight=Sum('weight'))
         )
+        print(monthly_weight_qs)
         monthly_weights = {
             (w['year'], w['month']): w['total_weight']
             for w in monthly_weight_qs
         }
-
+        print(monthly_weights)
 
         # مرتب‌سازی و آماده برای context
         monthly_sales = []
