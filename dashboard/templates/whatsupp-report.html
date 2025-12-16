@@ -110,15 +110,17 @@
     <thead>
         <tr>
             <th>وزن فروش (گرم)</th>
-            <th>مبلغ فروش (ریال)</th>
-            <th>سود فروش (ریال)</th>
+            <th>مبلغ فروش (تومان)</th>
+            <th>سود فروش (تومان)</th>
         </tr>
     </thead>
     <tbody>
         <tr>
-            <td>{{ sale_weight|floatformat:2|persian_digits }}</td>
-            <td>{{ sale_amount|persian_intcomma }}</td>
-            <td>{{ sale_profit|persian_intcomma }}</td>
+            {% for item in daily_sales %}
+            <td>{{ item.total_weights|floatformat:2|persian_digits }}</td>
+            <td>{{ item.total_amount|persian_intcomma }}</td>
+            <td>{{ item.profit_total|persian_intcomma }}</td>
+            {% endfor %}
         </tr>
     </tbody>
 </table>
@@ -134,8 +136,19 @@
     </thead>
     <tbody>
         <tr>
-            <td>{{ buy_weight|floatformat:2|persian_digits }}</td>
-            <td>{{ product_type }}</td>
+           
+            <td>{{ daily_purchase.buy_gold_weight|floatformat:2|persian_digits }}</td>
+            <td>کالا طلا</td>
+        </tr>
+        <tr>
+            <td>{{ daily_purchase.buy_ab_weight|floatformat:2|persian_digits }}</td>
+        
+            <td>آبشده</td>
+        </tr>
+        <tr>
+            <td>{{ daily_purchase.buy_mot_weight|floatformat:2|persian_digits }}</td>
+            <td>متفرقه</td>
+            
         </tr>
     </tbody>
 </table>
@@ -145,8 +158,8 @@
 <table>
     <thead>
         <tr>
-            <th>موجودی بانک (ریال)</th>
-            <th>موجودی صندوق (ریال)</th>
+            <th>موجودی بانک (تومان)</th>
+            <th>موجودی صندوق (تومان)</th>
             <th>موجودی طلا (گرم)</th>
         </tr>
     </thead>

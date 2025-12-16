@@ -521,16 +521,18 @@
       </thead>
       <tbody>
         {% for invoice in invoices %}
-        <tr class="invoice-row" data-id="{{ invoice.id }}" style="cursor: pointer;">
-          
-          <td>{{ invoice.number|persian_digits }}</td>
-          <td>{{ invoice.customer.name }}</td>
-          <td>{{ invoice.date|to_jalali}}</td>
-          <td>{{ invoice.total_weight|floatformat:2|persian_digits }}</td>
-          <td>{{ invoice.total_price|persian_intcomma }}</td>
-          <td>{{ invoice.profit_total|persian_intcomma}}</td>
-          <td>{{ invoice.user.first_name }} {{invoice.user.last_name}}</td>
-        </tr>
+          {% if invoice.customer.name != 'ویترین'%}
+            <tr class="invoice-row" data-id="{{ invoice.id }}" style="cursor: pointer;">
+              
+              <td>{{ invoice.number|persian_digits }}</td>
+              <td>{{ invoice.customer.name }}</td>
+              <td>{{ invoice.date|to_jalali}}</td>
+              <td>{{ invoice.total_weight|floatformat:2|persian_digits }}</td>
+              <td>{{ invoice.total_price|persian_intcomma }}</td>
+              <td>{{ invoice.profit_total|persian_intcomma}}</td>
+              <td>{{ invoice.user.first_name }} {{invoice.user.last_name}}</td>
+            </tr>
+          {% endif%}
         {% empty %}
         <tr>
           <td colspan="6" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>

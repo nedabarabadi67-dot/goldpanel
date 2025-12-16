@@ -531,14 +531,14 @@
           <table class="table table-glass table-hover" id="summaryTable">
             <tbody>
               <tr class=""><th colspan="2" class="text-center">پول</th></tr>
-              <tr><th>کل بدهکار پول</th><td>{{ summary.total_credit_money|persian_intcomma }}</td></tr>
-              <tr><th>کل بستانکار پول</th><td>{{ summary.total_debit_money|persian_intcomma }}</td></tr>
-              <tr><th>مانده کل پول</th><td>{{ summary.balance_money|format_balance|persian_intcomma }}</td></tr>
+              <tr><th>موجودی پول (بدهکار)</th><td>{{ summary.total_credit_money|persian_intcomma }}</td></tr>
+              <tr><th>موجودی پول (بستانکار)</th><td>{{ summary.total_debit_money|persian_intcomma }}</td></tr>
+              <tr><th>موجودی پول (مانده)</th><td>{{ summary.balance_money|format_balance|persian_intcomma }}</td></tr>
 
               <tr class=""><th colspan="2" class="text-center">طلــا</th></tr>
-              <tr><th>کل بدهکار طلا</th><td>{{ summary.total_credit_gold|floatformat:2|persian_digits }}</td></tr>
-              <tr><th>کل بستانکار طلا</th><td>{{ summary.total_debit_gold|floatformat:2|persian_digits }}</td></tr>
-              <tr><th>مانده کل طلا</th><td>{{ summary.balance_gold|floatformat:2|format_gold|persian_digits }}</td></tr>
+              <tr><th>موجودی طلا (بدهکار)</th><td>{{ summary.total_credit_gold|floatformat:2|persian_digits }}</td></tr>
+              <tr><th>موجودی طلا (بستانکار)</th><td>{{ summary.total_debit_gold|floatformat:2|persian_digits }}</td></tr>
+              <tr><th>موجودی طلا (مانده)</th><td>{{ summary.balance_gold|floatformat:2|format_gold|persian_digits }}</td></tr>
             </tbody>
           </table>
         </div>

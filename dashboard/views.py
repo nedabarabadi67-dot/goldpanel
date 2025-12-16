@@ -155,90 +155,123 @@ def daily_report_pdf_view(request):
     # -------------------------------
     report_date = timezone.now().date()
 
-    # -------------------------------
-    # فروش روز
-    # -------------------------------
-    sales = Invoice.objects.filter(
-        type='sale',
-        date__date=report_date
+    sales_qs = Invoice.objects.filter(
+        date=report_date
     )
 
-    sale_data = sales.aggregate(
-        sale_weight=Coalesce(Sum('gold_weight'), Decimal('0')),
-        sale_amount=Coalesce(Sum('total_amount'), Decimal('0')),
-        sale_profit=Coalesce(Sum('profit'), Decimal('0')),
+    sale_data = sales_qs.aggregate(
+        total_customers=Count('customer', distinct=True),
+        total_invoices=Count('id', distinct=True),
+        total_amount=Coalesce(Sum('total_price'), Decimal('0')),
+        profit_total=Coalesce(Sum('profit_total'), Decimal('0')),
     )
+
+    total_weights = InvoiceItem.objects.filter(
+        invoice__date=report_date
+    ).aggregate(
+        w=Coalesce(Sum('weight'), Decimal('0'))
+    )['w']
+
+    daily_sales = [{
+        "date": report_date,
+        "total_customers": sale_data["total_customers"],
+        "total_invoices": sale_data["total_invoices"],
+        "total_weights": total_weights,
+        "total_amount": sale_data["total_amount"],
+        "profit_total": sale_data["profit_total"],
+    }]
+        
+        
+    
 
     # -------------------------------
     # خرید روز
     # -------------------------------
-    buys = Invoice.objects.filter(
-        type='buy',
-        date__date=report_date
+    purchase_qs = PurchaseInvoice.objects.filter(
+        date=report_date
     )
 
-    buy_weight = buys.aggregate(
-        w=Coalesce(Sum('gold_weight'), Decimal('0'))
-    )['w']
+    purchase_weights = purchase_qs.values('type').annotate(
+        total_weight=Coalesce(Sum('weight'), Decimal('0'))
+    )
 
-    product_type = " / ".join(
-        buys.values_list('product_type', flat=True).distinct()
-    ) or "—"
+    # مقدار پیش‌فرض صفر
+    buy_gold_weight = Decimal('0')
+    buy_ab_weight = Decimal('0')
+    buy_mot_weight = Decimal('0')
 
-    # -------------------------------
-    # موجودی بانک
-    # -------------------------------
-    bank_accounts = Account.objects.filter(type='bank')
+    # پر کردن مقادیر
+    for row in purchase_weights:
+        if row['type'] == 'gold':
+            buy_gold_weight = row['total_weight']
+        elif row['type'] == 'ab':
+            buy_ab_weight = row['total_weight']
+        elif row['type'] == 'mot':
+            buy_mot_weight = row['total_weight']
+    
+    daily_purchase = {
+    "date": report_date,
+    "buy_gold_weight": buy_gold_weight,   # کالا
+    "buy_ab_weight": buy_ab_weight,       # آبشده
+    "buy_mot_weight": buy_mot_weight,     # متفرقه
+    }
+    
+    print(daily_purchase)
 
-    bank_balance = JournalItem.objects.filter(
-        account__in=bank_accounts
-    ).aggregate(
-        bal=Coalesce(
-            Sum('debit_money') - Sum('credit_money'),
-            Decimal('0')
-        )
-    )['bal']
+        # ------------------------------------------------
+    # 4) موجودی طلا
+    # ------------------------------------------------
+    inventory_account = Account.objects.get(code="14")  # موجودی طلا
+    items = inventory_account.journal_items.all()
+    balance_gold = Decimal('0')
+    for row in items:
+        debit_gold = row.debit_gold or 0
+        credit_gold = row.credit_gold or 0
+        balance_gold += debit_gold - credit_gold
+    gold_stock_weight = balance_gold
 
-    # -------------------------------
-    # موجودی صندوق
-    # -------------------------------
-    cash_accounts = Account.objects.filter(type='cash')
 
-    cash_balance = JournalItem.objects.filter(
-        account__in=cash_accounts
-    ).aggregate(
-        bal=Coalesce(
-            Sum('debit_money') - Sum('credit_money'),
-            Decimal('0')
-        )
-    )['bal']
 
-    # -------------------------------
-    # موجودی کل طلا
-    # -------------------------------
-    gold_balance = JournalItem.objects.aggregate(
-        bal=Coalesce(
-            Sum('debit_gold') - Sum('credit_gold'),
-            Decimal('0')
-        )
-    )['bal']
+    # ------------------------------------------------
+    # 5) موجودی نقدی
+    # ------------------------------------------------
+    # صندوق
+    cash_accounts = CashAccount.objects.select_related('account')
+    cash_balance = Decimal('0')
+    for cash in cash_accounts:
+        items = cash.account.journal_items.all()
+        balance = Decimal('0')
+        for row in items:
+            debit = row.debit_money or Decimal('0')
+            credit = row.credit_money or Decimal('0')
+            balance += debit - credit
+        cash_balance += balance
+
+    # بانک
+    bank_accounts = BankAccount.objects.select_related('account')
+    bank_balance = Decimal('0')
+    for bank in bank_accounts:
+        items = bank.account.journal_items.all()
+        balance = Decimal('0')
+        for row in items:
+            debit = row.debit_money or Decimal('0')
+            credit = row.credit_money or Decimal('0')
+            balance += debit - credit
+        bank_balance += balance
+
+
 
     # -------------------------------
     # کانتکست قالب PDF
     # -------------------------------
     context = {
         "report_date": report_date,
-
-        "sale_weight": sale_data["sale_weight"],
-        "sale_amount": sale_data["sale_amount"],
-        "sale_profit": sale_data["sale_profit"],
-
-        "buy_weight": buy_weight,
-        "product_type": product_type,
+        "daily_sales" : daily_sales ,
+        "daily_purchase" : daily_purchase ,
 
         "bank_balance": bank_balance,
         "cash_balance": cash_balance,
-        "gold_balance": gold_balance,
+        "gold_balance": balance_gold,
     }
 
     # -------------------------------
@@ -5005,6 +5038,7 @@ def persian_to_decimal(value):
     
 @login_required
 def save_transaction(request):
+        
         if request.method != "POST":
             return JsonResponse({"status": "error", "message": "درخواست نامعتبر است"}, status=400)
 
@@ -5639,7 +5673,7 @@ def transaction_view(request):
     cashes = CashAccount.objects.all()
     expenses = ExpenseAccount.objects.all()
     accounts = Account.objects.all()  # همه حساب‌ها برای انتخاب
-
+    date = timezone.now().date()
     
     # ساخت لیست ترکیبی از همه انواع «اکانت»
     all_accounts = []
@@ -5700,24 +5734,39 @@ def transaction_view(request):
     if request.method == "POST":
         type_ = request.POST.get('type')
         amount = request.POST.get('amount')
-        desc = request.POST.get('description') or ""
+        desc = request.POST.get('note') or ""
         amount = to_decimal(amount)
 
 
         if type_ == "receive":
+            date = request.POST.get('datehidden1')
             source_code = request.POST.get('recieve_account_source')
             dest_code = request.POST.get('recieve_account_destination')
-        else:
+        elif type_== "payment":
+            date = request.POST.get('datehidden2')
             source_code = request.POST.get('payment_account_source')
             dest_code = request.POST.get('payment_account_destination')
-        
+        else:
+            date = request.POST.get('date3')
+            source_code = "14"
+            dest_code = request.POST.get('exit_account_destination')
+            p_code = request.POST.get('p_account_source')
+        print(date)
+        if date:
+                        # تبدیل رشته به jdatetime.date
+                    parts = date.split("/")
+                    if len(parts) == 3:
+                        jy, jm, jd = map(int, parts)
+                        date = jdatetime.date(jy, jm, jd).togregorian()
+        print(date)
         source_code = source_code.strip()  # حذف فاصله اضافی
         dest_code = dest_code.strip()  # حذف فاصله اضافی
+        p_code = p_code.strip()  # حذف فاصله اضافی
         print("source_code",source_code)
         print("source_code",dest_code)
         source_account = Account.objects.get(code=source_code)
         dest_account = Account.objects.get(code=dest_code)
-        
+        product = Product.objects.get(code=p_code)
         # 🔹 چک یکی بودن حساب‌ها
         print(source_account.code)
         print(dest_account.code)
@@ -5736,7 +5785,8 @@ def transaction_view(request):
                 if type_ == 'receive':
                     # ✅ ایجاد سند حسابداری
                     entry = JournalEntry.objects.create(
-                        date=timezone.now().date(),
+                        #date=timezone.now().date(),
+                        date=date,
                         description=f"{'دریافت' if type_=='receive' else 'پرداخت'} وجه - {desc}")
 
 
@@ -5754,9 +5804,10 @@ def transaction_view(request):
                         credit_money=to_decimal(amount),
                         description=f"پرداخت به   {dest_account.name}  {desc}"
                         )
-                else:
+                elif type_ == "payment":
                     entry = JournalEntry.objects.create(
-                                date=timezone.now().date(),
+                                #date=timezone.now().date(),
+                                date=date,
                                 description=f"واریز وجه توسط   {source_account.name} به {dest_account.name}"
                     )
                     # پرداخت وجه: بدهکار مقصد، بستانکار مبدا
@@ -5772,14 +5823,69 @@ def transaction_view(request):
                         credit_money=to_decimal(amount),
                         description=f"واریز توسط   {source_account.name}  {desc}"
                     )
+                    
+                else : 
+                    
+                    entry = JournalEntry.objects.create(
+                                #date=timezone.now().date(),
+                                date=date,
+                                description=f" خروج طلا به {dest_account.name}"
+                    )
+                    # پرداخت وجه: بدهکار مقصد، بستانکار مبدا
+                    JournalItem.objects.create(
+                        entry=entry, 
+                        account=dest_account, 
+                        debit_money=to_decimal(amount),
+                        description=f" برداشت طلا  {desc}"
+                    )
+                    JournalItem.objects.create(
+                        entry=entry, 
+                        account=source_account, 
+                        credit_money=to_decimal(amount),
+                        description=f"خروج طلا   {dest_account.name}  {desc}"
+                    )
+                    
+                    #product = Product.objects.get(code='1')
+                    #if product.category == 'ab' or product.category == 'mot' :
+                    if product.category in ['ab', 'mot']:
+                        mgtransaction = MeltedGoldTransaction.objects.create(
+                                melted_gold=product,
+                                transaction_type="OUT",
+                                source=f" خروج طلا ",
+                                destination = dest_account.name,
+                                weight=amount,
+                                price_per_gram=0,  # قیمت هر گرم (می‌توانی انتخابی باشد)
+                                price_per_mesghal = 0 , 
+                                total_price=0,  # محاسبه کل مبلغ
+                                date= date,
+                                note=desc
+                            )
+                        print(product.weight)
+                        product.weight -= amount
+                        product.save()
+                        print(product.weight)
+                    else: 
+                    # بررسی موجودی
+                        if product.quantity == 0:
+                            return JsonResponse({
+                                "success": False,
+                                "stock_error": True,
+                                "message": f"کالا '{product.name}' موجودی کافی ندارد. موجودی فعلی: "
+                            })
+                        else :
+                            # کاهش موجودی
+                            product.quantity -= 1
+                            product.save()
 
                 return JsonResponse({"success": True, "message": "تراکنش با موفقیت ثبت شد!"})
                 
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
-
+    products = Product.objects.all()
     context = {
+        "date": date,
         "persons": persons,
+        "products": products ,
         "banks": banks,
         "cashes": cashes,
         "expenses": expenses,
