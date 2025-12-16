@@ -2495,6 +2495,7 @@ def reports(request):
         # گروه‌بندی بر اساس روز
     daily_sales_qs = (
         Invoice.objects
+        .exclude(customer__name='ویترین')   # ⬅️ حذف مشتری ویترین
         .annotate(day=TruncDay('date'))
         .values('day')  # فقط روز
         .annotate(
@@ -2510,6 +2511,7 @@ def reports(request):
     # جمع وزن: کوئری جداگانه
     weight_qs = (
         InvoiceItem.objects
+            .exclude(customer__name='ویترین')   # ⬅️ حذف مشتری ویترین
             .annotate(day=TruncDay('invoice__date'))
             .values('day')
             .annotate(total_weights=Sum('weight'))
@@ -4435,7 +4437,9 @@ def financial_dashboard(request):
     # 1) فروش (Invoice)
     # ------------------------------------------------
     
-    invoices = Invoice.objects.all()
+    #invoices = Invoice.objects.all()
+    invoices = Invoice.objects.exclude(customer__name='ویترین')
+
 
     total_sale_amount = invoices.aggregate(total=Sum('total_price'))['total'] or 0
     total_sale_profit = invoices.aggregate(total=Sum('profit_total'))['total'] or 0
@@ -4461,9 +4465,7 @@ def financial_dashboard(request):
     # 3) خرید طلا
     # ------------------------------------------------
     # اگر خرید هم invoiceItem مشابه دارد:
-    total_buy_weight = PurchaseInvoice.objects.aggregate(
-        total=Sum('weight')
-    )['total'] or 0
+    total_buy_weight = PurchaseInvoice.objects.exclude(seller__name='ویترین') .aggregate(total=Sum('weight'))['total'] or 0
 
     total_buy_fee = PurchaseInvoice.objects.filter.aggregate(
         total=Sum('price')
