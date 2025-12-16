@@ -320,7 +320,7 @@ def daily_report_pdf_view(request):
     now = datetime.now()
     hour = now.hour
     minute = (now.minute + 1) % 60  # ارسال یک دقیقه بعد
-    pywhatkit.sendwhatmsg(to_number, message, hour, minute)
+   # pywhatkit.sendwhatmsg(to_number, message, hour, minute)
     # -------------------------------
     # پاسخ PDF
     # -------------------------------
