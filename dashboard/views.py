@@ -11,6 +11,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.timezone import now
 import jdatetime
+import pywhatkit
 import requests
 from weasyprint import CSS, HTML
 from django.db.models import CharField
@@ -292,11 +293,34 @@ def daily_report_pdf_view(request):
     # -------------------------------
     # ذخیره PDF روی سرور
     # -------------------------------
-    pdf_file_path = f"/tmp/daily_report_{report_date}.pdf"
+    media_dir = os.path.join(settings.MEDIA_ROOT, "reports")
+    os.makedirs(media_dir, exist_ok=True)
+    pdf_file_name = f"daily_report_{report_date}.pdf"
+    pdf_file_path = os.path.join(media_dir, pdf_file_name)
+
     with open(pdf_file_path, "wb") as f:
         f.write(pdf_file)
-    pdf_url = request.build_absolute_uri(f"/media/daily_report_{report_date}.pdf")
 
+    pdf_url = request.build_absolute_uri(settings.MEDIA_URL + f"reports/{pdf_file_name}")
+
+    # -------------------------------
+    # ارسال پیام واتساپ
+    # -------------------------------
+    to_number = "+989385974635"  # شماره گیرنده
+    message = f"""
+    📊 گزارش روزانه {report_date} آماده شد.
+
+    💰 فروش: {daily_sales[0]['total_amount']:,}
+    📦 وزن فروش: {daily_sales[0]['total_weights']}
+    🛒 تعداد فاکتور: {daily_sales[0]['total_invoices']}
+
+    📥 دانلود PDF: {pdf_url}
+"""
+
+    now = datetime.now()
+    hour = now.hour
+    minute = (now.minute + 1) % 60  # ارسال یک دقیقه بعد
+    pywhatkit.sendwhatmsg(to_number, message, hour, minute)
     # -------------------------------
     # پاسخ PDF
     # -------------------------------
