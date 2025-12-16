@@ -593,35 +593,34 @@
       </thead>
       <tbody>
         {% for p in purchase %}
-        <tr class="purchase-row" data-id="{{ p.id }}" style="cursor: pointer;">
-          
-          <td>{{ p.number|persian_digits }}</td>
-          <td>{{ p.seller.name }}</td>
-          <td>{{p.type|type_purchase}}</td>
-          <td>{{ p.date|to_jalali}}</td>
-          <td>{{p.weight|persian_digits}}</td>
-          <td>{{p.purity|persian_digits}}</td>
-          <!--<td>{{ p.price|persian_intcomma }}</td>
-          <td>{{ p.pricemesghal|persian_intcomma }}</td>
-          <td>{{p.labor|persian_digits}}</td>
-          <td>{{ p.laborprice|persian_intcomma }}</td>-->
-          <td>{{ p.total_price|persian_intcomma }} </td>
-          <td class="text-center">
+          {% if p.seller.name != 'ویترین'%}
+            <tr class="purchase-row" data-id="{{ p.id }}" style="cursor: pointer;">
+              <td>{{ p.number|persian_digits }}</td>
+              <td>{{ p.seller.name }}</td>
+              <td>{{p.type|type_purchase}}</td>
+              <td>{{ p.date|to_jalali}}</td>
+              <td>{{p.weight|persian_digits}}</td>
+              <td>{{p.purity|persian_digits}}</td>
+              <!--<td>{{ p.price|persian_intcomma }}</td>
+              <td>{{ p.pricemesghal|persian_intcomma }}</td>
+              <td>{{p.labor|persian_digits}}</td>
+              <td>{{ p.laborprice|persian_intcomma }}</td>-->
+              <td>{{ p.total_price|persian_intcomma }} </td>
+              <td class="text-center">
 
-              {% if p.image %}
-              <button class="btn btn-info btn-sm view-image-btn"
-                      data-url="{{ p.image.url }}"
-                      style="border-radius: 6px;">
-                  <i class="bi bi-image"></i>  
-              </button>
-              {% else %}
-                  <span class="text-secondary">—</span>
-              {% endif %}
+                  {% if p.image %}
+                  <button class="btn btn-info btn-sm view-image-btn"
+                          data-url="{{ p.image.url }}"
+                          style="border-radius: 6px;">
+                      <i class="bi bi-image"></i>  
+                  </button>
+                  {% else %}
+                      <span class="text-secondary">—</span>
+                  {% endif %}
 
-          </td>
-
-
-        </tr>
+              </td>
+            </tr>
+            {% endif%}
         {% empty %}
         <tr>
           <td colspan="8" class="text-center text-white">هیچ فاکتوری پیدا نشد.</td>
