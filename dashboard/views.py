@@ -289,6 +289,13 @@ def daily_report_pdf_view(request):
         string=html_string,
         base_url=request.build_absolute_uri('/')
     ).write_pdf()
+    # -------------------------------
+    # ذخیره PDF روی سرور
+    # -------------------------------
+    pdf_file_path = f"/tmp/daily_report_{report_date}.pdf"
+    with open(pdf_file_path, "wb") as f:
+        f.write(pdf_file)
+    pdf_url = request.build_absolute_uri(f"/media/daily_report_{report_date}.pdf")
 
     # -------------------------------
     # پاسخ PDF
