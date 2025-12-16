@@ -150,22 +150,6 @@
     vertical-align: middle;
     text-align: center;
 }
-
-  .credit {
-      color: #006400; /* سبز تیره */
-      font-weight: bold;
-      text-align: right;
-  }
-  .debit {
-      color: #8B0000; /* قرمز تیره */
-      font-weight: bold;
-      text-align: right;
-  }
-  td {
-      padding: 5px 10px; /* کمی فاصله داخل سلول */
-      font-size: 1rem;   /* اندازه کمی بزرگ‌تر */
-  }
-
 </style>
 
     <div class="row">
@@ -391,10 +375,10 @@
               <td>{{ row.category }}</td>
               <td>{{ row.description }}</td>
               {% if row.credit > 0 %}
-                <td  class="credit">{{ row.credit|persian_intcomma }}</td>
+                <td style="color: green;">{{ row.credit|persian_intcomma }}</td>
               {% endif %}
               {% if row.debit > 0 %}
-                <td class="debit">{{ row.debit|persian_intcomma }}</td>
+                <td style="color: #8B0000;">{{ row.debit|persian_intcomma }}</td>
               {% endif %}
               
             </tr>
