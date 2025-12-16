@@ -2535,6 +2535,8 @@ def reports(request):
     # --------- فروش ماهانه  ---------
         monthly_data = {}
         for inv in invoices:
+            if inv.customer and inv.customer.name == 'ویترین':
+                continue
             jdate = JalaliDate.to_jalali(inv.date)
             key = (jdate.year, jdate.month)  # کلید گروه‌بندی
 
@@ -2589,7 +2591,8 @@ def reports(request):
         
         for inv in invoices:
 
-
+            if inv.customer and inv.customer.name == 'ویترین':
+                continue
             #print(inv.user.id)
             jdate = JalaliDate.to_jalali(inv.date)
             
