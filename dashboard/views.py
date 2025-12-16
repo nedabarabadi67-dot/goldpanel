@@ -2511,7 +2511,8 @@ def reports(request):
     # جمع وزن: کوئری جداگانه
     weight_qs = (
         InvoiceItem.objects
-            .exclude(customer__name='ویترین')   # ⬅️ حذف مشتری ویترین
+            .exclude(invoice__customer__name='ویترین')
+            .exclude(invoice__isnull=True)  # ⚠️ امن‌تر
             .annotate(day=TruncDay('invoice__date'))
             .values('day')
             .annotate(total_weights=Sum('weight'))
