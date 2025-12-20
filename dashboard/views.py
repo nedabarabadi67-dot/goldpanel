@@ -4406,7 +4406,7 @@ def financial_dashboard(request):
             debit_money_val=Coalesce('debit_money', V(0, output_field=DecimalField())),
             credit_money_val=Coalesce('credit_money', V(0, output_field=DecimalField())),
         )
-        .order_by('entry__date', 'id')
+        .order_by('-entry__date', 'id')
     )
 
     ledger = []
