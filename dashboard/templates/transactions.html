@@ -660,12 +660,9 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
     const paymentForm = document.getElementById("receiveForm");
 
-
     paymentForm.addEventListener("submit", function(e) {
         e.preventDefault();
 
-
-        // ارسال AJAX
         fetch(paymentForm.action, {
             method: 'POST',
             body: new FormData(paymentForm),
@@ -673,22 +670,32 @@ document.addEventListener("DOMContentLoaded", () => {
                 'X-Requested-With': 'XMLHttpRequest',
             }
         })
-        .then(res => res.json())
+        .then(async res => {
+            const text = await res.text();   // 👈 اول متن خام
+            console.log("RAW RESPONSE:", text);
+
+            try {
+                return JSON.parse(text);     // 👈 بعد تلاش برای JSON
+            } catch (e) {
+                throw new Error("پاسخ سرور JSON نیست");
+            }
+        })
         .then(data => {
-            if(!data.success){
-                Swal.fire("خطا", data.error || "ذخیره با خطا مواجه شد", "error");
-                console.log(data.error);
+            if (!data.success) {
+                Swal.fire("خطا", data.error || "خطای نامشخص", "error");
                 return;
             }
-            Swal.fire("موفق", data.message || "تراکنش با موفقیت ثبت شد", "success")
-                .then(() => window.location.reload()); // بعد از OK صفحه رفرش شود
-            
-            })
+
+            Swal.fire("موفق", data.message, "success")
+                .then(() => window.location.reload());
+        })
         .catch(err => {
-            Swal.fire("خطا", "ارسال درخواست با مشکل مواجه شد", "error");
+            console.error("FETCH ERROR:", err);
+            Swal.fire("خطا", err.message, "error");
         });
     });
 });
+
 
 document.addEventListener("DOMContentLoaded", () => {
     const paymentForm = document.getElementById("exitForm");

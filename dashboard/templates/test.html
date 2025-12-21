@@ -107,3 +107,39 @@ document.addEventListener("DOMContentLoaded", function() {
 
             hiddenInput.value = barcode;
         });
+
+
+
+
+        document.addEventListener("DOMContentLoaded", () => {
+    const paymentForm = document.getElementById("receiveForm");
+
+
+    paymentForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+
+
+        // ارسال AJAX
+        fetch(paymentForm.action, {
+            method: 'POST',
+            body: new FormData(paymentForm),
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(!data.success){
+                Swal.fire("خطا", data.error || "ذخیره با خطا مواجه شد", "error");
+                console.log(data.error);
+                return;
+            }
+            Swal.fire("موفق", data.message || "تراکنش با موفقیت ثبت شد", "success")
+                .then(() => window.location.reload()); // بعد از OK صفحه رفرش شود
+            
+            })
+        .catch(err => {
+            Swal.fire("خطا", "ارسال درخواست با مشکل مواجه شد", "error");
+        });
+    });
+});
