@@ -708,6 +708,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .then(data => {
             if(!data.success){
                 Swal.fire("خطا", data.error || "ذخیره با خطا مواجه شد", "error");
+                console.log(data.error);
                 return;
             }
             Swal.fire("موفق", data.message || "تراکنش با موفقیت ثبت شد", "success")
@@ -715,6 +716,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             })
         .catch(err => {
+            
             Swal.fire("خطا", "ارسال درخواست با مشکل مواجه شد", "error");
         });
     });
