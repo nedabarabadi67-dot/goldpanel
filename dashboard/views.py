@@ -5793,7 +5793,7 @@ def transaction_view(request):
             return JsonResponse({"success": False, "error": "حساب مبدا و حساب مقصد نمی‌توانند یکسان باشند!"})
         
         # بررسی موجودی در صورت پرداخت
-        if type_ == "payment" and amount > source_account.calculated_balance_recursive():
+        if type_ == "payment" and amount > source_account.calculated_balance_recursive:
             return JsonResponse({"success": False, "error": f"موجودی حساب {source_account.name} کافی نیست!"})
         
         
