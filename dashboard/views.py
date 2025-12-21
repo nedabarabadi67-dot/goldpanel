@@ -946,13 +946,13 @@ def edit_product(request, id):
     if request.method == "POST":
         try:
             product = Product.objects.get(id=id)
-            product.code = request.POST.get("code", product.code)
+            product.code = request.POST.get("code", to_decimal(product.code))
             product.name = request.POST.get("name", product.name)
             product.category = request.POST.get("category", product.category)
-            product.weight = request.POST.get("weight", product.weight)
+            product.weight = request.POST.get("weight", to_decimal(product.weight))
             product.labor = request.POST.get("labor", product.labor)
             product.quantity = request.POST.get("quantity", product.quantity)
-            product.purity = request.POST.get("purity", product.purity)
+            product.purity = request.POST.get("purity", to_decimal(product.purity))
             product.description = request.POST.get("description", product.description)
 
             if "image" in request.FILES:
@@ -5848,13 +5848,13 @@ def transaction_view(request):
                     JournalItem.objects.create(
                         entry=entry, 
                         account=dest_account, 
-                        debit_money=to_decimal(amount),
+                        debit_gold=to_decimal(amount),
                         description=f" برداشت طلا  {desc}"
                     )
                     JournalItem.objects.create(
                         entry=entry, 
                         account=source_account, 
-                        credit_money=to_decimal(amount),
+                        credit_gold=to_decimal(amount),
                         description=f"خروج طلا   {dest_account.name}  {desc}"
                     )
                     
