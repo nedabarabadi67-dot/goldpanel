@@ -946,18 +946,22 @@ def edit_product(request, id):
     if request.method == "POST":
         try:
             product = Product.objects.get(id=id)
-            product.code = request.POST.get("code", to_decimal(product.code))
+            #product.code = request.POST.get("code", to_decimal(product.code))
             product.name = request.POST.get("name", product.name)
             product.category = request.POST.get("category", product.category)
             product.weight = request.POST.get("weight", to_decimal(product.weight))
             product.labor = request.POST.get("labor", product.labor)
             product.quantity = request.POST.get("quantity", product.quantity)
-            product.purity = request.POST.get("purity", to_decimal(product.purity))
+            purity=request.POST.get("purity")
+            print(purity)
+            purity=to_decimal(purity)
+            print(purity)
+            product.purity = purity
             product.description = request.POST.get("description", product.description)
 
             if "image" in request.FILES:
                 product.image = request.FILES["image"]
-
+            
             product.save()
 
             category_map = {
@@ -5749,14 +5753,15 @@ def transaction_view(request):
         amount = request.POST.get('amount')
         desc = request.POST.get('note') or ""
         amount = to_decimal(amount)
-
+        p_code="1"
+        print(type_)
 
         if type_ == "receive":
-            date = request.POST.get('datehidden1')
+            date = request.POST.get('date1')
             source_code = request.POST.get('recieve_account_source')
             dest_code = request.POST.get('recieve_account_destination')
         elif type_== "payment":
-            date = request.POST.get('datehidden2')
+            date = request.POST.get('date2')
             source_code = request.POST.get('payment_account_source')
             dest_code = request.POST.get('payment_account_destination')
         else:
@@ -5774,7 +5779,7 @@ def transaction_view(request):
         print(date)
         source_code = source_code.strip()  # حذف فاصله اضافی
         dest_code = dest_code.strip()  # حذف فاصله اضافی
-        p_code = p_code.strip()  # حذف فاصله اضافی
+        #p_code = p_code.strip()  # حذف فاصله اضافی
         print("source_code",source_code)
         print("source_code",dest_code)
         source_account = Account.objects.get(code=source_code)
